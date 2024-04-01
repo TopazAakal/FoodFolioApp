@@ -14,7 +14,7 @@ import CategoryRecipesScreen from "./screens/CategoryRecipesScreen";
 import AddCategoryScreen from "./screens/AddCategoryScreen";
 
 I18nManager.forceRTL(true);
-
+//comment
 const Stack = createStackNavigator();
 
 export default function App() {
