@@ -57,16 +57,18 @@ function AddRecipeScreen() {
   ];
 
   useEffect(() => {
-    fetchAllCategories((success, data) => {
-      if (success) {
+    const loadCategories = async () => {
+      const data = await fetchAllCategories();
+      if (data) {
         setCategories(data);
         if (recipeId) {
-          fetchRecipeDetails(recipeId, data);
+          await fetchRecipeDetails(recipeId);
         }
       } else {
         console.log("Failed to fetch categories");
       }
-    });
+    };
+    loadCategories();
   }, [recipeId]);
 
   const getCategoryIdsFromNames = (namesString, categories) => {
@@ -82,34 +84,27 @@ function AddRecipeScreen() {
     return catIds;
   };
 
-  const fetchRecipeDetails = (recipeId) => {
-    fetchRecipeById(recipeId, (success, data) => {
-      if (success) {
-        try {
-          console.log("Fetched Recipe Data:", data);
-
-          const ingredients = JSON.parse(data.ingredients || "[]");
-          const categoryIds = getCategoryIdsFromNames(
-            data.categoryNames,
-            categories
-          );
-          console.log("Category IDs:", categoryIds);
-          setTitle(data.title);
-          setInstructions(data.instructions);
-          setTotalTime(data.totalTime);
-          setRecipeImage(data.image);
-          setIngredients(ingredients);
-          setSelectedCategories(categoryIds);
-        } catch (e) {
-          console.error("Error parsing recipe details:", e);
-        }
-      } else {
-        console.error(
-          "Failed to fetch recipe details for recipe ID:",
-          recipeId
+  const fetchRecipeDetails = async (recipeId) => {
+    const data = await fetchRecipeById(recipeId);
+    if (data) {
+      try {
+        const ingredients = JSON.parse(data.ingredients || "[]");
+        const categoryIds = getCategoryIdsFromNames(
+          data.categoryNames,
+          categories
         );
+        setTitle(data.title);
+        setInstructions(data.instructions);
+        setTotalTime(data.totalTime);
+        setRecipeImage(data.image);
+        setIngredients(ingredients);
+        setSelectedCategories(categoryIds);
+      } catch (e) {
+        console.error("Error parsing recipe details:", e);
       }
-    });
+    } else {
+      console.error("Failed to fetch recipe details for recipe ID:", recipeId);
+    }
   };
 
   const handleSaveRecipe = async () => {
@@ -137,7 +132,7 @@ function AddRecipeScreen() {
       instructions,
       totalTime,
       image: recipeImage,
-      categoryIds,
+      categoryIds: selectedCategories.map((id) => id.toString()),
     };
 
     if (recipeId) {
@@ -157,27 +152,22 @@ function AddRecipeScreen() {
       );
     } else {
       // Adding new recipe
-      insertRecipeWithCategories(recipeData, (success, newRecipeId) => {
-        if (success) {
-          console.log(`Recipe added successfully with ID: ${newRecipeId}`);
-          navigation.replace("AllCategories");
-        } else {
-          console.error("Failed to add recipe");
-        }
-      });
+      console.log("Adding new recipe with data:", recipeData);
+      const newRecipeId = await insertRecipeWithCategories(recipeData);
+      console.log(`Recipe added successfully with ID: ${newRecipeId}`);
+      navigation.replace("AllCategories");
     }
   };
 
-  const insertNewCategory = (categoryName) => {
-    return new Promise((resolve, reject) => {
-      insertCategory(categoryName, "", (success, newCategoryId) => {
-        if (success) {
-          resolve(newCategoryId);
-        } else {
-          reject("Failed to insert new category");
-        }
-      });
-    });
+  const insertNewCategory = async (categoryName) => {
+    try {
+      const newCategoryId = await insertCategory(categoryName);
+      console.log(`New category inserted with ID: ${newCategoryId}`);
+      return newCategoryId;
+    } catch (error) {
+      console.error("Failed to insert new category", error);
+      throw error;
+    }
   };
 
   const toggleCategorySelection = (categoryId) => {

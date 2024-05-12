@@ -19,35 +19,28 @@ const AllCategoriesScreen = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
-      const fetchCategories = () => {
-        fetchAllCategories((success, data) => {
-          if (success) {
-            setCategories(data);
-          } else {
-            console.log("Failed to fetch categories");
-          }
-        });
+      const fetchCategories = async () => {
+        try {
+          const data = await fetchAllCategories();
+          setCategories(data);
+        } catch (error) {
+          console.log("Failed to fetch categories", error);
+        }
       };
 
       fetchCategories();
     }, [])
   );
 
-  const handleDeleteCategory = (categoryId) => {
-    deleteCategoryById(categoryId, (success) => {
-      if (success) {
-        console.log("Category deleted successfully");
-        fetchAllCategories((success, data) => {
-          if (success) {
-            setCategories(data);
-          } else {
-            console.log("Failed to fetch categories after deletion");
-          }
-        });
-      } else {
-        console.log("Failed to delete category");
-      }
-    });
+  const handleDeleteCategory = async (categoryId) => {
+    try {
+      const result = await deleteCategoryById(categoryId);
+      console.log(`Deleted ${result.rowsAffected} rows.`);
+      const updatedCategories = await fetchAllCategories();
+      setCategories(updatedCategories);
+    } catch (error) {
+      console.log("Failed to delete category", error);
+    }
   };
 
   const handleSelectCategory = (categoryId, categoryName) => {

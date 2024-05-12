@@ -27,30 +27,32 @@ function RecipeDeatailScreen({ navigation, route }) {
 
   useEffect(() => {
     const { recipeId, selectedCategory } = route.params;
-    if (recipeId) {
-      fetchRecipeById(recipeId, (success, data) => {
-        if (success) {
-          try {
+    const fetchRecipe = async () => {
+      if (recipeId) {
+        try {
+          const data = await fetchRecipeById(recipeId); // Assuming fetchRecipeById is now an async function returning the recipe data or throwing an error.
+          if (data) {
             const ingredientsArray = JSON.parse(data.ingredients || "[]");
             const categoryNames = data.categoryNames
               ? data.categoryNames.split(",")
               : [];
             const categoryToShow =
               selectedCategory || categoryNames[0] || "ללא קטגוריה";
-
             setRecipe({
               ...data,
               ingredients: ingredientsArray,
               categoryToShow,
             });
-          } catch (e) {
-            console.error("Parsing error:", e);
+          } else {
+            console.error("No data returned for recipe ID:", recipeId);
           }
-        } else {
-          console.error("Failed to fetch recipe for ID:", recipeId);
+        } catch (error) {
+          console.error("Failed to fetch recipe for ID:", recipeId, error);
         }
-      });
-    }
+      }
+    };
+
+    fetchRecipe();
   }, [route.params]);
 
   if (!recipe) {
@@ -66,22 +68,19 @@ function RecipeDeatailScreen({ navigation, route }) {
       { text: "ביטול", style: "cancel" },
       {
         text: "מחיקה",
-        style: "destructive",
-        onPress: () => {
+        onPress: async () => {
           const recipeId = route.params?.recipeId;
-          if (recipeId) {
-            deleteRecipeById(recipeId, (success) => {
-              if (success) {
-                Alert.alert("בוצע", "המתכון נמחק בהצלחה", [
-                  {
-                    text: "אישור",
-                    onPress: () => navigation.replace("AllCategories"),
-                  },
-                ]);
-              } else {
-                Alert.alert("שגיאה", "המתכון לא נמחק בהצלחה");
-              }
-            });
+          try {
+            if (recipeId) {
+              await deleteRecipeById(recipeId);
+              Alert.alert("המתכון נמחק בהצלחה", "", [
+                { text: "אישור", onPress: () => navigation.goBack() },
+              ]);
+            } else {
+              Alert.alert("שגיאה", "המתכון לא נמחק בהצלחה");
+            }
+          } catch (error) {
+            Alert.alert("שגיאה", "המתכון לא נמחק בהצלחה");
           }
         },
       },
