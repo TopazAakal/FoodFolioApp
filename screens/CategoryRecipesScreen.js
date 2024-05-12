@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+
 import {
   View,
   Text,
@@ -20,15 +22,28 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
   const { categoryId, categoryName } = route.params;
   const [recipes, setRecipes] = useState([]);
 
-  useEffect(() => {
-    fetchRecipesByCategory(categoryId, (success, data) => {
-      if (success) {
-        setRecipes(data);
-      } else {
-        console.log("Failed to fetch recipes for category ID:", categoryId);
+  useFocusEffect(
+    React.useCallback(() => {
+      async function fetchRecipes() {
+        try {
+          const data = await fetchRecipesByCategory(categoryId);
+          console.log("data", data);
+          if (data) {
+            setRecipes(data);
+          } else {
+            console.log("No recipes found for category:", categoryId);
+          }
+        } catch (error) {
+          console.log(
+            "Failed to fetch recipes for category ID:",
+            categoryId,
+            error
+          );
+        }
       }
-    });
-  }, [categoryId]);
+      fetchRecipes();
+    }, [categoryId])
+  );
 
   const navigateToRecipeDetail = (recipeId) => {
     navigation.navigate("RecipeDisplay", {
@@ -37,14 +52,17 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
     });
   };
 
-  const refreshRecipes = () => {
-    fetchRecipesByCategory(categoryId, (success, data) => {
-      if (success) {
-        setRecipes(data);
-      } else {
-        console.log("Failed to fetch recipes for category ID:", categoryId);
-      }
-    });
+  const refreshRecipes = async () => {
+    try {
+      const data = await fetchRecipesByCategory(categoryId);
+      setRecipes(data);
+    } catch (error) {
+      console.log(
+        "Failed to fetch recipes for category ID:",
+        categoryId,
+        error
+      );
+    }
   };
 
   const renderItem = ({ item }) => (

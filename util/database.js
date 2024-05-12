@@ -1,292 +1,223 @@
 import * as SQLite from "expo-sqlite";
 const DEFAULT_CATEGORY_IMAGE = "../images/category_placeholder.jpg";
 
-const db = SQLite.openDatabase("recipes.db");
-
-const initDB = () => {
-  db.transaction(
-    (tx) => {
-      // Create recipes table
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS recipes (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          title TEXT NOT NULL,
-          ingredients TEXT NOT NULL,
-          instructions TEXT NOT NULL,
-          image TEXT,
-          totalTime TEXT
-        );`
+async function initDB() {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    await db.execAsync(`
+      PRAGMA journal_mode = WAL;
+      CREATE TABLE IF NOT EXISTS recipes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        ingredients TEXT NOT NULL,
+        instructions TEXT NOT NULL,
+        image TEXT,
+        totalTime TEXT
       );
 
-      // Create categories table
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS categories (
-          id INTEGER PRIMARY KEY NOT NULL,
-          name TEXT NOT NULL UNIQUE
-        );`,
-        [],
-        () => {
-          console.log("Created categories table");
-        }
-      );
-      // Add image column to categories table
-      tx.executeSql(
-        `ALTER TABLE categories ADD COLUMN image TEXT;`,
-        [],
-        () => {
-          console.log("Added image column to categories table");
-        },
-
-        (transaction, error) => {
-          if (error.code === 1) {
-            console.log(
-              "The image column already exists in the categories table."
-            );
-          }
-        }
-      );
-      // Insert default category
-      tx.executeSql(
-        "INSERT OR IGNORE INTO categories (name, image) VALUES (?, ?);",
-        ["מועדפים"],
-        () => {
-          console.log("Inserted default category");
-        }
+      CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL UNIQUE,
+        image TEXT DEFAULT '${DEFAULT_CATEGORY_IMAGE}'
       );
 
-      // Create join table for many-to-many relationship
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS recipe_categories (
-          recipeId INTEGER,
-          categoryId INTEGER,
-          PRIMARY KEY (recipeId, categoryId),
-          FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE CASCADE,
-          FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
-        );`
+      CREATE TABLE IF NOT EXISTS recipe_categories (
+        recipeId INTEGER,
+        categoryId INTEGER,
+        PRIMARY KEY (recipeId, categoryId),
+        FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE CASCADE,
+        FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
       );
-    },
-    (error) => console.log("Transaction error initializing database:", error),
-    () => console.log("Database initialization successful")
-  );
-};
+      INSERT OR IGNORE INTO categories (name, image) VALUES ('מועדפים', '${DEFAULT_CATEGORY_IMAGE}');
+    `);
+    console.log("Database initialization successful");
+  } catch (error) {
+    console.error("Error initializing database:", error);
+  }
+}
 
-// const insertRecipe = (recipe, categoryIds, callback) => {
-//   db.transaction((tx) => {
-//     tx.executeSql(
-//       `INSERT INTO recipes (title, ingredients, instructions, image, totalTime) VALUES (?, ?, ?, ?, ?);`,
-//       [
-//         recipe.title,
-//         JSON.stringify(recipe.ingredients),
-//         recipe.instructions,
-//         recipe.image,
-//         recipe.totalTime,
-//       ],
-//       (tx, results) => {
-//         const recipeId = results.insertId;
-//         categoryIds.forEach((categoryId) => {
-//           tx.executeSql(
-//             `INSERT INTO recipe_categories (recipeId, categoryId) VALUES (?, ?);`,
-//             [recipeId, categoryId]
-//           );
-//         });
-//         callback(true, recipeId);
-//       },
-//       (_, error) => {
-//         console.log("Failed to insert recipe:", error);
-//         callback(false, error);
-//       }
-//     );
-//   });
-// };
+async function fetchAllRecipes() {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    const rows = await db.getAllAsync("SELECT * FROM recipes;");
+    return rows;
+  } catch (error) {
+    console.error("Error fetching recipes:", error);
+  }
+}
 
-const fetchAllRecipes = (callback) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      "SELECT * FROM recipes;",
-      [],
-      (_, { rows }) => callback(true, rows._array),
-      (_, error) => callback(false, error)
+async function fetchRecipeById(id) {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    const row = await db.getFirstAsync(
+      `
+      SELECT r.*, GROUP_CONCAT(c.name) AS categoryNames 
+      FROM recipes r
+      LEFT JOIN recipe_categories rc ON r.id = rc.recipeId
+      LEFT JOIN categories c ON rc.categoryId = c.id
+      WHERE r.id = ?
+      GROUP BY r.id;
+    `,
+      [id]
     );
-  });
-};
+    return row;
+  } catch (error) {
+    console.error("Error fetching recipe with ID:", id, error);
+  }
+}
 
-const fetchRecipeById = (id, callback) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      `SELECT r.*, GROUP_CONCAT(c.name) AS categoryNames 
-        FROM recipes r
-        LEFT JOIN recipe_categories rc ON r.id = rc.recipeId
-        LEFT JOIN categories c ON rc.categoryId = c.id
-        WHERE r.id = ?
-        GROUP BY r.id;`,
-      [id],
-      (_, { rows }) => {
-        if (rows.length > 0) {
-          callback(true, rows._array[0]);
-        } else {
-          console.log("No recipe found with ID:", id);
-          callback(false, null);
-        }
-      },
-      (_, error) => {
-        console.log("Error fetching recipe with ID:", id, error);
-        callback(false, error);
-      }
+//update recipe
+
+async function deleteRecipeById(id) {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    await db.runAsync("DELETE FROM recipes WHERE id = ?;", [id]);
+    console.log("Recipe deleted successfully");
+  } catch (error) {
+    console.error("Failed to delete recipe:", error);
+  }
+}
+
+async function fetchAllCategories() {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    const rows = await db.getAllAsync(
+      "SELECT id, name, image FROM categories;"
     );
-  });
-};
+    return rows;
+  } catch (error) {
+    console.error("Failed to fetch categories", error);
+  }
+}
 
-// const updateRecipe = (id, recipe, callback) => {
-//   db.transaction((tx) => {
-//     tx.executeSql(
-//       "UPDATE recipes SET title = ?, ingredients = ?, instructions = ?, image = ?, category = ?, totalTime = ? WHERE id = ?",
-//       [
-//         recipe.title,
-//         JSON.stringify(recipe.ingredients),
-//         recipe.instructions,
-//         recipe.image,
-//         recipe.category,
-//         recipe.totalTime,
-//         id,
-//       ],
-//       (_, result) => callback(true),
-//       (_, error) => callback(false, error)
-//     );
-//   });
-// };
-
-const deleteRecipeById = (id, callback) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      "DELETE FROM recipes WHERE id = ?;",
-      [id],
-      (_, result) => {
-        console.log("Recipe deleted successfully");
-        callback(true);
-      },
-      (_, error) => {
-        console.error("Failed to delete recipe:", error);
-        callback(false);
-      }
+async function insertCategory(name, image = DEFAULT_CATEGORY_IMAGE) {
+  const db = await SQLite.openDatabaseAsync("recipes.db");
+  try {
+    const existingCategory = await db.getFirstAsync(
+      "SELECT id FROM categories WHERE name = ?",
+      [name]
     );
-  });
-};
+    if (existingCategory) {
+      console.log("Category already exists:", name);
+      return existingCategory.id;
+    }
 
-const fetchAllCategories = (callback) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      "SELECT id, name, image FROM categories;",
-      [],
-      (_, { rows }) => {
-        callback(true, rows._array);
-      },
-      (transaction, error) => {
-        console.error("Failed to fetch categories", error);
-        callback(false, error);
-        return true;
-      }
+    // If the category does not exist, proceed to insert
+    const result = await db.runAsync(
+      "INSERT INTO categories (name, image) VALUES (?, ?);",
+      [name, image]
     );
-  });
-};
+    console.log("New category inserted:", name);
+    return result.lastInsertRowId;
+  } catch (error) {
+    console.error("Error inserting new category:", error);
+    throw error;
+  }
+}
 
-const insertCategory = (name, image = DEFAULT_CATEGORY_IMAGE, callback) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      "SELECT * FROM categories WHERE name = ?;",
-      [name],
-      (tx, results) => {
-        if (results.rows.length > 0) {
-          console.log("Category already exists:", name);
-          callback(false, { message: "Category already exists." });
-        } else {
-          tx.executeSql(
-            "INSERT INTO categories (name, image) VALUES (?, ?);",
-            [name, image],
-            (tx, resultSet) => {
-              console.log("New category inserted:", name);
-              callback(true, resultSet.insertId);
-            },
-            (tx, error) => {
-              console.error("Error inserting new category:", error);
-              callback(false, error);
-            }
-          );
-        }
-      },
-      (tx, error) => {
-        console.error("Error checking if category exists:", error);
-        callback(false, error);
-      }
+const deleteCategoryById = async (categoryId) => {
+  const db = await SQLite.openDatabaseAsync("recipes.db");
+  try {
+    // First, check for any linked recipes to ensure the category can be safely deleted
+    const links = await db.getAllAsync(
+      "SELECT * FROM recipe_categories WHERE categoryId = ?;",
+      [categoryId]
     );
-  });
-};
+    if (links.length > 0) {
+      console.log(
+        `Category ID ${categoryId} is linked to recipes and cannot be deleted.`
+      );
+      return {
+        success: false,
+        message: "Category is linked to recipes and cannot be deleted.",
+      };
+    }
 
-const deleteCategoryById = (categoryId, callback) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      `DELETE FROM categories WHERE id = ? AND name != 'מועדפים';`,
-      [categoryId],
-      (_, result) => callback(true, result),
-      (_, error) => callback(false, error)
+    // Proceed to delete if no links
+    const deleteResult = await db.runAsync(
+      "DELETE FROM categories WHERE id = ? AND name != 'מועדפים';",
+      [categoryId]
     );
-  });
+
+    if (deleteResult.rowsAffected === 0) {
+      console.log(`No category deleted, might not exist or is protected.`);
+      return {
+        success: false,
+        message: "No category deleted, might not exist or is protected.",
+      };
+    }
+
+    console.log(
+      `Category with ID ${categoryId} deleted, rows affected: ${deleteResult.rowsAffected}`
+    );
+    return { success: true, rowsAffected: deleteResult.rowsAffected };
+  } catch (error) {
+    console.error(
+      `Failed to delete category ID ${categoryId}: ${error.message}`
+    );
+    throw new Error(`Failed to delete category: ${error.message}`);
+  }
 };
 
-const insertRecipeWithCategories = (recipe, callback) => {
-  const ingredientsString = JSON.stringify(recipe.ingredients);
-  db.transaction((tx) => {
-    tx.executeSql(
-      `INSERT INTO recipes (title, ingredients, instructions, image, totalTime) VALUES (?, ?, ?, ?, ?);`,
+const insertRecipeWithCategories = async (recipe) => {
+  const db = await SQLite.openDatabaseAsync("recipes.db");
+  try {
+    // Insert recipe into recipes table
+    const result = await db.runAsync(
+      "INSERT INTO recipes (title, ingredients, instructions, image, totalTime) VALUES (?, ?, ?, ?, ?);",
       [
         recipe.title,
-        ingredientsString,
+        JSON.stringify(recipe.ingredients),
         recipe.instructions,
         recipe.image,
         recipe.totalTime,
-      ],
-      (tx, results) => {
-        const recipeId = results.insertId;
-
-        if (recipe.categoryIds && recipe.categoryIds.length > 0) {
-          recipe.categoryIds.forEach((categoryId) => {
-            tx.executeSql(
-              `INSERT INTO recipe_categories (recipeId, categoryId) VALUES (?, ?);`,
-              [recipeId, categoryId]
-            );
-          });
-        }
-        callback(true, recipeId);
-      },
-      (tx, error) => {
-        console.log("Failed to insert recipe or associate categories:", error);
-        callback(false, error);
-      }
+      ]
     );
-  });
+    const recipeId = result.lastInsertRowId;
+
+    // Insert categories associations if any
+    if (
+      recipe.categoryIds &&
+      Array.isArray(recipe.categoryIds) &&
+      recipe.categoryIds.length > 0
+    ) {
+      for (const categoryId of recipe.categoryIds) {
+        await db.runAsync(
+          "INSERT INTO recipe_categories (recipeId, categoryId) VALUES (?, ?);",
+          [recipeId, categoryId]
+        );
+      }
+    }
+    return recipeId; // Return the new recipe ID after successful insertions
+  } catch (error) {
+    console.error("Failed to insert recipe or associate categories:", error);
+    throw error; // Rethrow to handle errors in the calling function
+  }
 };
 
-const fetchAllRecipesWithCategories = (callback) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      `SELECT r.id, r.title, r.ingredients, r.instructions, r.image, r.totalTime, GROUP_CONCAT(c.name) AS categoryNames
-         FROM recipes r
-         LEFT JOIN recipe_categories rc ON r.id = rc.recipeId
-         LEFT JOIN categories c ON rc.categoryId = c.id
-         GROUP BY r.id;`,
-      [],
-      (_, { rows }) => callback(true, rows._array),
-      (_, error) => {
-        console.log("Error fetching recipes with categories", error);
-        callback(false, error);
-      }
-    );
-  });
-};
+async function fetchAllRecipesWithCategories() {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    const rows = await db.getAllAsync(`
+      SELECT r.id, r.title, r.ingredients, r.instructions, r.image, r.totalTime, GROUP_CONCAT(c.name) AS categoryNames
+      FROM recipes r
+      LEFT JOIN recipe_categories rc ON r.id = rc.recipeId
+      LEFT JOIN categories c ON rc.categoryId = c.id
+      GROUP BY r.id;
+    `);
+    return rows;
+  } catch (error) {
+    console.error("Error fetching recipes with categories", error);
+    throw error;
+  }
+}
 
-const updateRecipeWithCategories = (id, recipe, categoryIds, callback) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      `UPDATE recipes SET title = ?, ingredients = ?, instructions = ?, image = ?, totalTime = ? WHERE id = ?;`,
+async function updateRecipeWithCategories(id, recipe, categoryIds) {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    await db.runAsync(
+      `
+      UPDATE recipes SET title = ?, ingredients = ?, instructions = ?, image = ?, totalTime = ? WHERE id = ?;`,
       [
         recipe.title,
         JSON.stringify(recipe.ingredients),
@@ -294,105 +225,69 @@ const updateRecipeWithCategories = (id, recipe, categoryIds, callback) => {
         recipe.image,
         recipe.totalTime,
         id,
-      ],
-      () => {
-        tx.executeSql(
-          `DELETE FROM recipe_categories WHERE recipeId = ?;`,
-          [id],
-          () => {
-            const insertPromises = categoryIds.map((categoryId) => {
-              return new Promise((resolve, reject) => {
-                tx.executeSql(
-                  `INSERT INTO recipe_categories (recipeId, categoryId) VALUES (?, ?);`,
-                  [id, categoryId],
-                  () => resolve(),
-                  (_, error) => reject(error)
-                );
-              });
-            });
-
-            Promise.all(insertPromises)
-              .then(() => callback(true))
-              .catch((error) => {
-                console.error(
-                  "Failed to update recipe categories associations:",
-                  error
-                );
-                callback(false);
-              });
-          }
-        );
-      },
-      (_, error) => {
-        console.error("Failed to update recipe:", error);
-        callback(false);
-      }
+      ]
     );
-  });
-};
-
-const fetchRecipesByCategory = (categoryId, callback) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      `SELECT r.id, r.title, r.ingredients, r.instructions, r.image, r.totalTime 
-         FROM recipes r
-         INNER JOIN recipe_categories rc ON r.id = rc.recipeId
-         WHERE rc.categoryId = ?;`,
-      [categoryId],
-      (_, { rows }) => {
-        callback(true, rows._array);
-      },
-      (_, error) => {
-        console.log(
-          "Error fetching recipes for category ID:",
-          categoryId,
-          error
-        );
-        callback(false, error);
-      }
-    );
-  });
-};
-
-const deleteRecipeFromCategory = (recipeId, categoryId, callback) => {
-  db.transaction((tx) => {
-    tx.executeSql(
-      "DELETE FROM recipe_categories WHERE recipeId = ? AND categoryId = ?;",
-      [recipeId, categoryId],
-      (_, result) => {
-        console.log("Recipe-category association deleted successfully");
-        callback();
-      },
-      (_, error) =>
-        console.log("Failed to delete recipe-category association", error)
-    );
-  });
-};
-
-function resetDatabase() {
-  db.transaction(
-    (tx) => {
-      const tables = ["recipes", "categories", "recipe_categories"];
-      tables.forEach((table) => {
-        tx.executeSql(
-          `DROP TABLE IF EXISTS ${table};`,
-          [],
-          (_, result) => {
-            console.log(`Dropped table ${table}`);
-          },
-          (txObj, error) => {
-            console.log(`Error dropping table ${table}: `, error);
-          }
-        );
-      });
-    },
-    (error) => {
-      console.error("Error dropping tables: ", error);
-    },
-    () => {
-      console.log("All specified tables were dropped successfully");
+    await db.runAsync(`DELETE FROM recipe_categories WHERE recipeId = ?;`, [
+      id,
+    ]);
+    for (const categoryId of categoryIds) {
+      await db.runAsync(
+        `INSERT INTO recipe_categories (recipeId, categoryId) VALUES (?, ?);`,
+        [id, categoryId]
+      );
     }
-  );
+    console.log("Recipe updated successfully with new category associations");
+  } catch (error) {
+    console.error("Failed to update recipe:", error);
+    throw error;
+  }
+}
+
+async function fetchRecipesByCategory(categoryId) {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    const rows = await db.getAllAsync(
+      `
+      SELECT r.id, r.title, r.ingredients, r.instructions, r.image, r.totalTime 
+      FROM recipes r
+      INNER JOIN recipe_categories rc ON r.id = rc.recipeId
+      WHERE rc.categoryId = ?;`,
+      [categoryId]
+    );
+    return rows;
+  } catch (error) {
+    console.error("Error fetching recipes for category ID:", categoryId, error);
+    throw error;
+  }
+}
+
+async function deleteRecipeFromCategory(recipeId, categoryId) {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    await db.runAsync(
+      "DELETE FROM recipe_categories WHERE recipeId = ? AND categoryId = ?;",
+      [recipeId, categoryId]
+    );
+    console.log("Recipe-category association deleted successfully");
+  } catch (error) {
+    console.error("Failed to delete recipe-category association", error);
+    throw error;
+  }
+}
+
+async function resetDatabase() {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    await db.execAsync(`
+      DROP TABLE IF EXISTS recipes;
+      DROP TABLE IF EXISTS categories;
+      DROP TABLE IF EXISTS recipe_categories;
+    `);
+    console.log("All specified tables were dropped successfully");
+  } catch (error) {
+    console.error("Error dropping tables: ", error);
+    throw error;
+  }
 }
 
 export {

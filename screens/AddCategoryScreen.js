@@ -17,14 +17,18 @@ const AddCategoryScreen = ({ navigation }) => {
   const [categoryName, setCategoryName] = useState("");
   const [categoryImage, setCategoryImage] = useState("");
 
-  const handleSaveCategory = () => {
-    insertCategory(categoryName, categoryImage, (success, id) => {
+  const handleSaveCategory = async () => {
+    try {
+      const { success, id } = await insertCategory(categoryName, categoryImage);
       if (success) {
+        console.log(`Category added successfully with ID: ${id}`);
         navigation.goBack();
       } else {
         console.log("Failed to add category");
       }
-    });
+    } catch (error) {
+      console.error("Error saving category:", error);
+    }
   };
 
   return (
