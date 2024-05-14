@@ -27,7 +27,7 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
       async function fetchRecipes() {
         try {
           const data = await fetchRecipesByCategory(categoryId);
-          console.log("data", data);
+          //console.log("data", data);
           if (data) {
             setRecipes(data);
           } else {

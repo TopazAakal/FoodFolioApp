@@ -1,36 +1,75 @@
 import * as SQLite from "expo-sqlite";
+
 const DEFAULT_CATEGORY_IMAGE = "../images/category_placeholder.jpg";
+const defaultImage = require("../images/category_placeholder.jpg");
 
 async function initDB() {
   try {
+    //await resetDatabase(); // Ensure this completes before proceeding
     const db = await SQLite.openDatabaseAsync("recipes.db");
-    await db.execAsync(`
-      PRAGMA journal_mode = WAL;
-      CREATE TABLE IF NOT EXISTS recipes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        ingredients TEXT NOT NULL,
-        instructions TEXT NOT NULL,
-        image TEXT,
-        totalTime TEXT
-      );
 
-      CREATE TABLE IF NOT EXISTS categories (
-        id INTEGER PRIMARY KEY NOT NULL,
-        name TEXT NOT NULL UNIQUE,
-        image TEXT DEFAULT '${DEFAULT_CATEGORY_IMAGE}'
-      );
+    // Set journal mode to Write-Ahead Logging
+    await db.runAsync(`PRAGMA journal_mode = WAL;`);
 
-      CREATE TABLE IF NOT EXISTS recipe_categories (
-        recipeId INTEGER,
-        categoryId INTEGER,
-        PRIMARY KEY (recipeId, categoryId),
-        FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE CASCADE,
-        FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
+    // Create the recipes table
+    try {
+      await db.runAsync(`
+        CREATE TABLE IF NOT EXISTS recipes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          ingredients TEXT NOT NULL,
+          instructions TEXT NOT NULL,
+          image TEXT,
+          totalTime TEXT
+        );
+      `);
+      console.log("Recipes table created successfully");
+    } catch (error) {
+      console.error("Error creating recipes table:", error);
+    }
+
+    // Create the categories table
+    try {
+      await db.runAsync(`
+        CREATE TABLE IF NOT EXISTS categories (
+          id INTEGER PRIMARY KEY NOT NULL,
+          name TEXT NOT NULL UNIQUE,
+          image TEXT DEFAULT '${DEFAULT_CATEGORY_IMAGE}'
+        );
+      `);
+      console.log("Categories table created successfully");
+    } catch (error) {
+      console.error("Error creating categories table:", error);
+    }
+
+    // Create the recipe_categories table
+    try {
+      await db.runAsync(`
+        CREATE TABLE IF NOT EXISTS recipe_categories (
+          recipeId INTEGER,
+          categoryId INTEGER,
+          PRIMARY KEY (recipeId, categoryId),
+          FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE CASCADE,
+          FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
+        );
+      `);
+      console.log("Recipe_categories table created successfully");
+    } catch (error) {
+      console.error("Error creating recipe_categories table:", error);
+    }
+
+    // Insert the default category
+    try {
+      await db.runAsync(
+        `
+        INSERT OR IGNORE INTO categories (name, image) VALUES (?, ?);
+    `,
+        ["מועדפים"]
       );
-      INSERT OR IGNORE INTO categories (name, image) VALUES ('מועדפים', '${DEFAULT_CATEGORY_IMAGE}');
-    `);
-    console.log("Database initialization successful");
+      console.log("Default category inserted successfully");
+    } catch (error) {
+      console.error("Error inserting default category:", error);
+    }
   } catch (error) {
     console.error("Error initializing database:", error);
   }
@@ -99,63 +138,34 @@ async function insertCategory(name, image = DEFAULT_CATEGORY_IMAGE) {
     );
     if (existingCategory) {
       console.log("Category already exists:", name);
-      return existingCategory.id;
+      return { success: true, id: existingCategory.id }; // Assume success if category exists
     }
 
-    // If the category does not exist, proceed to insert
     const result = await db.runAsync(
       "INSERT INTO categories (name, image) VALUES (?, ?);",
       [name, image]
     );
     console.log("New category inserted:", name);
-    return result.lastInsertRowId;
+    return { success: true, id: result.lastInsertRowId }; // Return an object with success status and ID
   } catch (error) {
     console.error("Error inserting new category:", error);
-    throw error;
+    return { success: false, id: null }; // Return failure status
   }
 }
 
 const deleteCategoryById = async (categoryId) => {
   const db = await SQLite.openDatabaseAsync("recipes.db");
   try {
-    // First, check for any linked recipes to ensure the category can be safely deleted
-    const links = await db.getAllAsync(
-      "SELECT * FROM recipe_categories WHERE categoryId = ?;",
-      [categoryId]
-    );
-    if (links.length > 0) {
-      console.log(
-        `Category ID ${categoryId} is linked to recipes and cannot be deleted.`
-      );
-      return {
-        success: false,
-        message: "Category is linked to recipes and cannot be deleted.",
-      };
+    const result = await db.runAsync("DELETE FROM categories WHERE id = ?;", [
+      categoryId,
+    ]);
+    if (result.rowsAffected === 0) {
+      return { success: false, rowsAffected: result.rowsAffected };
     }
-
-    // Proceed to delete if no links
-    const deleteResult = await db.runAsync(
-      "DELETE FROM categories WHERE id = ? AND name != 'מועדפים';",
-      [categoryId]
-    );
-
-    if (deleteResult.rowsAffected === 0) {
-      console.log(`No category deleted, might not exist or is protected.`);
-      return {
-        success: false,
-        message: "No category deleted, might not exist or is protected.",
-      };
-    }
-
-    console.log(
-      `Category with ID ${categoryId} deleted, rows affected: ${deleteResult.rowsAffected}`
-    );
-    return { success: true, rowsAffected: deleteResult.rowsAffected };
+    return { success: true, rowsAffected: result.rowsAffected };
   } catch (error) {
-    console.error(
-      `Failed to delete category ID ${categoryId}: ${error.message}`
-    );
-    throw new Error(`Failed to delete category: ${error.message}`);
+    console.error("Error deleting category:", error);
+    throw new Error("Failed to delete category");
   }
 };
 
