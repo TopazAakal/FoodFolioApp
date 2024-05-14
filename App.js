@@ -15,6 +15,7 @@ import CategoryRecipesScreen from "./screens/CategoryRecipesScreen";
 import AddCategoryScreen from "./screens/AddCategoryScreen";
 import AddRecipeByUrlScreen from "./screens/AddRecipeByUrlScreen";
 import AddRecipeByImageScreen from "./screens/AddRecipeByImageScreen";
+import HomeScreen from "./screens/HomeScreen";
 
 I18nManager.forceRTL(true);
 //comment
@@ -49,7 +50,7 @@ export default function App() {
         <StatusBar style="light" />
         <NavigationContainer>
           <Stack.Navigator
-            initialRouteName="AllCategories"
+            initialRouteName="Home"
             screenOptions={{
               headerStyle: {
                 backgroundColor: "#fff",
@@ -64,6 +65,11 @@ export default function App() {
               headerBackTitleVisible: false,
             }}
           >
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{ title: "מסך הבית" }}
+            />
             <Stack.Screen
               name="AddRecipe"
               component={AddRecipeScreen}
