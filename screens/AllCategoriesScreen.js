@@ -35,9 +35,16 @@ const AllCategoriesScreen = ({ navigation }) => {
   const handleDeleteCategory = async (categoryId) => {
     try {
       const result = await deleteCategoryById(categoryId);
-      console.log(`Deleted ${result.rowsAffected} rows.`);
-      const updatedCategories = await fetchAllCategories();
-      setCategories(updatedCategories);
+      if (result.success) {
+        console.log(`Deleted ${result.rowsAffected} rows.`);
+        const updatedCategories = await fetchAllCategories();
+        setCategories(updatedCategories);
+        console.log("Category deleted successfully");
+      } else {
+        console.log(
+          "No rows affected. Category might not exist or is protected."
+        );
+      }
     } catch (error) {
       console.log("Failed to delete category", error);
     }
