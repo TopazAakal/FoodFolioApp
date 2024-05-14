@@ -15,7 +15,7 @@ import {
 import { useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 
-function ImagePicker({ onTakeImage }) {
+function ImagePicker({ onTakeImage, style }) {
   const [pickedImage, setPickedImage] = useState();
   const [cameraPermissionInformation, requestPermission] =
     useCameraPermissions();
@@ -46,8 +46,8 @@ function ImagePicker({ onTakeImage }) {
     }
 
     const image = await launchCameraAsync({
-      allowsEditing: true,
-      aspect: [16, 9],
+      allowsEditing: false,
+      // aspect: [3, 4],
       quality: 0.5,
     });
 
@@ -66,8 +66,8 @@ function ImagePicker({ onTakeImage }) {
     }
 
     const result = await launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [16, 9],
+      allowsEditing: false,
+      //aspect: [3, 4],
       quality: 0.5,
     });
 
@@ -98,7 +98,10 @@ function ImagePicker({ onTakeImage }) {
 
   return (
     <View style={styles.imagePicker}>
-      <TouchableOpacity onPress={imagePickHandler} style={styles.imagePreview}>
+      <TouchableOpacity
+        onPress={imagePickHandler}
+        style={[styles.imagePreview, style]}
+      >
         {!pickedImage ? (
           <MaterialIcons name="add-a-photo" size={55} color="gray" />
         ) : (
@@ -136,6 +139,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 4,
+    resizeMode: "cover",
   },
   imagePromptContainer: {
     justifyContent: "center",

@@ -1,19 +1,14 @@
 import React, { useState } from "react";
-import {
-  View,
-  TextInput,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import ImagePicker from "../components/UI/ImagePicker";
 import CustomButton from "../components/UI/CustomButton";
 
-function AddRecipeByUrlScreen() {
-  const [recipeUrl, setRecipeUrl] = useState("");
+function AddRecipeByImageScreen({ navigation }) {
+  const [imageUri, setImageUri] = useState(null);
 
-  const handleSaveRecipe = () => {
-    console.log("URL submitted:", recipeUrl);
+  const handleSaveImage = () => {
+    console.log("Photo uploaded:", imageUri);
   };
 
   return (
@@ -22,25 +17,22 @@ function AddRecipeByUrlScreen() {
       contentContainerStyle={styles.contentContainer}
     >
       <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="הזן קישור למתכון"
-          value={recipeUrl}
-          onChangeText={setRecipeUrl}
-          autoCapitalize="none"
-          keyboardType="url"
+        <ImagePicker
+          image={imageUri}
+          onTakeImage={setImageUri}
+          style={styles.imagePickerStyle}
         />
       </View>
       <CustomButton
         title="שמור מתכון"
-        onPress={handleSaveRecipe}
+        onPress={handleSaveImage}
         style={styles.button}
       />
     </KeyboardAwareScrollView>
   );
 }
 
-export default AddRecipeByUrlScreen;
+export default AddRecipeByImageScreen;
 
 const styles = StyleSheet.create({
   rootContainer: {
@@ -49,24 +41,23 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexGrow: 1,
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
   },
   form: {
     margin: 20,
+    flex: 1,
     paddingHorizontal: 5,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 7,
+  label: {
     fontSize: 16,
-    width: "100%",
-    marginBottom: 20,
-    paddingHorizontal: 15,
-    textAlign: "right",
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
   },
   button: {
     alignSelf: "center",
+  },
+  imagePickerStyle: {
+    height: 500,
   },
 });
