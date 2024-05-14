@@ -1,9 +1,9 @@
 import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
 
-function CustomButton({ onPress, title }) {
+function CustomButton({ onPress, title, style }) {
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={onPress} style={styles.button}>
+      <TouchableOpacity onPress={onPress} style={[styles.button, style]}>
         <Text style={styles.text}>{title}</Text>
       </TouchableOpacity>
     </View>
@@ -23,8 +23,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    width: "100%",
+    width: "95%",
     marginBottom: 15,
+    marginTop: "auto",
   },
   text: {
     color: "#FFFFFF",

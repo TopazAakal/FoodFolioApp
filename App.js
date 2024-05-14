@@ -14,6 +14,7 @@ import AllCategoriesScreen from "./screens/AllCategoriesScreen";
 import CategoryRecipesScreen from "./screens/CategoryRecipesScreen";
 import AddCategoryScreen from "./screens/AddCategoryScreen";
 import AddRecipeByUrlScreen from "./screens/AddRecipeByUrlScreen";
+import AddRecipeByImageScreen from "./screens/AddRecipeByImageScreen";
 
 I18nManager.forceRTL(true);
 
@@ -71,7 +72,12 @@ export default function App() {
             <Stack.Screen
               name="AddRecipeByUrl"
               component={AddRecipeByUrlScreen}
-              options={{ title: "הוספת מתכון באמצעות קישור" }}
+              options={{ title: "הוספת מתכון URL" }}
+            />
+            <Stack.Screen
+              name="AddRecipeByImage"
+              component={AddRecipeByImageScreen}
+              options={{ title: "הוספת מתכון באמצעות תמונה" }}
             />
             <Stack.Screen
               name="RecipeDisplay"
