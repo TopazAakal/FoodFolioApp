@@ -263,37 +263,35 @@ async function updateRecipeWithCategories(id, recipe, categoryIds) {
   }
 }
 
-async function fetchRecipesByCategory(categoryId) {
+const fetchRecipesByCategory = async (categoryId) => {
+  const db = await SQLite.openDatabaseAsync("recipes.db");
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
-    const rows = await db.getAllAsync(
-      `
-      SELECT r.id, r.title, r.ingredients, r.instructions, r.image, r.totalTime 
-      FROM recipes r
-      INNER JOIN recipe_categories rc ON r.id = rc.recipeId
-      WHERE rc.categoryId = ?;`,
+    const recipes = await db.getAllAsync(
+      "SELECT r.* FROM recipes r JOIN recipe_categories rc ON r.id = rc.recipeId WHERE rc.categoryId = ?;",
       [categoryId]
     );
-    return rows;
+    return recipes;
   } catch (error) {
-    console.error("Error fetching recipes for category ID:", categoryId, error);
-    throw error;
+    console.error("Error fetching recipes by category:", error);
+    return null;
   }
-}
+};
 
-async function deleteRecipeFromCategory(recipeId, categoryId) {
+const deleteRecipeFromCategory = async (recipeId, categoryId, callback) => {
+  const db = await SQLite.openDatabaseAsync("recipes.db");
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync(
       "DELETE FROM recipe_categories WHERE recipeId = ? AND categoryId = ?;",
       [recipeId, categoryId]
     );
-    console.log("Recipe-category association deleted successfully");
+    console.log("Recipe deleted from category successfully");
+    if (callback) {
+      callback();
+    }
   } catch (error) {
-    console.error("Failed to delete recipe-category association", error);
-    throw error;
+    console.error("Failed to delete recipe from category:", error);
   }
-}
+};
 
 async function resetDatabase() {
   try {
@@ -310,6 +308,37 @@ async function resetDatabase() {
   }
 }
 
+const addRecipeToCategory = async (categoryId, recipeId) => {
+  const db = await SQLite.openDatabaseAsync("recipes.db");
+  try {
+    // Check if the association already exists to prevent duplicates
+    const existingLink = await db.getFirstAsync(
+      "SELECT * FROM recipe_categories WHERE recipeId = ? AND categoryId = ?;",
+      [recipeId, categoryId]
+    );
+    if (!existingLink) {
+      await db.runAsync(
+        "INSERT INTO recipe_categories (recipeId, categoryId) VALUES (?, ?);",
+        [recipeId, categoryId]
+      );
+      console.log("Recipe added to category successfully");
+      return {
+        success: true,
+        message: "Recipe added to category successfully",
+      };
+    } else {
+      console.log("Recipe already linked to this category");
+      return {
+        success: false,
+        message: "Recipe already linked to this category",
+      };
+    }
+  } catch (error) {
+    console.error("Failed to add recipe to category:", error);
+    return { success: false, message: "Failed to add recipe to category" };
+  }
+};
+
 export {
   initDB,
   fetchRecipeById,
@@ -323,4 +352,5 @@ export {
   updateRecipeWithCategories,
   fetchRecipesByCategory,
   deleteRecipeFromCategory,
+  addRecipeToCategory,
 };
