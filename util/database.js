@@ -137,19 +137,29 @@ async function insertCategory(name, image = DEFAULT_CATEGORY_IMAGE) {
       [name]
     );
     if (existingCategory) {
-      console.log("Category already exists:", name);
-      return { success: true, id: existingCategory.id }; // Assume success if category exists
+      console.log("Category already exists:", name, "ID:", existingCategory.id);
+      return { success: true, id: existingCategory.id };
     }
 
     const result = await db.runAsync(
       "INSERT INTO categories (name, image) VALUES (?, ?);",
       [name, image]
     );
-    console.log("New category inserted:", name);
-    return { success: true, id: result.lastInsertRowId }; // Return an object with success status and ID
+    if (result.lastInsertRowId) {
+      console.log(
+        "New category inserted:",
+        name,
+        "ID:",
+        result.lastInsertRowId
+      );
+      return { success: true, id: result.lastInsertRowId };
+    } else {
+      console.log("Failed to obtain lastInsertRowId for new category:", name);
+      return { success: false, id: null };
+    }
   } catch (error) {
     console.error("Error inserting new category:", error);
-    return { success: false, id: null }; // Return failure status
+    return { success: false, id: null };
   }
 }
 

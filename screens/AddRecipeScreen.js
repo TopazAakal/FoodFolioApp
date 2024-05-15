@@ -108,7 +108,7 @@ function AddRecipeScreen() {
   };
 
   const handleSaveRecipe = async () => {
-    let categoryIds = selectedCategories;
+    let categoryIds = [...selectedCategories];
 
     if (category.trim() !== "") {
       const existingCategory = categories.find((cat) => cat.name === category);
@@ -132,7 +132,7 @@ function AddRecipeScreen() {
       instructions,
       totalTime,
       image: recipeImage,
-      categoryIds: selectedCategories.map((id) => id.toString()),
+      categoryIds: categoryIds.map((id) => id.toString()),
     };
 
     if (recipeId) {
@@ -160,13 +160,12 @@ function AddRecipeScreen() {
   };
 
   const insertNewCategory = async (categoryName) => {
-    try {
-      const newCategoryId = await insertCategory(categoryName);
-      console.log(`New category inserted with ID: ${newCategoryId}`);
-      return newCategoryId;
-    } catch (error) {
-      console.error("Failed to insert new category", error);
-      throw error;
+    const result = await insertCategory(categoryName, "");
+    if (result.success) {
+      console.log("New category inserted with ID:", result.id);
+      return result.id;
+    } else {
+      throw new Error("Failed to insert new category");
     }
   };
 
