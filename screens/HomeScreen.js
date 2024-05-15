@@ -1,16 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  FlatList,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { fetchAllRecipes } from "../util/database";
 
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);
+  const [recipes, setRecipes] = useState([]);
+
+  useEffect(() => {
+    fetchAllRecipes((success, data) => {
+      if (success) {
+        setRecipes(data);
+        console.log("Recipes fetched: ", data);
+      } else {
+        console.log("Failed to fetch recipes");
+      }
+    });
+  }, []);
 
   const toggleMenu = () => {
     setMenuVisible(!menuVisible);
@@ -34,6 +48,13 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const renderRecipe = ({ item }) => (
+    <View style={styles.recipeCard}>
+      <Image source={{ uri: item.image }} style={styles.recipeImage} />
+      <Text style={styles.recipeTitle}>{item.title}</Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.greeting}>{getGreeting()}</Text>
@@ -54,6 +75,12 @@ const HomeScreen = ({ navigation }) => {
       </View>
       <View>
         <Text style={styles.subTitle}>הארוחות שלי</Text>
+        {/* <FlatList
+          data={recipes}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderRecipe}
+          horizontal={true}
+        /> */}
       </View>
       <View>
         <Text style={styles.subTitle}>נוספו לאחרונה🔥</Text>
@@ -175,6 +202,22 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 16,
     paddingHorizontal: 5,
+  },
+  recipeCard: {
+    width: 140,
+    marginRight: 15,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  recipeImage: {
+    width: "100%",
+    height: 100,
+    borderRadius: 10,
+  },
+  recipeTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 5,
   },
 });
 
