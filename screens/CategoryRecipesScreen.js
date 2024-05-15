@@ -1,6 +1,9 @@
-import React, { useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
-
+import React, { useState, useCallback, useEffect } from "react";
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import {
   View,
   Text,
@@ -21,26 +24,18 @@ const windowWidth = Dimensions.get("window").width;
 const CategoryRecipesScreen = ({ navigation, route }) => {
   const { categoryId, categoryName } = route.params;
   const [recipes, setRecipes] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
-      async function fetchRecipes() {
-        try {
-          const data = await fetchRecipesByCategory(categoryId);
-          //console.log("data", data);
-          if (data) {
-            setRecipes(data);
-          } else {
-            console.log("No recipes found for category:", categoryId);
-          }
-        } catch (error) {
-          console.log(
-            "Failed to fetch recipes for category ID:",
-            categoryId,
-            error
-          );
+      const fetchRecipes = async () => {
+        const data = await fetchRecipesByCategory(categoryId);
+        if (data) {
+          setRecipes(data);
+        } else {
+          console.log("לא קיימים מתכונים בקטגוריה זו.", categoryId);
         }
-      }
+      };
       fetchRecipes();
     }, [categoryId])
   );
@@ -65,6 +60,20 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
     }
   };
 
+  useEffect(() => {
+    if (refreshing) {
+      fetchRecipes();
+      setRefreshing(false);
+    }
+  }, [refreshing]);
+
+  const addRecipeHandler = () => {
+    navigation.navigate("AllRecipes", {
+      categoryId: categoryId,
+      addingToCategory: true,
+    });
+  };
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.cardContainer}
@@ -87,10 +96,6 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
       </TouchableOpacity>
     </TouchableOpacity>
   );
-
-  const addRecipeHandler = () => {
-    //TODO
-  };
 
   return (
     <View style={styles.container}>
