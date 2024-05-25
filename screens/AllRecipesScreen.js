@@ -19,9 +19,11 @@ import { Ionicons } from "react-native-vector-icons";
 const windowWidth = Dimensions.get("window").width;
 
 function AllRecipesScreen({ navigation, route }) {
+  const { fromCategoryScreen } = route.params || {};
+  const { searchQuery: externalSearchQuery } = route.params || {};
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(externalSearchQuery || "");
   const { categoryId, addingToCategory } = route.params || {};
   const [selectedRecipes, setSelectedRecipes] = useState(new Set());
 
@@ -31,8 +33,9 @@ function AllRecipesScreen({ navigation, route }) {
         const data = await fetchAllRecipes();
         if (data && data.length > 0) {
           setRecipes(data);
+          filterRecipes(searchQuery, data);
           //console.log("Recipes fetched: ", data);
-          setFilteredRecipes(data);
+          //setFilteredRecipes(data);
         } else {
           console.log("No recipes found or failed to fetch recipes");
         }
@@ -44,17 +47,34 @@ function AllRecipesScreen({ navigation, route }) {
     loadRecipes();
   }, []);
 
-  useEffect(() => {
-    setFilteredRecipes(recipes); // Initialize filtered recipes
-  }, [recipes]);
+  // useEffect(() => {
+  //   setFilteredRecipes(recipes); // Initialize filtered recipes
+  // }, [recipes]);
+
+  // useEffect(() => {
+  //   const filteredData = recipes.filter((recipe) =>
+  //     recipe.title.toLowerCase().includes(searchQuery.toLowerCase())
+  //   );
+  //   setFilteredRecipes(filteredData);
+  //   console.log("Filtered Recipes:", filteredData);
+  // }, [searchQuery, recipes]);
+
+  const filterRecipes = (query, recipesArray) => {
+    const filtered = query
+      ? recipesArray.filter((recipe) =>
+          recipe.title.toLowerCase().includes(query.toLowerCase())
+        )
+      : recipesArray;
+    setFilteredRecipes(filtered);
+  };
 
   useEffect(() => {
-    const filteredData = recipes.filter((recipe) =>
-      recipe.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredRecipes(filteredData);
-    console.log("Filtered Recipes:", filteredData);
-  }, [searchQuery, recipes]);
+    filterRecipes(searchQuery, recipes);
+  }, [searchQuery]);
+
+  const handleSearchInputChange = (query) => {
+    setSearchQuery(query);
+  };
 
   const addRecipeToSelectedCategory = async (recipeId) => {
     if (addingToCategory && categoryId) {
@@ -85,6 +105,8 @@ function AllRecipesScreen({ navigation, route }) {
   };
 
   const toggleRecipeSelection = (recipeId) => {
+    if (!fromCategoryScreen) return;
+
     const newSet = new Set(selectedRecipes);
     if (selectedRecipes.has(recipeId)) {
       newSet.delete(recipeId);
@@ -111,37 +133,53 @@ function AllRecipesScreen({ navigation, route }) {
     }
   };
 
+  const handleRecipePress = (recipeId) => {
+    if (fromCategoryScreen) {
+      toggleRecipeSelection(recipeId);
+    } else {
+      navigation.navigate("RecipeDisplay", { recipeId: recipeId });
+    }
+  };
+
   const renderItem = ({ item }) => (
-    <View style={styles.cardContainer}>
+    <TouchableOpacity
+      style={styles.cardContainer}
+      onPress={() => handleRecipePress(item.id)}
+    >
       <View style={styles.imageContainer}>
         <Image style={styles.cardImage} source={{ uri: item.image }} />
-        <View style={styles.imageOverlay} />
+        {fromCategoryScreen && <View style={styles.imageOverlay} />}
       </View>
       <Text style={styles.cardTitle}>{item.title}</Text>
-
-      <TouchableOpacity
-        style={styles.checkboxIcon}
-        onPress={() => toggleRecipeSelection(item.id)}
-      >
-        <Ionicons
-          name={
-            selectedRecipes.has(item.id) ? "checkbox-outline" : "square-outline"
-          }
-          size={30}
-          color="#ffffff"
-        />
-      </TouchableOpacity>
-    </View>
+      {fromCategoryScreen && selectedRecipes.has(item.id) && (
+        <TouchableOpacity
+          style={styles.checkboxIcon}
+          onPress={() => toggleRecipeSelection(item.id)}
+        >
+          <Ionicons
+            name={
+              selectedRecipes.has(item.id)
+                ? "checkbox-outline"
+                : "square-outline"
+            }
+            size={30}
+            color="#ffffff"
+          />
+        </TouchableOpacity>
+      )}
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="חפש מתכון"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
+      {fromCategoryScreen && (
+        <TextInput
+          style={styles.searchBar}
+          placeholder="חפש מתכון"
+          value={searchQuery}
+          onChangeText={handleSearchInputChange}
+        />
+      )}
       <FlatList
         data={filteredRecipes}
         renderItem={renderItem}
@@ -149,20 +187,22 @@ function AllRecipesScreen({ navigation, route }) {
         numColumns={2}
         contentContainerStyle={styles.listContent}
       />
-      <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity
-          style={styles.okButton}
-          onPress={addSelectedRecipesToCategory}
-        >
-          <Text style={styles.okButtonText}>אישור</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.selectAllButton}
-          onPress={selectAllRecipes}
-        >
-          <Text style={styles.selectAllButtonText}>בחר הכל</Text>
-        </TouchableOpacity>
-      </View>
+      {fromCategoryScreen && (
+        <View style={styles.bottomButtonContainer}>
+          <TouchableOpacity
+            style={styles.okButton}
+            onPress={addSelectedRecipesToCategory}
+          >
+            <Text style={styles.okButtonText}>אישור</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.selectAllButton}
+            onPress={selectAllRecipes}
+          >
+            <Text style={styles.selectAllButtonText}>בחר הכל</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
