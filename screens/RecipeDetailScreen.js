@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -12,11 +12,15 @@ import {
 import { fetchRecipeById, deleteRecipeById } from "../util/database";
 import { Ionicons } from "@expo/vector-icons";
 import { I18nManager } from "react-native";
+import Timer from "../components/UI/Timer";
+import { Picker } from "@react-native-picker/picker";
+import { Entypo } from "@expo/vector-icons";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
 
 function RecipeDeatailScreen({ navigation, route }) {
+  const [timers, setTimers] = useState([]);
   const [recipe, setRecipe] = useState({
     title: "",
     instructions: "",
@@ -30,7 +34,7 @@ function RecipeDeatailScreen({ navigation, route }) {
     const fetchRecipe = async () => {
       if (recipeId) {
         try {
-          const data = await fetchRecipeById(recipeId); // Assuming fetchRecipeById is now an async function returning the recipe data or throwing an error.
+          const data = await fetchRecipeById(recipeId);
           if (data) {
             const ingredientsArray = JSON.parse(data.ingredients || "[]");
             const categoryNames = data.categoryNames
@@ -134,6 +138,117 @@ function RecipeDeatailScreen({ navigation, route }) {
     ));
   };
 
+  const addTimer = () => {
+    const newTimer = {
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      totalSeconds: 0,
+      isRunning: false,
+      showPicker: true,
+    };
+    setTimers([...timers, newTimer]);
+  };
+
+  const startTimer = (index) => {
+    const newTimers = [...timers];
+    const totalSeconds =
+      newTimers[index].hours * 3600 +
+      newTimers[index].minutes * 60 +
+      newTimers[index].seconds;
+    newTimers[index].totalSeconds = totalSeconds;
+    newTimers[index].isRunning = true;
+    newTimers[index].showPicker = false;
+    setTimers(newTimers);
+  };
+
+  const cancelTimer = (index) => {
+    setTimers(timers.filter((_, idx) => idx !== index));
+  };
+
+  const updateTimerSetting = (index, setting, value) => {
+    const newTimers = [...timers];
+    newTimers[index][setting] = parseInt(value);
+    setTimers(newTimers);
+  };
+
+  const handleTimerComplete = () => {
+    Alert.alert("נגמר הזמן!", "הטיימר סיים את הספירה");
+  };
+
+  const renderTimers = () => {
+    return timers.map((timer, index) => (
+      <View key={index} style={styles.timerControl}>
+        {timer.showPicker && (
+          <View style={styles.pickerContainer}>
+            <View style={styles.individualPickerContainer}>
+              <Picker
+                selectedValue={timer.hours}
+                onValueChange={(itemValue) =>
+                  updateTimerSetting(index, "hours", itemValue)
+                }
+                style={styles.picker}
+                itemStyle={styles.pickerItem}
+              >
+                {Array.from({ length: 24 }, (_, i) => (
+                  <Picker.Item label={`${i} שעות`} value={i} key={i} />
+                ))}
+              </Picker>
+            </View>
+            <View style={styles.individualPickerContainer}>
+              <Picker
+                selectedValue={timer.minutes}
+                onValueChange={(itemValue) =>
+                  updateTimerSetting(index, "minutes", itemValue)
+                }
+                style={styles.picker}
+                itemStyle={styles.pickerItem}
+              >
+                {Array.from({ length: 60 }, (_, i) => (
+                  <Picker.Item label={`${i} דק'`} value={i} key={i} />
+                ))}
+              </Picker>
+            </View>
+            <View style={styles.individualPickerContainer}>
+              <Picker
+                selectedValue={timer.seconds}
+                onValueChange={(itemValue) =>
+                  updateTimerSetting(index, "seconds", itemValue)
+                }
+                style={styles.picker}
+                itemStyle={styles.pickerItem}
+              >
+                {Array.from({ length: 60 }, (_, i) => (
+                  <Picker.Item label={`${i} שנ'`} value={i} key={i} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+        )}
+        {timer.totalSeconds > 0 && (
+          <Timer
+            initialTime={timer.totalSeconds}
+            onComplete={() => handleTimerComplete()}
+          />
+        )}
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity
+            onPress={() => startTimer(index)}
+            style={styles.circleButton}
+          >
+            <Text style={styles.buttonText}>התחלה</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => cancelTimer(index)}
+            style={[styles.circleButton, styles.cancelButton]}
+          >
+            <Text style={styles.buttonText}>ביטול</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    ));
+  };
+
   return (
     <ScrollView style={styles.screen}>
       <Image source={{ uri: recipe.image }} style={styles.recipeImage} />
@@ -151,6 +266,14 @@ function RecipeDeatailScreen({ navigation, route }) {
         <Text style={styles.heading}>הוראות הכנה</Text>
         <Text style={styles.instructions}>{recipe.instructions}</Text>
       </View>
+      <View style={styles.addTimerContainer}>
+        <TouchableOpacity style={styles.addTimerBtn} onPress={addTimer}>
+          <Entypo name="time-slot" size={30} color="white" />
+          <Text style={styles.addTimerBtnText}>הוסף טיימר </Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.timersContainer}>{renderTimers()}</View>
+
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.button, styles.editButton]}
@@ -174,7 +297,7 @@ export default RecipeDeatailScreen;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: "white",
   },
   recipeImage: {
     width: "100%",
@@ -187,7 +310,7 @@ const styles = StyleSheet.create({
     marginTop: -20,
     paddingTop: 30,
     paddingHorizontal: 20,
-    height: "65%",
+    paddingBottom: 20,
   },
   recipeTitle: {
     fontSize: 24,
@@ -289,5 +412,81 @@ const styles = StyleSheet.create({
   },
   ingredientText: {
     fontSize: 16,
+  },
+  pickerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+  },
+  individualPickerContainer: {
+    flex: 1,
+    alignItems: "center",
+  },
+  picker: {
+    marginHorizontal: 0,
+    paddingHorizontal: 0,
+    width: 95,
+  },
+  pickerItem: {
+    fontSize: 12,
+    height: 120,
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: -10,
+    marginBottom: 20,
+  },
+  circleButton: {
+    backgroundColor: "#4CAF50",
+    borderRadius: 50,
+    width: 80,
+    height: 80,
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 10,
+  },
+  cancelButton: {
+    backgroundColor: "#cccccc",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  timersContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginHorizontal: 4,
+  },
+  timerControl: {
+    width: "49%",
+    padding: 10,
+    marginVertical: 10,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 10,
+  },
+  addTimerContainer: {
+    marginLeft: 10,
+    paddingBottom: 5,
+  },
+  addTimerBtn: {
+    backgroundColor: "black",
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 20,
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "35%",
+  },
+  addTimerBtnText: {
+    color: "white",
+    fontSize: 16,
+    paddingRight: 8,
+    fontWeight: "bold",
   },
 });
