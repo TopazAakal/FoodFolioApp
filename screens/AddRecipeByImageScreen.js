@@ -3,12 +3,26 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import ImagePicker from "../components/UI/ImagePicker";
 import CustomButton from "../components/UI/CustomButton";
+import axios from "axios";
 
 function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
 
-  const handleSaveImage = () => {
-    console.log("Photo uploaded:", imageUri);
+  const handleSaveImage = async () => {
+    const formData = new FormData();
+    formData.append("file", {
+      uri: imageUri,
+      name: "image.jpg",
+      type: "image/jpeg",
+    });
+    let response = await axios.post(
+      "https://fu3pilst2namecbz3sosyy42xa0whdmq.lambda-url.us-east-1.on.aws/upload/",
+      {
+        image: formData,
+      }
+    );
+
+    console.log("Photo uploaded:", response); // Send imageUri to server
   };
 
   return (
