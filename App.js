@@ -47,7 +47,7 @@ export default function App() {
   } else {
     return (
       <>
-        <StatusBar style="light" />
+        <StatusBar style="auto" />
         <NavigationContainer>
           <Stack.Navigator
             initialRouteName="Home"
@@ -68,7 +68,7 @@ export default function App() {
             <Stack.Screen
               name="Home"
               component={HomeScreen}
-              options={{ title: "מסך הבית" }}
+              options={{ title: "" }}
             />
             <Stack.Screen
               name="AddRecipe"

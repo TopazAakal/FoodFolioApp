@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,25 +6,78 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  Image,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { fetchAllRecipes } from "../util/database";
+import {
+  fetchAllRecipes,
+  fetchAllCategories,
+  fetchRecipesByCategory,
+} from "../util/database";
+import { AntDesign } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);
-  const [recipes, setRecipes] = useState([]);
+  const [categories, setCategories] = useState([]); // Categories data
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [recipes, setRecipes] = useState([]); // Recipes for selected category
+  const [latestRecipes, setLatestRecipes] = useState([]);
 
   useEffect(() => {
-    fetchAllRecipes((success, data) => {
-      if (success) {
-        setRecipes(data);
-        console.log("Recipes fetched: ", data);
-      } else {
-        console.log("Failed to fetch recipes");
+    const loadCategories = async () => {
+      const fetchedCategories = await fetchAllCategories();
+      setCategories(fetchedCategories);
+      if (fetchedCategories.length > 0) {
+        selectCategory(fetchedCategories[0].id);
       }
-    });
+    };
+    loadCategories();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchRecipes = async () => {
+        const success = true;
+        const data = await fetchAllRecipes();
+        if (success) {
+          const sortedByRecent = [...data]
+            .sort((a, b) => b.id - a.id)
+            .slice(0, 6);
+          setLatestRecipes(sortedByRecent);
+        } else {
+          console.log("Failed to fetch recipes");
+        }
+      };
+      fetchRecipes();
+    }, [])
+  );
+
+  const selectCategory = async (categoryId) => {
+    setSelectedCategoryId(categoryId);
+    const categoryRecipes = await fetchRecipesByCategory(categoryId);
+    setRecipes(categoryRecipes);
+  };
+
+  const renderCategory = ({ item }) => (
+    <TouchableOpacity
+      style={[
+        styles.categoryItem,
+        item.id === selectedCategoryId ? styles.selectedCategoryItem : {},
+      ]}
+      onPress={() => selectCategory(item.id)}
+    >
+      <Text
+        style={[
+          styles.categoryText,
+          item.id === selectedCategoryId ? styles.selectedCategoryText : {},
+        ]}
+      >
+        {item.name}
+      </Text>
+    </TouchableOpacity>
+  );
 
   const toggleMenu = () => {
     setMenuVisible(!menuVisible);
@@ -48,46 +101,99 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const handleSearch = () => {
+    navigation.navigate("AllRecipes", {
+      searchQuery: searchQuery.trim(),
+    });
+  };
+
+  const overlayStyle = {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  };
+
   const renderRecipe = ({ item }) => (
-    <View style={styles.recipeCard}>
-      <Image source={{ uri: item.image }} style={styles.recipeImage} />
+    <TouchableOpacity
+      style={styles.recipeCard}
+      onPress={() =>
+        navigation.navigate("RecipeDisplay", { recipeId: item.id })
+      }
+    >
+      <View style={{ position: "relative" }}>
+        <Image source={{ uri: item.image }} style={styles.recipeImage} />
+        {menuVisible && <View style={overlayStyle} />}
+      </View>
       <Text style={styles.recipeTitle}>{item.title}</Text>
-    </View>
+    </TouchableOpacity>
+  );
+
+  const renderRecipeByCategory = ({ item }) => (
+    <TouchableOpacity
+      style={styles.recipeCard}
+      onPress={() =>
+        navigation.navigate("RecipeDisplay", { recipeId: item.id })
+      }
+    >
+      <View style={{ position: "relative" }}>
+        <Image source={{ uri: item.image }} style={styles.recipeImage} />
+      </View>
+      <Text style={styles.recipeTitle}>{item.title}</Text>
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       <Text style={styles.greeting}>{getGreeting()}</Text>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="חיפוש"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholderTextColor="#999"
-        />
-        <Ionicons
-          name="search"
-          size={20}
-          color="black"
-          style={styles.iconStyle}
-        />
+      <View style={styles.searchRow}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="חיפוש"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#999"
+          />
+          <Ionicons
+            name="search"
+            size={20}
+            color="black"
+            style={styles.iconStyle}
+          />
+        </View>
+        <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
+          <AntDesign name="leftsquare" size={40} color="#4CAF50" />
+        </TouchableOpacity>
       </View>
       <View>
         <Text style={styles.subTitle}>הארוחות שלי</Text>
-        {/* <FlatList
-          data={recipes}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderRecipe}
-          horizontal={true}
-        /> */}
+        {/* ***************************************/}
+        <View
+          style={{ backgroundColor: "white", width: 120, height: 150 }}
+        ></View>
       </View>
-      <View>
+      <View style={styles.latestRecipesHeader}>
         <Text style={styles.subTitle}>נוספו לאחרונה🔥</Text>
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={() => navigation.navigate("AllRecipes")}
+        >
+          <Text style={styles.moreButtonText}>הצג עוד</Text>
+          <AntDesign name="arrowleft" size={24} color="#4CAF50" />
+        </TouchableOpacity>
       </View>
-      <View>
-        <Text style={styles.subTitle}>אולי יעניין אותך</Text>
-      </View>
+      <FlatList
+        data={latestRecipes}
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderRecipe}
+        style={styles.latestList}
+      />
+
       <View style={styles.ButtonContainer}>
         {menuVisible && (
           <View style={styles.menu}>
@@ -115,6 +221,32 @@ const HomeScreen = ({ navigation }) => {
           <Ionicons name="add" size={26} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
+      <View style={styles.interestHeader}>
+        <Text style={styles.subTitle}>אולי יעניין אותך</Text>
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={() => navigation.navigate("AllRecipes")}
+        >
+          <Text style={styles.moreButtonText}> לכל המתכונים</Text>
+          <AntDesign name="arrowleft" size={24} color="#4CAF50" />
+        </TouchableOpacity>
+      </View>
+      <FlatList
+        horizontal
+        data={categories}
+        renderItem={renderCategory}
+        keyExtractor={(item) => item.id.toString()}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoriesList}
+      />
+      <FlatList
+        horizontal
+        data={recipes}
+        renderItem={renderRecipeByCategory}
+        keyExtractor={(item) => item.id.toString()}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoryRecipesList}
+      />
     </View>
   );
 };
@@ -122,25 +254,38 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "flex-start",
     backgroundColor: "#fff",
-    padding: 25,
+    padding: 15,
+    paddingBottom: 50,
+    alignItems: "flex-start",
+  },
+  contentContainer: {
+    padding: 15,
+    paddingBottom: 50,
+    alignItems: "flex-start",
   },
   greeting: {
     fontSize: 24,
     marginBottom: 20,
     fontWeight: "bold",
   },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 25,
+  },
   searchContainer: {
+    flex: 1,
     flexDirection: "row-reverse",
     alignItems: "center",
     width: "100%",
-    height: 45,
+    height: 40,
     borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 12,
-    marginBottom: 20,
+    marginRight: 5,
   },
   searchInput: {
     flex: 1,
@@ -152,26 +297,29 @@ const styles = StyleSheet.create({
     marginRight: 10,
     color: "#ccc",
   },
-  subTitle: {
-    fontSize: 20,
-    marginVertical: 40,
-    fontWeight: "bold",
-  },
-  ButtonContainer: {
-    position: "absolute",
-    left: 20,
-    bottom: 20,
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "flex-end",
-  },
   fab: {
     width: 58,
     height: 58,
-    borderRadius: 28,
+    borderRadius: 29,
     backgroundColor: "#4CAF50",
     justifyContent: "center",
     alignItems: "center",
+    position: "absolute",
+    right: 15,
+    bottom: 300,
+    zIndex: 1000,
+  },
+
+  ButtonContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 15,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    padding: 20,
+    zIndex: 1,
   },
 
   menu: {
@@ -188,9 +336,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     width: 180,
     position: "absolute",
-    bottom: 50,
-    right: 20,
-    zIndex: 1000,
+    bottom: 340,
+    right: 50,
+    zIndex: 1001,
   },
 
   menuItem: {
@@ -204,20 +352,88 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   recipeCard: {
-    width: 140,
+    width: 170,
     marginRight: 15,
     borderRadius: 10,
     overflow: "hidden",
   },
   recipeImage: {
     width: "100%",
-    height: 100,
+    height: 120,
     borderRadius: 10,
   },
   recipeTitle: {
     fontSize: 16,
     fontWeight: "bold",
     marginTop: 5,
+    textAlign: "left",
+  },
+  subTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    alignContent: "center",
+  },
+  latestRecipesHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 10,
+    paddingLeft: 2,
+  },
+  interestHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    alignSelf: "center",
+    width: "100%",
+    marginTop: 15,
+    paddingVertical: 0,
+    paddingLeft: 2,
+  },
+  latestList: {
+    flexGrow: 0,
+    backgroundColor: "transparent",
+    padding: 0,
+    marginBottom: 20,
+  },
+  moreButton: {
+    paddingVertical: 5,
+    backgroundColor: "transparent",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  moreButtonText: {
+    color: "#4CAF50",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginRight: 5,
+  },
+  categoriesList: {
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  categoryItem: {
+    backgroundColor: "white",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ebeeec",
+    marginHorizontal: 5,
+  },
+  categoryText: {
+    color: "#acacac",
+    fontSize: 14,
+  },
+  selectedCategoryItem: {
+    backgroundColor: "#4CAF50",
+    borderColor: "#4CAF50",
+  },
+  selectedCategoryText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
 
