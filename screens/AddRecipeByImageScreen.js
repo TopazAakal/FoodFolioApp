@@ -3,26 +3,50 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import ImagePicker from "../components/UI/ImagePicker";
 import CustomButton from "../components/UI/CustomButton";
+import { readAsStringAsync, EncodingType } from "expo-file-system";
 import axios from "axios";
 
 function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
 
   const handleSaveImage = async () => {
-    const formData = new FormData();
-    formData.append("file", {
-      uri: imageUri,
-      name: "image.jpg",
-      type: "image/jpeg",
-    });
-    let response = await axios.post(
-      "https://fu3pilst2namecbz3sosyy42xa0whdmq.lambda-url.us-east-1.on.aws/upload/",
-      {
-        image: formData,
+    try {
+      if (!imageUri) {
+        alert("Please pick an image first.");
+        return;
       }
-    );
+      console.log(imageUri);
+      const apiKey = "AIzaSyDlUdIzb7DqD7SgK2wteQcj2w_r-5rmxEY";
+      const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+      // const response = await uploadImage(imageUri);
 
-    console.log("Photo uploaded:", response); // Send imageUri to server
+      const base64Image = await readAsStringAsync(imageUri, {
+        encoding: EncodingType.Base64,
+      });
+
+      const requestData = {
+        requests: [
+          {
+            image: {
+              content: base64Image,
+            },
+            features: [
+              {
+                type: "TEXT_DETECTION",
+                maxResults: 1,
+              },
+            ],
+          },
+        ],
+      };
+      const apiResponse = await axios.post(apiURL, requestData);
+      console.log(
+        "api response",
+        apiResponse.data.responses[0].fullTextAnnotation.text
+      );
+    } catch (error) {
+      console.log("Error:", error);
+    }
   };
 
   return (
