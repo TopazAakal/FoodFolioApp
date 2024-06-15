@@ -8,47 +8,33 @@ import axios from "axios";
 
 function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
+  const [detectedText, setDetectedText] = useState("");
 
   const handleSaveImage = async () => {
+    const base64Image = await readAsStringAsync(imageUri, {
+      encoding: EncodingType.Base64,
+    });
     try {
       if (!imageUri) {
         alert("Please pick an image first.");
         return;
       }
-      console.log(imageUri);
-      const apiKey = "AIzaSyDlUdIzb7DqD7SgK2wteQcj2w_r-5rmxEY";
-      const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
-      // const response = await uploadImage(imageUri);
-
-      const base64Image = await readAsStringAsync(imageUri, {
-        encoding: EncodingType.Base64,
-      });
-
-      const requestData = {
-        requests: [
-          {
-            image: {
-              content: base64Image,
-            },
-            features: [
-              {
-                type: "TEXT_DETECTION",
-                maxResults: 1,
-              },
-            ],
-          },
-        ],
-      };
-      const apiResponse = await axios.post(apiURL, requestData);
-      console.log(
-        "api response",
-        apiResponse.data.responses[0].fullTextAnnotation.text
+      const response = await axios.post(
+        "https://ilwcjy1wk4.execute-api.us-east-1.amazonaws.com/dev/",
+        {
+          image_data: String(base64Image),
+        }
       );
+
+      const DetectedText = JSON.parse(response.data.body);
+
+      console.log("Detected Text:", DetectedText);
+
+      setDetectedText(DetectedText);
     } catch (error) {
-      console.log("Error:", error);
+      console.error(error);
     }
   };
-
   return (
     <KeyboardAwareScrollView
       style={styles.rootContainer}
