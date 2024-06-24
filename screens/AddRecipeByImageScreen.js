@@ -10,44 +10,74 @@ function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
 
   const handleSaveImage = async () => {
+    if (!imageUri) {
+      console.log("No image selected");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", {
+      uri: imageUri,
+      name: "image.jpg",
+      type: "image/jpeg",
+    });
+
     try {
-      if (!imageUri) {
-        alert("Please pick an image first.");
-        return;
-      }
-      console.log(imageUri);
-      const apiKey = "AIzaSyDlUdIzb7DqD7SgK2wteQcj2w_r-5rmxEY";
-      const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
-      // const response = await uploadImage(imageUri);
-
-      const base64Image = await readAsStringAsync(imageUri, {
-        encoding: EncodingType.Base64,
-      });
-
-      const requestData = {
-        requests: [
-          {
-            image: {
-              content: base64Image,
-            },
-            features: [
-              {
-                type: "TEXT_DETECTION",
-                maxResults: 1,
-              },
-            ],
+      let response = await axios.post(
+        "https://fu3pilst2namecbz3sosyy42xa0whdmq.lambda-url.us-east-1.on.aws/upload/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
           },
-        ],
-      };
-      const apiResponse = await axios.post(apiURL, requestData);
-      console.log(
-        "api response",
-        apiResponse.data.responses[0].fullTextAnnotation.text
+        }
       );
+
+      console.log("Photo uploaded:", response.data);
     } catch (error) {
-      console.log("Error:", error);
+      console.error("Error uploading photo:", error.response || error.message);
     }
   };
+
+  // const handleSaveImage = async () => {
+  //   try {
+  //     if (!imageUri) {
+  //       alert("Please pick an image first.");
+  //       return;
+  //     }
+  //     console.log(imageUri);
+  //     const apiKey = "AIzaSyDlUdIzb7DqD7SgK2wteQcj2w_r-5rmxEY";
+  //     const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+  //     // const response = await uploadImage(imageUri);
+
+  //     const base64Image = await readAsStringAsync(imageUri, {
+  //       encoding: EncodingType.Base64,
+  //     });
+
+  //     const requestData = {
+  //       requests: [
+  //         {
+  //           image: {
+  //             content: base64Image,
+  //           },
+  //           features: [
+  //             {
+  //               type: "TEXT_DETECTION",
+  //               maxResults: 1,
+  //             },
+  //           ],
+  //         },
+  //       ],
+  //     };
+  //     const apiResponse = await axios.post(apiURL, requestData);
+  //     const detectedText =
+  //       apiResponse.data.responses[0].fullTextAnnotation.text;
+  //     console.log("api response", detectedText);
+  //     navigation.navigate("Output", { text: detectedText });
+  //   } catch (error) {
+  //     console.log("Error:", error);
+  //   }
+  // };
 
   return (
     <KeyboardAwareScrollView
