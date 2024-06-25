@@ -16,6 +16,7 @@ import AddCategoryScreen from "./screens/AddCategoryScreen";
 import AddRecipeByUrlScreen from "./screens/AddRecipeByUrlScreen";
 import AddRecipeByImageScreen from "./screens/AddRecipeByImageScreen";
 import HomeScreen from "./screens/HomeScreen";
+import OutputScreen from "./screens/OutputScreen";
 
 I18nManager.forceRTL(true);
 //comment
@@ -119,6 +120,11 @@ export default function App() {
               name="AddCategory"
               component={AddCategoryScreen}
               options={{ title: "קטגוריה חדשה" }}
+            />
+            <Stack.Screen
+              name="Output"
+              component={OutputScreen}
+              options={{ title: "המתכון" }}
             />
           </Stack.Navigator>
         </NavigationContainer>
