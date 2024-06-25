@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Modal,
+  TextInput,
 } from "react-native";
 import { fetchRecipeById, deleteRecipeById } from "../util/database";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +17,7 @@ import { I18nManager } from "react-native";
 import Timer from "../components/UI/Timer";
 import { Picker } from "@react-native-picker/picker";
 import { Entypo } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -28,6 +31,10 @@ function RecipeDeatailScreen({ navigation, route }) {
     image: null,
     ingredients: [],
   });
+  const [displayedIngredients, setDisplayedIngredients] = useState([]);
+  const [isConvertModalVisible, setConvertModalVisible] = useState(false);
+  const [conversionType, setConversionType] = useState("multiply");
+  const [conversionFactor, setConversionFactor] = useState("1");
 
   useEffect(() => {
     const { recipeId, selectedCategory } = route.params;
@@ -36,7 +43,8 @@ function RecipeDeatailScreen({ navigation, route }) {
         try {
           const data = await fetchRecipeById(recipeId);
           if (data) {
-            const ingredientsArray = JSON.parse(data.ingredients || "[]");
+            const ingredientsArray = JSON.parse(data.ingredients || []);
+            console.log("Ingredients Array:", ingredientsArray);
             const categoryNames = data.categoryNames
               ? data.categoryNames.split(",")
               : [];
@@ -47,6 +55,7 @@ function RecipeDeatailScreen({ navigation, route }) {
               ingredients: ingredientsArray,
               categoryToShow,
             });
+            setDisplayedIngredients(ingredientsArray);
           } else {
             console.error("No data returned for recipe ID:", recipeId);
           }
@@ -59,6 +68,26 @@ function RecipeDeatailScreen({ navigation, route }) {
     fetchRecipe();
   }, [route.params]);
 
+  useEffect(() => {
+    if (recipe.ingredients.length > 0) {
+      let parsedIngredients;
+      try {
+        parsedIngredients =
+          typeof recipe.ingredients === "string"
+            ? JSON.parse(recipe.ingredients)
+            : recipe.ingredients;
+      } catch (error) {
+        console.error("Failed to parse ingredients in useEffect:", error);
+        parsedIngredients = [];
+      }
+      setDisplayedIngredients(parsedIngredients);
+      console.log(
+        "displayedIngredients updated in useEffect:",
+        parsedIngredients
+      );
+    }
+  }, [recipe.ingredients]);
+
   if (!recipe) {
     return (
       <View style={styles.container}>
@@ -66,6 +95,56 @@ function RecipeDeatailScreen({ navigation, route }) {
       </View>
     );
   }
+
+  const applyConversion = () => {
+    const factor = parseFloat(conversionFactor);
+    if (isNaN(factor) || factor <= 0) {
+      Alert.alert("שגיאה", "אנא הזן ערך תקף להמרה");
+      return;
+    }
+    console.log("Conversion factor:", factor);
+    console.log("Original Ingredients:", recipe.ingredients);
+
+    let ingredients = displayedIngredients;
+    if (typeof ingredients === "string") {
+      try {
+        ingredients = JSON.parse(ingredients);
+        console.log("Parsed Ingredients:", ingredients);
+      } catch (error) {
+        console.error("Failed to parse ingredients:", error);
+        Alert.alert("שגיאה", "שגיאה בפירוש המרכיבים");
+        return;
+      }
+    }
+
+    if (!Array.isArray(ingredients)) {
+      console.error("Ingredients is not an array:", ingredients);
+      Alert.alert("שגיאה", "המרכיבים אינם במבנה תקין");
+      return;
+    }
+
+    const newIngredients = ingredients.map((ingredient, index) => {
+      const quantity = parseFloat(ingredient.quantity);
+      if (isNaN(quantity)) {
+        console.error("Invalid quantity:", ingredient.quantity);
+        return ingredient;
+      }
+      const newQuantity =
+        conversionType === "multiply" ? quantity * factor : quantity / factor;
+      return {
+        ...ingredient,
+        quantity:
+          newQuantity % 1 === 0
+            ? newQuantity.toString()
+            : newQuantity.toFixed(2),
+      };
+    });
+
+    console.log("Converted Ingredients:", newIngredients);
+
+    setDisplayedIngredients(newIngredients);
+    setConvertModalVisible(false);
+  };
 
   const handleDelete = () => {
     Alert.alert("מחיקת מתכון", "האם אתה בטוח שברצונך למחוק את המתכון?", [
@@ -118,24 +197,23 @@ function RecipeDeatailScreen({ navigation, route }) {
   }
 
   const formatIngredients = (ingredients) => {
-    let ingredientsArray;
-    try {
-      ingredientsArray =
-        typeof ingredients === "string" ? JSON.parse(ingredients) : ingredients;
-    } catch (e) {
-      console.error("Error parsing ingredients:", e);
-      ingredientsArray = [];
-    }
-    if (!Array.isArray(ingredientsArray)) {
-      console.error(
-        "Expected ingredientsArray to be an array but got:",
-        typeof ingredientsArray
-      );
-      return null;
-    }
-    return ingredientsArray.map((ingredient, index) => (
+    console.log("formatIngredients called with:", ingredients);
+    return ingredients.map((ingredient, index) => (
       <IngredientItem key={index} ingredient={ingredient} />
     ));
+  };
+
+  const incrementFactor = () => {
+    setConversionFactor((prevFactor) =>
+      (parseFloat(prevFactor) + 1).toString()
+    );
+  };
+
+  const decrementFactor = () => {
+    setConversionFactor((prevFactor) => {
+      const newFactor = parseFloat(prevFactor) - 1;
+      return newFactor > 0 ? newFactor.toString() : "0";
+    });
   };
 
   const addTimer = () => {
@@ -262,7 +340,22 @@ function RecipeDeatailScreen({ navigation, route }) {
         </View>
         <View style={styles.separator} />
         <Text style={styles.heading}>מרכיבים</Text>
-        <View>{formatIngredients(recipe.ingredients)}</View>
+        <View>
+          {Array.isArray(displayedIngredients) &&
+          displayedIngredients.length > 0 ? (
+            formatIngredients(displayedIngredients)
+          ) : (
+            <Text>אין מרכיבים</Text>
+          )}
+        </View>
+        <TouchableOpacity
+          style={styles.convertUnitsBtn}
+          onPress={() => setConvertModalVisible(true)}
+        >
+          <Entypo name="swap" size={24} color="white" />
+          <Text style={styles.convertUnitsBtnText}>המרת יחידות מידה </Text>
+        </TouchableOpacity>
+        {/* <View>{formatIngredients(recipe.ingredients)}</View> */}
         <Text style={styles.heading}>הוראות הכנה</Text>
         <Text style={styles.instructions}>{recipe.instructions}</Text>
       </View>
@@ -288,6 +381,79 @@ function RecipeDeatailScreen({ navigation, route }) {
           <Text style={styles.buttonText}>מחיקת מתכון</Text>
         </TouchableOpacity>
       </View>
+      <Modal
+        visible={isConvertModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setConvertModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>המרת יחידות מידה</Text>
+            <View style={styles.radioGroup}>
+              <TouchableOpacity
+                style={styles.radioOption}
+                onPress={() => setConversionType("multiply")}
+              >
+                <View
+                  style={[
+                    styles.radioCircle,
+                    conversionType === "multiply" && styles.selectedRadio,
+                  ]}
+                />
+                <Text style={styles.radioText}>להכפיל כמויות</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.radioOption}
+                onPress={() => setConversionType("divide")}
+              >
+                <View
+                  style={[
+                    styles.radioCircle,
+                    conversionType === "divide" && styles.selectedRadio,
+                  ]}
+                />
+                <Text style={styles.radioText}>לחלק כמויות</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.inputContainer}>
+              <MaterialCommunityIcons
+                name="minus-box"
+                size={45}
+                color="black"
+                onPress={decrementFactor}
+              />
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={conversionFactor}
+                onChangeText={(text) => setConversionFactor(text)}
+                placeholder="הזן מספר"
+              />
+              <MaterialCommunityIcons
+                name="plus-box"
+                size={45}
+                color="black"
+                onPress={incrementFactor}
+              />
+            </View>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={applyConversion}
+              >
+                <Text style={styles.modalButtonText}>אישור</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setConvertModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>ביטול</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -476,17 +642,132 @@ const styles = StyleSheet.create({
   addTimerBtn: {
     backgroundColor: "black",
     paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingVertical: 7,
     borderRadius: 20,
     flexDirection: "row-reverse",
     alignItems: "center",
     justifyContent: "center",
     width: "35%",
+    marginBottom: 10,
   },
   addTimerBtnText: {
     color: "white",
     fontSize: 16,
     paddingRight: 8,
     fontWeight: "bold",
+  },
+  convertUnitsBtn: {
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "45%",
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  convertUnitsBtnText: {
+    color: "white",
+    fontSize: 14,
+    paddingLeft: 8,
+    fontWeight: "bold",
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.781)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderWidth: 1,
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 15,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginTop: 10,
+    marginBottom: 40,
+  },
+  radioGroup: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 20,
+    width: "90%",
+  },
+  radioOption: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  radioCircle: {
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#000",
+    marginRight: 7,
+  },
+  selectedRadio: {
+    backgroundColor: "#000",
+  },
+  radioText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  inputContainer: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    marginTop: 20,
+    marginBottom: 40,
+  },
+  input: {
+    height: 38,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    width: "20%",
+    textAlign: "center",
+  },
+  incrementButton: {
+    backgroundColor: "#4CAF50",
+    padding: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  incrementButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "70%",
+    marginBottom: 15,
+  },
+  modalButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  modalButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  cancelButton: {
+    backgroundColor: "#cccccc",
   },
 });
