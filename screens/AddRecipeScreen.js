@@ -56,6 +56,19 @@ function AddRecipeScreen() {
     { label: "קורט", value: "קורט" },
   ];
 
+  const pluralUnits = {
+    'מ"ל': "מיליליטרים",
+    ליטר: "ליטרים",
+    'מ"ג': "מיליגרם",
+    גרם: "גרם",
+    'ק"ג': "קילוגרם",
+    כוס: "כוסות",
+    כף: "כפות",
+    כפית: "כפיות",
+    יחידה: "יחידות",
+    קורט: "קורט",
+  };
+
   useEffect(() => {
     const loadCategories = async () => {
       const data = await fetchAllCategories();
@@ -185,11 +198,32 @@ function AddRecipeScreen() {
 
   const addIngredientHandler = () => {
     if (ingredientName && quantity && selectedUnit) {
+      let updatedQuantity = parseFloat(quantity);
+      let updatedUnit = selectedUnit;
+
+      // Unit conversion logic
+      if (selectedUnit === "גרם" && updatedQuantity >= 1000) {
+        updatedQuantity /= 1000;
+        updatedUnit = 'ק"ג';
+      } else if (selectedUnit === 'מ"ל' && updatedQuantity >= 1000) {
+        updatedQuantity /= 1000;
+        updatedUnit = "ליטר";
+      }
+
+      // Pluralization logic
+      if (updatedQuantity > 1 && pluralUnits[updatedUnit]) {
+        updatedUnit = pluralUnits[updatedUnit];
+      }
+
       const newIngredient = {
         name: ingredientName,
-        quantity: quantity,
-        unit: selectedUnit,
+        quantity:
+          updatedQuantity % 1 === 0
+            ? updatedQuantity.toString()
+            : updatedQuantity.toFixed(2),
+        unit: updatedUnit,
       };
+
       setIngredients((currentIngredients) => [
         ...currentIngredients,
         newIngredient,
@@ -199,6 +233,23 @@ function AddRecipeScreen() {
       setSelectedUnit(unitOptions[0].value);
     }
   };
+
+  // const addIngredientHandler = () => {
+  //   if (ingredientName && quantity && selectedUnit) {
+  //     const newIngredient = {
+  //       name: ingredientName,
+  //       quantity: quantity,
+  //       unit: selectedUnit,
+  //     };
+  //     setIngredients((currentIngredients) => [
+  //       ...currentIngredients,
+  //       newIngredient,
+  //     ]);
+  //     setIngredientName("");
+  //     setQuantity("");
+  //     setSelectedUnit(unitOptions[0].value);
+  //   }
+  // };
 
   const editIngredientHandler = (index) => {
     const ingredientToEdit = ingredients[index];
@@ -224,27 +275,36 @@ function AddRecipeScreen() {
         ? JSON.parse(ingredientsInput)
         : ingredientsInput;
 
-    return ingredientsArray.map((ingredient, index) => (
-      <View key={index} style={styles.ingredientListItem}>
-        <Text style={styles.ingredientText}>
-          {`${ingredient.quantity} ${ingredient.unit} ${ingredient.name}`}
-        </Text>
-        <View style={{ flexDirection: "row" }}>
-          <TouchableOpacity
-            onPress={() => editIngredientHandler(index)}
-            style={styles.editButton}
-          >
-            <Ionicons name="pencil" size={20} color="black" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => removeIngredient(index)}
-            style={styles.deleteButton}
-          >
-            <Ionicons name="trash" size={20} color="black" />
-          </TouchableOpacity>
+    return ingredientsArray.map((ingredient, index) => {
+      const quantity = parseFloat(ingredient.quantity);
+      let unit = ingredient.unit;
+
+      // Pluralization logic
+      if (quantity > 1 && pluralUnits[unit]) {
+        unit = pluralUnits[unit];
+      }
+      return (
+        <View key={index} style={styles.ingredientListItem}>
+          <Text style={styles.ingredientText}>
+            {`${ingredient.quantity} ${ingredient.unit} ${ingredient.name}`}
+          </Text>
+          <View style={{ flexDirection: "row" }}>
+            <TouchableOpacity
+              onPress={() => editIngredientHandler(index)}
+              style={styles.editButton}
+            >
+              <Ionicons name="pencil" size={20} color="black" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => removeIngredient(index)}
+              style={styles.deleteButton}
+            >
+              <Ionicons name="trash" size={20} color="black" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    ));
+      );
+    });
   };
 
   return (
