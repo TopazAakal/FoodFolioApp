@@ -18,6 +18,8 @@ import Timer from "../components/UI/Timer";
 import { Picker } from "@react-native-picker/picker";
 import { Entypo } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { FontAwesome6 } from "@expo/vector-icons";
+import { FontAwesome5 } from "@expo/vector-icons";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -35,6 +37,32 @@ function RecipeDeatailScreen({ navigation, route }) {
   const [isConvertModalVisible, setConvertModalVisible] = useState(false);
   const [conversionType, setConversionType] = useState("multiply");
   const [conversionFactor, setConversionFactor] = useState("1");
+
+  const pluralUnits = {
+    'מ"ל': "מיליליטרים",
+    ליטר: "ליטרים",
+    'מ"ג': "מיליגרם",
+    גרם: "גרם",
+    'ק"ג': "קילוגרם",
+    כוס: "כוסות",
+    כף: "כפות",
+    כפית: "כפיות",
+    יחידה: "יחידות",
+    קורט: "קורט",
+  };
+
+  const singularUnits = {
+    מיליליטרים: 'מ"ל',
+    ליטרים: "ליטר",
+    מיליגרם: 'מ"ג',
+    גרם: "גרם",
+    קילוגרם: 'ק"ג',
+    כוסות: "כוס",
+    כפות: "כף",
+    כפיות: "כפית",
+    יחידות: "יחידה",
+    קורט: "קורט",
+  };
 
   useEffect(() => {
     const { recipeId, selectedCategory } = route.params;
@@ -129,14 +157,39 @@ function RecipeDeatailScreen({ navigation, route }) {
         console.error("Invalid quantity:", ingredient.quantity);
         return ingredient;
       }
-      const newQuantity =
+      let newQuantity =
         conversionType === "multiply" ? quantity * factor : quantity / factor;
+
+      // Unit conversion logic
+      let newUnit = ingredient.unit;
+      if (newUnit === "גרם" && newQuantity >= 1000) {
+        newQuantity /= 1000;
+        newUnit = 'ק"ג';
+      } else if (newUnit === 'מ"ל' && newQuantity >= 1000) {
+        newQuantity /= 1000;
+        newUnit = "ליטר";
+      } else if (newUnit === 'ק"ג' && newQuantity < 1) {
+        newQuantity *= 1000;
+        newUnit = "גרם";
+      } else if (newUnit === "ליטר" && newQuantity < 1) {
+        newQuantity *= 1000;
+        newUnit = 'מ"ל';
+      }
+
+      // Pluralization and singularization logic
+      if (newQuantity > 1 && pluralUnits[newUnit]) {
+        newUnit = pluralUnits[newUnit];
+      } else if (newQuantity <= 1) {
+        newUnit = singularUnits[newUnit] || newUnit;
+      }
+
       return {
         ...ingredient,
         quantity:
           newQuantity % 1 === 0
             ? newQuantity.toString()
             : newQuantity.toFixed(2),
+        unit: newUnit,
       };
     });
 
@@ -198,9 +251,21 @@ function RecipeDeatailScreen({ navigation, route }) {
 
   const formatIngredients = (ingredients) => {
     console.log("formatIngredients called with:", ingredients);
-    return ingredients.map((ingredient, index) => (
-      <IngredientItem key={index} ingredient={ingredient} />
-    ));
+    return ingredients.map((ingredient, index) => {
+      const quantity = parseFloat(ingredient.quantity);
+      let unit = ingredient.unit;
+
+      // Pluralization and singularization logic
+      if (quantity > 1 && pluralUnits[unit]) {
+        unit = pluralUnits[unit];
+      } else if (quantity <= 1) {
+        unit = singularUnits[unit] || unit;
+      }
+
+      return (
+        <IngredientItem key={index} ingredient={{ ...ingredient, unit }} />
+      );
+    });
   };
 
   const incrementFactor = () => {
@@ -389,7 +454,10 @@ function RecipeDeatailScreen({ navigation, route }) {
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>המרת יחידות מידה</Text>
+            <View style={styles.titleContainer}>
+              <Text style={styles.modalTitle}>המרת יחידות מידה</Text>
+              <FontAwesome5 name="pencil-ruler" size={30} color="black" />
+            </View>
             <View style={styles.radioGroup}>
               <TouchableOpacity
                 style={styles.radioOption}
@@ -693,12 +761,21 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 15,
     alignItems: "center",
+    borderWidth: 5,
+    borderColor: "black",
   },
   modalTitle: {
     fontSize: 25,
     fontWeight: "bold",
     marginTop: 10,
-    marginBottom: 40,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  titleContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 30,
   },
   radioGroup: {
     flexDirection: "row",
