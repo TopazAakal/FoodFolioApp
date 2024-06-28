@@ -17,6 +17,9 @@ import AddRecipeByUrlScreen from "./screens/AddRecipeByUrlScreen";
 import AddRecipeByImageScreen from "./screens/AddRecipeByImageScreen";
 import HomeScreen from "./screens/HomeScreen";
 import OutputScreen from "./screens/OutputScreen";
+import { Entypo } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import ShoppingListScreen from "./screens/ShoppingListScreen";
 
 I18nManager.forceRTL(true);
 //comment
@@ -55,7 +58,7 @@ export default function App() {
             screenOptions={{
               headerStyle: {
                 backgroundColor: "#fff",
-                height: 120,
+                height: 110,
               },
               headerTintColor: "black",
               headerTitleStyle: {
@@ -69,7 +72,29 @@ export default function App() {
             <Stack.Screen
               name="Home"
               component={HomeScreen}
-              options={{ title: "" }}
+              options={({ navigation }) => ({
+                title: "",
+                headerRight: () => (
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate("AllRecipes", {
+                        fromShoppingCart: true,
+                      })
+                    }
+                    style={{ marginRight: 20 }}
+                  >
+                    <Entypo name="shopping-cart" size={26} color="black" />
+                  </TouchableOpacity>
+                ),
+                headerLeft: () => (
+                  <TouchableOpacity
+                    onPress={() => {}}
+                    style={{ marginLeft: 20 }}
+                  >
+                    <Ionicons name="menu" size={28} color="black" />
+                  </TouchableOpacity>
+                ),
+              })}
             />
             <Stack.Screen
               name="AddRecipe"
@@ -125,6 +150,11 @@ export default function App() {
               name="Output"
               component={OutputScreen}
               options={{ title: "המתכון" }}
+            />
+            <Stack.Screen
+              name="ShoppingList"
+              component={ShoppingListScreen}
+              options={{ title: "רשימת קניות" }}
             />
           </Stack.Navigator>
         </NavigationContainer>
