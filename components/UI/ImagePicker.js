@@ -12,13 +12,20 @@ import {
   useCameraPermissions,
   PermissionStatus,
 } from "expo-image-picker";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 
-function ImagePicker({ onTakeImage, style }) {
-  const [pickedImage, setPickedImage] = useState();
+function ImagePicker({ onTakeImage, initialImage }) {
+  const [pickedImage, setPickedImage] = useState(initialImage);
   const [cameraPermissionInformation, requestPermission] =
     useCameraPermissions();
+
+  // Update pickedImage if initialImage changes
+  useEffect(() => {
+    if (initialImage) {
+      setPickedImage(initialImage);
+    }
+  }, [initialImage]);
 
   async function verifyPermissions() {
     if (cameraPermissionInformation.status === PermissionStatus.UNDETERMINED) {
@@ -100,7 +107,7 @@ function ImagePicker({ onTakeImage, style }) {
     <View style={styles.imagePicker}>
       <TouchableOpacity
         onPress={imagePickHandler}
-        style={[styles.imagePreview, style]}
+        style={[styles.imagePreview]}
       >
         {!pickedImage ? (
           <MaterialIcons name="add-a-photo" size={55} color="gray" />

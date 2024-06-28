@@ -240,7 +240,7 @@ async function updateRecipeWithCategories(id, recipe, categoryIds) {
       UPDATE recipes SET title = ?, ingredients = ?, instructions = ?, image = ?, totalTime = ? WHERE id = ?;`,
       [
         recipe.title,
-        JSON.stringify(recipe.ingredients),
+        recipe.ingredients,
         recipe.instructions,
         recipe.image,
         recipe.totalTime,
@@ -257,9 +257,10 @@ async function updateRecipeWithCategories(id, recipe, categoryIds) {
       );
     }
     console.log("Recipe updated successfully with new category associations");
+    return true; // Indicate success
   } catch (error) {
     console.error("Failed to update recipe:", error);
-    throw error;
+    return false; // Indicate failure
   }
 }
 
