@@ -29,7 +29,7 @@ I18nManager.forceRTL(true);
 function AddRecipeScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const [recipeId, setRecipeId] = useState(route.params?.recipeId || null);
+  const recipeId = route.params?.recipeId || null;
   const [title, setTitle] = useState("");
   const [ingredients, setIngredients] = useState([]);
   const [instructions, setInstructions] = useState("");
@@ -74,26 +74,27 @@ function AddRecipeScreen() {
       const data = await fetchAllCategories();
       if (data) {
         setCategories(data);
-        if (recipeId) {
-          await fetchRecipeDetails(recipeId);
-        }
       } else {
         console.log("Failed to fetch categories");
       }
     };
     loadCategories();
-  }, [recipeId]);
+  }, []);
+
+  useEffect(() => {
+    if (recipeId) {
+      fetchRecipeDetails(recipeId);
+    }
+  }, [categories, recipeId]);
 
   const getCategoryIdsFromNames = (namesString, categories) => {
+    if (!namesString) return [];
     const namesArray = namesString.split(",");
-    console.log(
-      "Inside getCategoryIdsFromNames == Category names array:",
-      namesArray
-    );
-    catIds = categories
-      .filter((cat) => namesArray.includes(cat.name))
+
+    const catIds = categories
+      .filter((cat) => namesArray.includes(cat.name.trim()))
       .map((cat) => cat.id.toString());
-    console.log("Inside getCategoryIdsFromNames == Category IDs:", catIds);
+
     return catIds;
   };
 
@@ -101,7 +102,7 @@ function AddRecipeScreen() {
     const data = await fetchRecipeById(recipeId);
     if (data) {
       try {
-        const ingredients = JSON.parse(data.ingredients || "[]");
+        const ingredients = JSON.parse(data.ingredients || []);
         const categoryIds = getCategoryIdsFromNames(
           data.categoryNames,
           categories
@@ -149,20 +150,17 @@ function AddRecipeScreen() {
     };
 
     if (recipeId) {
-      // Updating existing recipe
-      updateRecipeWithCategories(
+      const success = await updateRecipeWithCategories(
         recipeId,
         recipeData,
-        categoryIds,
-        (success) => {
-          if (success) {
-            console.log(`Recipe updated successfully with ID: ${recipeId}`);
-            navigation.replace("RecipeDisplay", { recipeId: recipeId });
-          } else {
-            console.error("Failed to update recipe");
-          }
-        }
+        categoryIds
       );
+      if (success) {
+        console.log(`Recipe updated successfully with ID: ${recipeId}`);
+        navigation.replace("RecipeDisplay", { recipeId: recipeId });
+      } else {
+        console.error("Failed to update recipe");
+      }
     } else {
       // Adding new recipe
       console.log("Adding new recipe with data:", recipeData);
@@ -225,7 +223,7 @@ function AddRecipeScreen() {
       };
 
       setIngredients((currentIngredients) => [
-        ...currentIngredients,
+        ...(Array.isArray(currentIngredients) ? currentIngredients : []),
         newIngredient,
       ]);
       setIngredientName("");
@@ -233,23 +231,6 @@ function AddRecipeScreen() {
       setSelectedUnit(unitOptions[0].value);
     }
   };
-
-  // const addIngredientHandler = () => {
-  //   if (ingredientName && quantity && selectedUnit) {
-  //     const newIngredient = {
-  //       name: ingredientName,
-  //       quantity: quantity,
-  //       unit: selectedUnit,
-  //     };
-  //     setIngredients((currentIngredients) => [
-  //       ...currentIngredients,
-  //       newIngredient,
-  //     ]);
-  //     setIngredientName("");
-  //     setQuantity("");
-  //     setSelectedUnit(unitOptions[0].value);
-  //   }
-  // };
 
   const editIngredientHandler = (index) => {
     const ingredientToEdit = ingredients[index];
@@ -261,7 +242,9 @@ function AddRecipeScreen() {
 
   const removeIngredient = (index) => {
     setIngredients((currentIngredients) =>
-      currentIngredients.filter((_, i) => i !== index)
+      Array.isArray(currentIngredients)
+        ? currentIngredients.filter((_, i) => i !== index)
+        : []
     );
   };
 
@@ -322,7 +305,10 @@ function AddRecipeScreen() {
           onChangeText={setTotalTime}
         />
 
-        <ImagePicker onTakeImage={takeImageHandler} />
+        <ImagePicker
+          onTakeImage={takeImageHandler}
+          initialImage={recipeImage}
+        />
         <View>{formatIngredients(ingredients)}</View>
 
         <View style={styles.ingredientSection}>

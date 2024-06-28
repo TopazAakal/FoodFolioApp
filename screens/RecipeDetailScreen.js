@@ -65,7 +65,6 @@ function RecipeDeatailScreen({ navigation, route }) {
           const data = await fetchRecipeById(recipeId);
           if (data) {
             const ingredientsArray = JSON.parse(data.ingredients || []);
-            console.log("Ingredients Array:", ingredientsArray);
             const categoryNames = data.categoryNames
               ? data.categoryNames.split(",")
               : [];
@@ -102,10 +101,6 @@ function RecipeDeatailScreen({ navigation, route }) {
         parsedIngredients = [];
       }
       setDisplayedIngredients(parsedIngredients);
-      console.log(
-        "displayedIngredients updated in useEffect:",
-        parsedIngredients
-      );
     }
   }, [recipe.ingredients]);
 
@@ -118,7 +113,6 @@ function RecipeDeatailScreen({ navigation, route }) {
   }
 
   const formatIngredients = (ingredients) => {
-    console.log("formatIngredients called with:", ingredients);
     return ingredients.map((ingredient, index) => {
       const quantity = parseFloat(ingredient.quantity);
       let unit = ingredient.unit;
