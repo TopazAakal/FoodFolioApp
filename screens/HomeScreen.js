@@ -107,15 +107,6 @@ const HomeScreen = ({ navigation }) => {
     });
   };
 
-  const overlayStyle = {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  };
-
   const renderRecipe = ({ item }) => (
     <TouchableOpacity
       style={styles.recipeCard}
@@ -125,7 +116,7 @@ const HomeScreen = ({ navigation }) => {
     >
       <View style={{ position: "relative" }}>
         <Image source={{ uri: item.image }} style={styles.recipeImage} />
-        {menuVisible && <View style={overlayStyle} />}
+        {menuVisible}
       </View>
       <Text style={styles.recipeTitle}>{item.title}</Text>
     </TouchableOpacity>
@@ -306,7 +297,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "absolute",
     right: 15,
-    bottom: 300,
+    bottom: 30,
     zIndex: 1000,
   },
 
@@ -336,7 +327,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     width: 180,
     position: "absolute",
-    bottom: 340,
+    bottom: 65,
     right: 50,
     zIndex: 1001,
   },

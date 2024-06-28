@@ -22,7 +22,7 @@ import { Ionicons } from "@expo/vector-icons";
 import ShoppingListScreen from "./screens/ShoppingListScreen";
 
 I18nManager.forceRTL(true);
-//comment
+
 const Stack = createStackNavigator();
 
 export default function App() {
