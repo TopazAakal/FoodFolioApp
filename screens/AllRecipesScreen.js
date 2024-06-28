@@ -19,7 +19,7 @@ import { Ionicons } from "react-native-vector-icons";
 const windowWidth = Dimensions.get("window").width;
 
 function AllRecipesScreen({ navigation, route }) {
-  const { fromCategoryScreen } = route.params || {};
+  const { fromCategoryScreen, fromShoppingCart } = route.params || {};
   const { searchQuery: externalSearchQuery } = route.params || {};
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
@@ -105,7 +105,7 @@ function AllRecipesScreen({ navigation, route }) {
   };
 
   const toggleRecipeSelection = (recipeId) => {
-    if (!fromCategoryScreen) return;
+    if (!fromCategoryScreen && !fromShoppingCart) return;
 
     const newSet = new Set(selectedRecipes);
     if (selectedRecipes.has(recipeId)) {
@@ -133,8 +133,15 @@ function AllRecipesScreen({ navigation, route }) {
     }
   };
 
+  const handleFinishSelection = () => {
+    const selectedRecipesArray = Array.from(selectedRecipes);
+    navigation.navigate("ShoppingList", {
+      selectedRecipes: selectedRecipesArray,
+    });
+  };
+
   const handleRecipePress = (recipeId) => {
-    if (fromCategoryScreen) {
+    if (fromCategoryScreen || fromShoppingCart) {
       toggleRecipeSelection(recipeId);
     } else {
       navigation.navigate("RecipeDisplay", { recipeId: recipeId });
@@ -148,25 +155,27 @@ function AllRecipesScreen({ navigation, route }) {
     >
       <View style={styles.imageContainer}>
         <Image style={styles.cardImage} source={{ uri: item.image }} />
-        {fromCategoryScreen && <View style={styles.imageOverlay} />}
+        {fromCategoryScreen ||
+          (fromShoppingCart && <View style={styles.imageOverlay} />)}
       </View>
       <Text style={styles.cardTitle}>{item.title}</Text>
-      {fromCategoryScreen && selectedRecipes.has(item.id) && (
-        <TouchableOpacity
-          style={styles.checkboxIcon}
-          onPress={() => toggleRecipeSelection(item.id)}
-        >
-          <Ionicons
-            name={
-              selectedRecipes.has(item.id)
-                ? "checkbox-outline"
-                : "square-outline"
-            }
-            size={30}
-            color="#ffffff"
-          />
-        </TouchableOpacity>
-      )}
+      {fromCategoryScreen ||
+        (fromShoppingCart && selectedRecipes.has(item.id) && (
+          <TouchableOpacity
+            style={styles.checkboxIcon}
+            onPress={() => toggleRecipeSelection(item.id)}
+          >
+            <Ionicons
+              name={
+                selectedRecipes.has(item.id)
+                  ? "checkbox-outline"
+                  : "square-outline"
+              }
+              size={30}
+              color="#ffffff"
+            />
+          </TouchableOpacity>
+        ))}
     </TouchableOpacity>
   );
 
@@ -187,22 +196,27 @@ function AllRecipesScreen({ navigation, route }) {
         numColumns={2}
         contentContainerStyle={styles.listContent}
       />
-      {fromCategoryScreen && (
-        <View style={styles.bottomButtonContainer}>
-          <TouchableOpacity
-            style={styles.okButton}
-            onPress={addSelectedRecipesToCategory}
-          >
-            <Text style={styles.okButtonText}>אישור</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.selectAllButton}
-            onPress={selectAllRecipes}
-          >
-            <Text style={styles.selectAllButtonText}>בחר הכל</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {fromCategoryScreen ||
+        (fromShoppingCart && (
+          <View style={styles.bottomButtonContainer}>
+            <TouchableOpacity
+              style={styles.okButton}
+              onPress={
+                fromShoppingCart
+                  ? handleFinishSelection
+                  : addSelectedRecipesToCategory
+              }
+            >
+              <Text style={styles.okButtonText}>אישור</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.selectAllButton}
+              onPress={selectAllRecipes}
+            >
+              <Text style={styles.selectAllButtonText}>בחר הכל</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
     </View>
   );
 }
