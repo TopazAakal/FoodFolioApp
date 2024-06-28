@@ -76,11 +76,7 @@ export default function App() {
                 title: "",
                 headerRight: () => (
                   <TouchableOpacity
-                    onPress={() =>
-                      navigation.navigate("AllRecipes", {
-                        fromShoppingCart: true,
-                      })
-                    }
+                    onPress={() => navigation.navigate("ShoppingList")}
                     style={{ marginRight: 20 }}
                   >
                     <Entypo name="shopping-cart" size={26} color="black" />

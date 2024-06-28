@@ -58,6 +58,21 @@ async function initDB() {
       console.error("Error creating recipe_categories table:", error);
     }
 
+    // Create the shopping_list table
+    try {
+      await db.runAsync(`
+        CREATE TABLE IF NOT EXISTS shopping_list (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          quantity REAL NOT NULL,
+          unit TEXT NOT NULL
+        );
+      `);
+      console.log("Shopping_list table created successfully");
+    } catch (error) {
+      console.error("Error creating shopping_list table:", error);
+    }
+
     // Insert the default category
     try {
       await db.runAsync(
@@ -340,6 +355,44 @@ const addRecipeToCategory = async (categoryId, recipeId) => {
   }
 };
 
+async function fetchShoppingList() {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    const rows = await db.getAllAsync("SELECT * FROM shopping_list;");
+    console.log("Fetched shopping list:", rows);
+    return rows;
+  } catch (error) {
+    console.error("Error fetching shopping list:", error);
+    return [];
+  }
+}
+
+async function saveShoppingList(list) {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    await db.runAsync("DELETE FROM shopping_list");
+    for (const item of list) {
+      await db.runAsync(
+        "INSERT INTO shopping_list (name, quantity, unit) VALUES (?, ?, ?);",
+        [item.name, item.quantity, item.unit]
+      );
+    }
+    console.log("Shopping list saved successfully:", list);
+  } catch (error) {
+    console.error("Error saving shopping list:", error);
+  }
+}
+
+async function clearShoppingList() {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    await db.runAsync("DELETE FROM shopping_list;");
+    console.log("Shopping list cleared successfully");
+  } catch (error) {
+    console.error("Error clearing shopping list:", error);
+  }
+}
+
 export {
   initDB,
   fetchRecipeById,
@@ -354,4 +407,7 @@ export {
   fetchRecipesByCategory,
   deleteRecipeFromCategory,
   addRecipeToCategory,
+  fetchShoppingList,
+  saveShoppingList,
+  clearShoppingList,
 };
