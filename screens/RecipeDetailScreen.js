@@ -16,6 +16,11 @@ import TimerControls from "../components/TimerControls";
 import ConversionModal from "../components/ConversionModal";
 import EditRecipeButton from "../components/EditRecipeButton";
 import DeleteRecipeButton from "../components/DeleteRecipeButton";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
+
+import { FontAwesome5 } from "@expo/vector-icons";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -130,11 +135,81 @@ function RecipeDeatailScreen({ navigation, route }) {
     });
   };
 
+  const generatePdf = async () => {
+    let imageUri = recipe.image;
+    let imageBase64 = "";
+
+    if (imageUri) {
+      try {
+        imageBase64 = await FileSystem.readAsStringAsync(imageUri, {
+          encoding: "base64",
+        });
+        imageBase64 = `data:image/png;base64,${imageBase64}`;
+      } catch (error) {
+        console.error("Failed to convert image to base64:", error);
+      }
+    }
+
+    const html = `
+      <html dir="rtl" lang="he">
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; direction: rtl; text-align: right; }
+            .container { padding: 20px 50px; }
+            .title { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 20px; }
+            .meta-info { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
+            .meta-info span { margin: 0 10px; }
+            .ingredients, .instructions { margin-bottom: 20px; }
+            .heading { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+            .ingredient-item { margin-bottom: 5px; }
+            .recipe-image { width: 100%; height: auto; margin-bottom: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <img src="${imageBase64}" class="recipe-image" />
+            <div class="title">${recipe.title}</div>
+            <div class="meta-info">
+              <span>${recipe.categoryToShow}</span>
+              <span>&#8226;</span>
+              <span>${recipe.totalTime}</span>
+            </div>
+            <div class="ingredients">
+              <div class="heading">מרכיבים</div>
+              ${displayedIngredients
+                .map(
+                  (ingredient) => `
+                <div class="ingredient-item">
+                  ${ingredient.quantity} ${ingredient.unit} ${ingredient.name}
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+            <div class="instructions">
+              <div class="heading">הוראות הכנה</div>
+              <div>${recipe.instructions}</div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const { uri } = await Print.printToFileAsync({ html });
+    await Sharing.shareAsync(uri);
+  };
+
   return (
     <ScrollView style={styles.screen}>
       <Image source={{ uri: recipe.image }} style={styles.recipeImage} />
       <View style={styles.detailsContainer}>
-        <Text style={styles.recipeTitle}>{recipe.title}</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.recipeTitle}>{recipe.title}</Text>
+          <TouchableOpacity onPress={generatePdf} style={styles.shareButton}>
+            <FontAwesome5 name="file-export" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
         <View style={styles.metaInfo}>
           <Text style={styles.categoryName}>{recipe.categoryToShow}</Text>
           <View style={styles.dot}></View>
@@ -205,11 +280,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   recipeTitle: {
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 8,
+    flex: 1,
+  },
+  shareButton: {
+    padding: 10,
+    position: "absolute",
+    right: 0,
   },
   metaInfo: {
     flexDirection: "row",
