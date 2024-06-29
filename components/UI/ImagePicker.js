@@ -14,9 +14,13 @@ import {
 } from "expo-image-picker";
 import { useState, useEffect } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
+import { Camera } from "expo-camera";
+import * as MediaLibrary from "expo-media-library";
 
 function ImagePicker({ onTakeImage, initialImage }) {
   const [pickedImage, setPickedImage] = useState(initialImage);
+  const [cameraPermission, setCameraPermission] = useState(null);
+  const [galleryPermission, setGalleryPermission] = useState(null);
   const [cameraPermissionInformation, requestPermission] =
     useCameraPermissions();
 
@@ -26,6 +30,29 @@ function ImagePicker({ onTakeImage, initialImage }) {
       setPickedImage(initialImage);
     }
   }, [initialImage]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // Request camera permissions
+        const { status: cameraStatus } =
+          await Camera.requestCameraPermissionsAsync();
+        setCameraPermission(cameraStatus === "granted");
+
+        // Request media library permissions
+        const { status: galleryStatus } =
+          await MediaLibrary.requestPermissionsAsync();
+        setGalleryPermission(galleryStatus === "granted");
+      } catch (error) {
+        console.error("Error requesting permissions:", error);
+        // Handle error (e.g., show error message)
+        Alert.alert(
+          "Permission Error",
+          "Failed to request permissions. Please try again."
+        );
+      }
+    })();
+  }, []);
 
   async function verifyPermissions() {
     if (cameraPermissionInformation.status === PermissionStatus.UNDETERMINED) {
