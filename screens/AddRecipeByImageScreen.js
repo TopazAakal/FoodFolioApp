@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import ImagePicker from "../components/UI/ImagePicker";
 import CustomButton from "../components/UI/CustomButton";
 import { readAsStringAsync, EncodingType } from "expo-file-system";
+import { insertRecipeWithCategories } from "../util/database";
 import axios from "axios";
 
 function AddRecipeByImageScreen({ navigation }) {
@@ -26,15 +27,57 @@ function AddRecipeByImageScreen({ navigation }) {
         }
       );
 
-      const DetectedText = JSON.parse(response.data.body);
+      try {
+        let jsonString = JSON.parse(response.data.body);
+        jsonString = jsonString.result
+          .replace(/^```json/, "")
+          .replace(/```$/, "");
 
-      console.log("Detected Text:", DetectedText);
-
-      setDetectedText(DetectedText);
+        const detectedJson = JSON.parse(jsonString);
+        setDetectedText(detectedJson);
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+        return;
+      }
     } catch (error) {
       console.error(error);
     }
   };
+
+  useEffect(() => {
+    if (detectedText) {
+      console.log("Detected Text:", detectedText);
+
+      // Check for required fields
+      if (!detectedText.title) {
+        console.error("Recipe title is missing");
+        alert("Failed to save recipe: title is missing.");
+        return;
+      }
+
+      // Insert the recipe data into the database
+      const insertRecipe = async () => {
+        const recipeData = {
+          title: detectedText.title,
+          ingredients: detectedText.ingredients,
+          instructions: detectedText.instructions,
+          imageUri: imageUri,
+          totaltime: detectedText.time,
+        };
+        try {
+          const newRecipeId = await insertRecipeWithCategories(recipeData);
+          console.log(`Recipe added successfully with ID: ${newRecipeId}`);
+
+          navigation.navigate("Home", {});
+        } catch (error) {
+          console.error("Error inserting recipe:", error);
+          // Handle database insertion error
+        }
+      };
+      insertRecipe();
+    }
+  }, [detectedText, navigation]);
+
   return (
     <KeyboardAwareScrollView
       style={styles.rootContainer}

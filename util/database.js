@@ -1,7 +1,6 @@
 import * as SQLite from "expo-sqlite";
 
 const DEFAULT_CATEGORY_IMAGE = "../images/category_placeholder.jpg";
-const defaultImage = require("../images/category_placeholder.jpg");
 
 async function initDB() {
   try {
