@@ -220,6 +220,7 @@ function AddRecipeScreen() {
             ? updatedQuantity.toString()
             : updatedQuantity.toFixed(2),
         unit: updatedUnit,
+        //TODO: add departments
       };
 
       setIngredients((currentIngredients) => [
