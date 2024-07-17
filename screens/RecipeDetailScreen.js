@@ -19,8 +19,8 @@ import DeleteRecipeButton from "../components/DeleteRecipeButton";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
-
 import { FontAwesome5 } from "@expo/vector-icons";
+import getImageSource from "../util/image";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -28,7 +28,7 @@ I18nManager.forceRTL(true);
 function RecipeDeatailScreen({ navigation, route }) {
   const [recipe, setRecipe] = useState({
     title: "",
-    instructions: "",
+    instructions: {},
     totalTime: "",
     image: null,
     ingredients: [],
@@ -75,8 +75,15 @@ function RecipeDeatailScreen({ navigation, route }) {
               : [];
             const categoryToShow =
               selectedCategory || categoryNames[0] || "ללא קטגוריה";
+
+            const instructionsObject =
+              typeof data.instructions === "string"
+                ? JSON.parse(data.instructions || "{}")
+                : data.instructions;
+
             setRecipe({
               ...data,
+              instructions: instructionsObject,
               ingredients: ingredientsArray,
               categoryToShow,
             });
@@ -118,9 +125,18 @@ function RecipeDeatailScreen({ navigation, route }) {
   }
 
   const formatIngredients = (ingredients) => {
+    let ingredientsArray;
+    try {
+      ingredientsArray =
+        typeof ingredients === "string" ? JSON.parse(ingredients) : ingredients;
+    } catch (error) {
+      console.error("Failed to parse ingredients:", error);
+      ingredientsArray = [];
+    }
+
     return ingredients.map((ingredient, index) => {
       const quantity = parseFloat(ingredient.quantity);
-      let unit = ingredient.unit;
+      let unit = ingredient.unit || "";
 
       // Pluralization and singularization logic
       if (quantity > 1 && pluralUnits[unit]) {
@@ -133,6 +149,39 @@ function RecipeDeatailScreen({ navigation, route }) {
         <IngredientItem key={index} ingredient={{ ...ingredient, unit }} />
       );
     });
+  };
+
+  const formatInstructions = (instructions) => {
+    let instructionsObject;
+    try {
+      instructionsObject =
+        typeof instructions === "string"
+          ? JSON.parse(instructions)
+          : instructions;
+    } catch (error) {
+      console.error("Failed to parse instructions:", error);
+      instructionsObject = {};
+    }
+
+    if (!instructionsObject || typeof instructionsObject !== "object") {
+      console.error("Invalid instructions format:", instructionsObject);
+      return null;
+    }
+
+    console.log("Instructions object:", instructionsObject);
+    console.log("type of instructionsObject:", typeof instructionsObject);
+
+    return (
+      <View style={[styles.instructionsContainer]}>
+        {Object.entries(instructionsObject).map(([step, text], index) => (
+          <View key={index} style={styles.instructionStepContainer}>
+            <Text style={[styles.instructionText]}>
+              {step}. {text}
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
   };
 
   const generatePdf = async () => {
@@ -188,8 +237,17 @@ function RecipeDeatailScreen({ navigation, route }) {
                 .join("")}
             </div>
             <div class="instructions">
-              <div class="heading">הוראות הכנה</div>
-              <div>${recipe.instructions}</div>
+            <div class="heading">הוראות הכנה</div>
+              ${Object.entries(recipe.instructions)
+                .map(
+                  ([step, text]) => `
+                <div class="instruction-item">
+                  ${step}. ${text}
+                </div>
+              `
+                )
+                .join("")}
+            </div>
             </div>
           </div>
         </body>
@@ -202,7 +260,7 @@ function RecipeDeatailScreen({ navigation, route }) {
 
   return (
     <ScrollView style={styles.screen}>
-      <Image source={{ uri: recipe.image }} style={styles.recipeImage} />
+      <Image source={getImageSource(recipe.image)} style={styles.recipeImage} />
       <View style={styles.detailsContainer}>
         <View style={styles.titleRow}>
           <Text style={styles.recipeTitle}>{recipe.title}</Text>
@@ -233,7 +291,9 @@ function RecipeDeatailScreen({ navigation, route }) {
           <Text style={styles.convertUnitsBtnText}>המרת יחידות מידה </Text>
         </TouchableOpacity>
         <Text style={styles.heading}>הוראות הכנה</Text>
-        <Text style={styles.instructions}>{recipe.instructions}</Text>
+        <View style={styles.instructionsContainer}>
+          {formatInstructions(recipe.instructions)}
+        </View>
       </View>
       <TimerControls />
 
@@ -329,10 +389,25 @@ const styles = StyleSheet.create({
     textAlign: "right",
     alignSelf: "flex-start",
   },
+  instructionsContainer: {
+    paddingBottom: 5,
+  },
   instructions: {
     fontSize: 16,
     marginBottom: 5,
     textAlign: "left",
+  },
+  instructionStep: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  instructionText: {
+    fontSize: 16,
+    marginBottom: 5,
+    textAlign: "left",
+  },
+  instructionStepContainer: {
+    marginBottom: 3,
   },
   buttonContainer: {
     flexDirection: "row",

@@ -1,6 +1,7 @@
 import * as SQLite from "expo-sqlite";
 
 const DEFAULT_CATEGORY_IMAGE = "../images/category_placeholder.jpg";
+const DEFAULT_RECIPE_IMAGE = "../images/recipe_placeholder.jpg";
 
 async function initDB() {
   try {
@@ -18,7 +19,7 @@ async function initDB() {
           title TEXT NOT NULL,
           ingredients TEXT NOT NULL,
           instructions TEXT NOT NULL,
-          image TEXT,
+          image TEXT DEFAULT '${DEFAULT_RECIPE_IMAGE}',
           totalTime TEXT
         );
       `);
@@ -196,18 +197,49 @@ const deleteCategoryById = async (categoryId) => {
 const insertRecipeWithCategories = async (recipe) => {
   const db = await SQLite.openDatabaseAsync("recipes.db");
   try {
+    console.log("Inserting recipe:", recipe);
+
+    let ingredientsWithUnits;
+
+    // Check if ingredients are already in array format
+    if (Array.isArray(recipe.ingredients)) {
+      ingredientsWithUnits = recipe.ingredients.map((ingredient) => ({
+        ...ingredient,
+        unit: ingredient.unit || "",
+      }));
+    } else {
+      // If ingredients are in string format, parse them
+      try {
+        const ingredients = JSON.parse(recipe.ingredients);
+        ingredientsWithUnits = ingredients.map((ingredient) => ({
+          ...ingredient,
+          unit: ingredient.unit || "",
+        }));
+      } catch (error) {
+        console.error("Failed to parse ingredients:", error);
+        throw new Error("Invalid ingredients format");
+      }
+    }
+
+    const ingredientsJson = JSON.stringify(ingredientsWithUnits);
+    // Set default image if not provided
+    const image = recipe.image || require("../images/recipe_placeholder.jpg");
+
     // Insert recipe into recipes table
     const result = await db.runAsync(
       "INSERT INTO recipes (title, ingredients, instructions, image, totalTime) VALUES (?, ?, ?, ?, ?);",
       [
         recipe.title,
-        JSON.stringify(recipe.ingredients),
-        recipe.instructions,
-        recipe.image,
+        ingredientsJson,
+        JSON.stringify(recipe.instructions),
+        image,
         recipe.totalTime,
       ]
     );
     const recipeId = result.lastInsertRowId;
+    console.log(`Recipe inserted with ID: ${recipeId}`);
+    console.log("image", image);
+    console.log("type of image", typeof image);
 
     // Insert categories associations if any
     if (
