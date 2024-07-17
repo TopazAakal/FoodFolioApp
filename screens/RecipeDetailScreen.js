@@ -19,8 +19,8 @@ import DeleteRecipeButton from "../components/DeleteRecipeButton";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
-
 import { FontAwesome5 } from "@expo/vector-icons";
+import getImageSource from "../util/image";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -260,7 +260,7 @@ function RecipeDeatailScreen({ navigation, route }) {
 
   return (
     <ScrollView style={styles.screen}>
-      <Image source={{ uri: recipe.image }} style={styles.recipeImage} />
+      <Image source={getImageSource(recipe.image)} style={styles.recipeImage} />
       <View style={styles.detailsContainer}>
         <View style={styles.titleRow}>
           <Text style={styles.recipeTitle}>{recipe.title}</Text>

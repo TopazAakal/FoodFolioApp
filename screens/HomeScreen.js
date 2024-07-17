@@ -17,6 +17,7 @@ import {
 } from "../util/database";
 import { AntDesign } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import getImageSource from "../util/image";
 
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -129,7 +130,7 @@ const HomeScreen = ({ navigation }) => {
       }
     >
       <View style={{ position: "relative" }}>
-        <Image source={{ uri: item.image }} style={styles.recipeImage} />
+        <Image source={getImageSource(item.image)} style={styles.recipeImage} />
         {menuVisible}
       </View>
       <Text style={styles.recipeTitle}>{item.title}</Text>
@@ -144,7 +145,7 @@ const HomeScreen = ({ navigation }) => {
       }
     >
       <View style={{ position: "relative" }}>
-        <Image source={{ uri: item.image }} style={styles.recipeImage} />
+        <Image source={getImageSource(item.image)} style={styles.recipeImage} />
       </View>
       <Text style={styles.recipeTitle}>{item.title}</Text>
     </TouchableOpacity>

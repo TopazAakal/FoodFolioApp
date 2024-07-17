@@ -1,6 +1,7 @@
 import * as SQLite from "expo-sqlite";
 
 const DEFAULT_CATEGORY_IMAGE = "../images/category_placeholder.jpg";
+const DEFAULT_RECIPE_IMAGE = "../images/recipe_placeholder.jpg";
 
 async function initDB() {
   try {
@@ -18,7 +19,7 @@ async function initDB() {
           title TEXT NOT NULL,
           ingredients TEXT NOT NULL,
           instructions TEXT NOT NULL,
-          image TEXT,
+          image TEXT DEFAULT '${DEFAULT_RECIPE_IMAGE}',
           totalTime TEXT
         );
       `);
@@ -221,7 +222,8 @@ const insertRecipeWithCategories = async (recipe) => {
     }
 
     const ingredientsJson = JSON.stringify(ingredientsWithUnits);
-    console.log("Serialized ingredients:", ingredientsJson);
+    // Set default image if not provided
+    const image = recipe.image || require("../images/recipe_placeholder.jpg");
 
     // Insert recipe into recipes table
     const result = await db.runAsync(
@@ -230,12 +232,14 @@ const insertRecipeWithCategories = async (recipe) => {
         recipe.title,
         ingredientsJson,
         JSON.stringify(recipe.instructions),
-        recipe.image,
+        image,
         recipe.totalTime,
       ]
     );
     const recipeId = result.lastInsertRowId;
     console.log(`Recipe inserted with ID: ${recipeId}`);
+    console.log("image", image);
+    console.log("type of image", typeof image);
 
     // Insert categories associations if any
     if (

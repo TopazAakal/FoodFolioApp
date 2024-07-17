@@ -17,7 +17,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Camera } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 
-function ImagePicker({ onTakeImage, initialImage }) {
+function ImagePicker({ onTakeImage, initialImage, style }) {
   const [pickedImage, setPickedImage] = useState(initialImage);
   const [cameraPermission, setCameraPermission] = useState(null);
   const [galleryPermission, setGalleryPermission] = useState(null);
@@ -101,7 +101,6 @@ function ImagePicker({ onTakeImage, initialImage }) {
 
     const result = await launchImageLibraryAsync({
       allowsEditing: false,
-      //aspect: [3, 4],
       quality: 0.5,
     });
 
@@ -134,7 +133,7 @@ function ImagePicker({ onTakeImage, initialImage }) {
     <View style={styles.imagePicker}>
       <TouchableOpacity
         onPress={imagePickHandler}
-        style={[styles.imagePreview]}
+        style={[styles.imagePreview, style]}
       >
         {!pickedImage ? (
           <MaterialIcons name="add-a-photo" size={55} color="gray" />
@@ -157,7 +156,7 @@ const styles = StyleSheet.create({
   imagePreview: {
     width: "100%",
     height: 200,
-    marginBottom: 10,
+    marginBottom: 5,
     justifyContent: "center",
     alignItems: "center",
     borderColor: "#ccc",

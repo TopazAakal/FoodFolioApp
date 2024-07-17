@@ -18,6 +18,7 @@ import {
   deleteRecipeFromCategory,
 } from "../util/database";
 import { Ionicons } from "@expo/vector-icons";
+import getImageSource from "../util/image";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -80,7 +81,7 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
       style={styles.cardContainer}
       onPress={() => navigateToRecipeDetail(item.id)}
     >
-      <Image style={styles.cardImage} source={{ uri: item.image }} />
+      <Image style={styles.cardImage} source={getImageSource(item.image)} />
       <Text style={styles.cardTitle}>{item.title}</Text>
       <View style={styles.detailsContainer}>
         <Text style={styles.categoryText}>{categoryName}</Text>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import ImagePicker from "../components/UI/ImagePicker";
 import CustomButton from "../components/UI/CustomButton";
@@ -10,6 +10,7 @@ import axios from "axios";
 function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
   const [detectedText, setDetectedText] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSaveImage = async () => {
     const base64Image = await readAsStringAsync(imageUri, {
@@ -17,9 +18,12 @@ function AddRecipeByImageScreen({ navigation }) {
     });
     try {
       if (!imageUri) {
-        alert("Please pick an image first.");
+        alert("בחר תמונה להעלאה");
         return;
       }
+
+      setLoading(true);
+
       const response = await axios.post(
         "https://ilwcjy1wk4.execute-api.us-east-1.amazonaws.com/dev/",
         {
@@ -50,10 +54,12 @@ function AddRecipeByImageScreen({ navigation }) {
         setDetectedText(detectedJson);
       } catch (error) {
         console.error("Error parsing JSON:", error);
+        setLoading(false);
         return;
       }
     } catch (error) {
       console.error(error);
+      setLoading(false);
     }
   };
 
@@ -117,7 +123,7 @@ function AddRecipeByImageScreen({ navigation }) {
         <ImagePicker
           image={imageUri}
           onTakeImage={setImageUri}
-          style={styles.imagePickerStyle}
+          style={{ height: 600 }}
         />
       </View>
       <CustomButton
@@ -125,6 +131,12 @@ function AddRecipeByImageScreen({ navigation }) {
         onPress={handleSaveImage}
         style={styles.button}
       />
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4db384" />
+          <Text style={styles.loadingText}>מעלה את התמונה...</Text>
+        </View>
+      )}
     </KeyboardAwareScrollView>
   );
 }
@@ -156,5 +168,21 @@ const styles = StyleSheet.create({
   },
   imagePickerStyle: {
     height: 500,
+  },
+  loadingContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  loadingText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 10,
   },
 });
