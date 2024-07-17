@@ -28,12 +28,25 @@ function AddRecipeByImageScreen({ navigation }) {
       );
 
       try {
+        console.log("Response data:", response.data.body);
+
         let jsonString = JSON.parse(response.data.body);
+
         jsonString = jsonString.result
           .replace(/^```json/, "")
           .replace(/```$/, "");
 
+        jsonString = jsonString.replace(/(\d+):/g, '"$1":');
+
+        console.log("Cleaned jsonString:", jsonString);
+
         const detectedJson = JSON.parse(jsonString);
+
+        if (detectedJson.Ingredients) {
+          detectedJson.ingredients = detectedJson.Ingredients;
+          delete detectedJson.Ingredients;
+        }
+
         setDetectedText(detectedJson);
       } catch (error) {
         console.error("Error parsing JSON:", error);
@@ -54,6 +67,23 @@ function AddRecipeByImageScreen({ navigation }) {
         alert("Failed to save recipe: title is missing.");
         return;
       }
+
+      // Validate ingredients format
+      if (
+        !Array.isArray(detectedText.ingredients) ||
+        detectedText.ingredients.length === 0
+      ) {
+        console.error("Invalid ingredients format or no ingredients found");
+        alert(
+          "Failed to save recipe: invalid ingredients format or no ingredients found."
+        );
+        return;
+      }
+
+      // Log each ingredient for debugging
+      detectedText.ingredients.forEach((ingredient, index) => {
+        console.log(`Ingredient ${index + 1}:`, ingredient);
+      });
 
       // Insert the recipe data into the database
       const insertRecipe = async () => {

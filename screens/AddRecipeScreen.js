@@ -140,10 +140,35 @@ function AddRecipeScreen() {
       }
     }
 
+    // Ensure instructions are in the correct format
+    let parsedInstructions;
+    try {
+      parsedInstructions = JSON.parse(instructions);
+    } catch (error) {
+      const instructionLines = instructions
+        .split("\n")
+        .filter((line) => line.trim() !== "");
+      parsedInstructions = instructionLines.reduce((acc, line, index) => {
+        acc[index + 1] = line;
+        return acc;
+      }, {});
+    }
+
+    // Ensure ingredients are in the correct format
+    let parsedIngredients;
+    try {
+      parsedIngredients = Array.isArray(ingredients)
+        ? ingredients
+        : JSON.parse(ingredients);
+    } catch (error) {
+      console.error("Failed to parse ingredients:", error);
+      return;
+    }
+
     const recipeData = {
       title,
-      ingredients: JSON.stringify(ingredients),
-      instructions,
+      ingredients: JSON.stringify(parsedIngredients),
+      instructions: JSON.stringify(parsedInstructions),
       totalTime,
       image: recipeImage,
       categoryIds: categoryIds.map((id) => id.toString()),

@@ -196,18 +196,46 @@ const deleteCategoryById = async (categoryId) => {
 const insertRecipeWithCategories = async (recipe) => {
   const db = await SQLite.openDatabaseAsync("recipes.db");
   try {
+    console.log("Inserting recipe:", recipe);
+
+    let ingredientsWithUnits;
+
+    // Check if ingredients are already in array format
+    if (Array.isArray(recipe.ingredients)) {
+      ingredientsWithUnits = recipe.ingredients.map((ingredient) => ({
+        ...ingredient,
+        unit: ingredient.unit || "",
+      }));
+    } else {
+      // If ingredients are in string format, parse them
+      try {
+        const ingredients = JSON.parse(recipe.ingredients);
+        ingredientsWithUnits = ingredients.map((ingredient) => ({
+          ...ingredient,
+          unit: ingredient.unit || "",
+        }));
+      } catch (error) {
+        console.error("Failed to parse ingredients:", error);
+        throw new Error("Invalid ingredients format");
+      }
+    }
+
+    const ingredientsJson = JSON.stringify(ingredientsWithUnits);
+    console.log("Serialized ingredients:", ingredientsJson);
+
     // Insert recipe into recipes table
     const result = await db.runAsync(
       "INSERT INTO recipes (title, ingredients, instructions, image, totalTime) VALUES (?, ?, ?, ?, ?);",
       [
         recipe.title,
-        JSON.stringify(recipe.ingredients),
-        recipe.instructions,
+        ingredientsJson,
+        JSON.stringify(recipe.instructions),
         recipe.image,
         recipe.totalTime,
       ]
     );
     const recipeId = result.lastInsertRowId;
+    console.log(`Recipe inserted with ID: ${recipeId}`);
 
     // Insert categories associations if any
     if (
