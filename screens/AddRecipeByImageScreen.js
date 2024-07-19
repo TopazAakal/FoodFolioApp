@@ -32,26 +32,17 @@ function AddRecipeByImageScreen({ navigation }) {
       );
 
       try {
-        console.log("Response data:", response.data.body);
-
-        let jsonString = JSON.parse(response.data.body);
-
-        jsonString = jsonString.result
-          .replace(/^```json/, "")
-          .replace(/```$/, "");
-
-        jsonString = jsonString.replace(/(\d+):/g, '"$1":');
-
-        console.log("Cleaned jsonString:", jsonString);
-
-        const detectedJson = JSON.parse(jsonString);
-
+        const data = JSON.parse(response.data.body);
+        const resultString = data.result
+          .replace(/\\n/g, "")
+          .replace(/\\"/g, '"')
+          .replace(/(\d+):/g, '"$1":');
+        const logString = JSON.parse(resultString);
         if (detectedJson.Ingredients) {
           detectedJson.ingredients = detectedJson.Ingredients;
           delete detectedJson.Ingredients;
         }
-
-        setDetectedText(detectedJson);
+        setDetectedText(logString);
       } catch (error) {
         console.error("Error parsing JSON:", error);
         setLoading(false);
