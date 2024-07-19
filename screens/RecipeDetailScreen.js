@@ -135,7 +135,9 @@ function RecipeDeatailScreen({ navigation, route }) {
     }
 
     return ingredients.map((ingredient, index) => {
-      const quantity = parseFloat(ingredient.quantity);
+      const quantity = ingredient.quantity
+        ? parseFloat(ingredient.quantity)
+        : 1;
       let unit = ingredient.unit || "";
 
       // Pluralization and singularization logic
