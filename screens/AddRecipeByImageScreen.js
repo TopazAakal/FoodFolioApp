@@ -37,12 +37,12 @@ function AddRecipeByImageScreen({ navigation }) {
           .replace(/\\n/g, "")
           .replace(/\\"/g, '"')
           .replace(/(\d+):/g, '"$1":');
-        const logString = JSON.parse(resultString);
+        const detectedJson = JSON.parse(resultString);
         if (detectedJson.Ingredients) {
           detectedJson.ingredients = detectedJson.Ingredients;
           delete detectedJson.Ingredients;
         }
-        setDetectedText(logString);
+        setDetectedText(detectedJson);
       } catch (error) {
         console.error("Error parsing JSON:", error);
         setLoading(false);
