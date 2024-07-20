@@ -77,11 +77,6 @@ function AddRecipeByImageScreen({ navigation }) {
         return;
       }
 
-      // Log each ingredient for debugging
-      detectedText.ingredients.forEach((ingredient, index) => {
-        console.log(`Ingredient ${index + 1}:`, ingredient);
-      });
-
       // Insert the recipe data into the database
       const insertRecipe = async () => {
         const recipeData = {
@@ -89,7 +84,10 @@ function AddRecipeByImageScreen({ navigation }) {
           ingredients: detectedText.ingredients,
           instructions: detectedText.instructions,
           imageUri: imageUri,
-          totaltime: detectedText.time,
+          totalTime:
+            detectedText["Total Time"] === "0 דקות"
+              ? "לא צוין"
+              : detectedText["Total Time"],
         };
         try {
           const newRecipeId = await insertRecipeWithCategories(recipeData);

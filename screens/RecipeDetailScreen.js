@@ -86,6 +86,7 @@ function RecipeDeatailScreen({ navigation, route }) {
               instructions: instructionsObject,
               ingredients: ingredientsArray,
               categoryToShow,
+              totalTime: data.totalTime,
             });
             setDisplayedIngredients(ingredientsArray);
           } else {
@@ -169,9 +170,6 @@ function RecipeDeatailScreen({ navigation, route }) {
       console.error("Invalid instructions format:", instructionsObject);
       return null;
     }
-
-    console.log("Instructions object:", instructionsObject);
-    console.log("type of instructionsObject:", typeof instructionsObject);
 
     return (
       <View style={[styles.instructionsContainer]}>
