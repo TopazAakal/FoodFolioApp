@@ -19,12 +19,12 @@ import { Ionicons } from "react-native-vector-icons";
 const windowWidth = Dimensions.get("window").width;
 
 function AllRecipesScreen({ navigation, route }) {
-  const { fromCategoryScreen, fromShoppingCart } = route.params || {};
+  const { fromCategoryScreen, fromShoppingCart, categoryId, addingToCategory } =
+    route.params || {};
   const { searchQuery: externalSearchQuery } = route.params || {};
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [searchQuery, setSearchQuery] = useState(externalSearchQuery || "");
-  const { categoryId, addingToCategory } = route.params || {};
   const [selectedRecipes, setSelectedRecipes] = useState(new Set());
 
   useEffect(() => {
@@ -34,8 +34,6 @@ function AllRecipesScreen({ navigation, route }) {
         if (data && data.length > 0) {
           setRecipes(data);
           filterRecipes(searchQuery, data);
-          //console.log("Recipes fetched: ", data);
-          //setFilteredRecipes(data);
         } else {
           console.log("No recipes found or failed to fetch recipes");
         }
@@ -46,18 +44,6 @@ function AllRecipesScreen({ navigation, route }) {
 
     loadRecipes();
   }, []);
-
-  // useEffect(() => {
-  //   setFilteredRecipes(recipes); // Initialize filtered recipes
-  // }, [recipes]);
-
-  // useEffect(() => {
-  //   const filteredData = recipes.filter((recipe) =>
-  //     recipe.title.toLowerCase().includes(searchQuery.toLowerCase())
-  //   );
-  //   setFilteredRecipes(filteredData);
-  //   console.log("Filtered Recipes:", filteredData);
-  // }, [searchQuery, recipes]);
 
   const filterRecipes = (query, recipesArray) => {
     const filtered = query
@@ -74,34 +60,6 @@ function AllRecipesScreen({ navigation, route }) {
 
   const handleSearchInputChange = (query) => {
     setSearchQuery(query);
-  };
-
-  const addRecipeToSelectedCategory = async (recipeId) => {
-    if (addingToCategory && categoryId) {
-      const result = await addRecipeToCategory(categoryId, recipeId);
-      if (result.success) {
-        console.log(`Recipe ${recipeId} added to category ${categoryId}`);
-        navigation.goBack();
-      } else {
-        console.log(result.message);
-      }
-    }
-  };
-
-  const deleteRecipe = (id) => {
-    deleteRecipeById(id, (success) => {
-      if (success) {
-        fetchAllRecipes((success, data) => {
-          if (success) {
-            setRecipes(data);
-          } else {
-            console.log("Failed to fetch recipes after delete");
-          }
-        });
-      } else {
-        console.log(`Failed to delete recipe with id ${id}`);
-      }
-    });
   };
 
   const toggleRecipeSelection = (recipeId) => {
@@ -155,12 +113,13 @@ function AllRecipesScreen({ navigation, route }) {
     >
       <View style={styles.imageContainer}>
         <Image style={styles.cardImage} source={{ uri: item.image }} />
-        {fromCategoryScreen ||
-          (fromShoppingCart && <View style={styles.imageOverlay} />)}
+        {(fromCategoryScreen || fromShoppingCart) && (
+          <View style={styles.imageOverlay} />
+        )}
       </View>
       <Text style={styles.cardTitle}>{item.title}</Text>
-      {fromCategoryScreen ||
-        (fromShoppingCart && selectedRecipes.has(item.id) && (
+      {(fromCategoryScreen || fromShoppingCart) &&
+        selectedRecipes.has(item.id) && (
           <TouchableOpacity
             style={styles.checkboxIcon}
             onPress={() => toggleRecipeSelection(item.id)}
@@ -175,7 +134,7 @@ function AllRecipesScreen({ navigation, route }) {
               color="#ffffff"
             />
           </TouchableOpacity>
-        ))}
+        )}
     </TouchableOpacity>
   );
 
@@ -196,27 +155,26 @@ function AllRecipesScreen({ navigation, route }) {
         numColumns={2}
         contentContainerStyle={styles.listContent}
       />
-      {fromCategoryScreen ||
-        (fromShoppingCart && (
-          <View style={styles.bottomButtonContainer}>
-            <TouchableOpacity
-              style={styles.okButton}
-              onPress={
-                fromShoppingCart
-                  ? handleFinishSelection
-                  : addSelectedRecipesToCategory
-              }
-            >
-              <Text style={styles.okButtonText}>אישור</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.selectAllButton}
-              onPress={selectAllRecipes}
-            >
-              <Text style={styles.selectAllButtonText}>בחר הכל</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+      {(fromCategoryScreen || fromShoppingCart) && (
+        <View style={styles.bottomButtonContainer}>
+          <TouchableOpacity
+            style={styles.okButton}
+            onPress={
+              fromShoppingCart
+                ? handleFinishSelection
+                : addSelectedRecipesToCategory
+            }
+          >
+            <Text style={styles.okButtonText}>אישור</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.selectAllButton}
+            onPress={selectAllRecipes}
+          >
+            <Text style={styles.selectAllButtonText}>בחר הכל</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

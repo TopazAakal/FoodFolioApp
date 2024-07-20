@@ -73,6 +73,17 @@ async function initDB() {
       console.error("Error creating shopping_list table:", error);
     }
 
+    // Create the meal_plan table
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS meal_plan (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        day TEXT NOT NULL,
+        meal_type TEXT NOT NULL,
+        recipe_id INTEGER NOT NULL,
+        FOREIGN KEY (recipe_id) REFERENCES recipes (id)
+      );
+    `);
+
     // Insert the default category
     try {
       await db.runAsync(
@@ -424,6 +435,51 @@ async function clearShoppingList() {
   }
 }
 
+async function fetchMealPlan() {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    const rows = await db.getAllAsync("SELECT * FROM meal_plan;");
+    return rows;
+  } catch (error) {
+    console.error("Error fetching meal plan:", error);
+  }
+}
+
+async function insertMealPlan(day, mealType, recipeId) {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    await db.runAsync(
+      "INSERT INTO meal_plan (day, meal_type, recipe_id) VALUES (?, ?, ?);",
+      [day, mealType, recipeId]
+    );
+  } catch (error) {
+    console.error("Error inserting meal plan:", error);
+  }
+}
+
+async function deleteMealPlan() {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    await db.runAsync("DELETE FROM meal_plan;");
+    console.log("Meal plan deleted successfully");
+  } catch (error) {
+    console.error("Error deleting meal plan:", error);
+  }
+}
+
+async function deleteSpecificMeal(day, mealType) {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    await db.runAsync(
+      "DELETE FROM meal_plan WHERE day = ? AND meal_type = ?;",
+      [day, mealType]
+    );
+    console.log("Specific meal deleted successfully");
+  } catch (error) {
+    console.error("Error deleting specific meal:", error);
+  }
+}
+
 export {
   initDB,
   fetchRecipeById,
@@ -441,4 +497,8 @@ export {
   fetchShoppingList,
   saveShoppingList,
   clearShoppingList,
+  fetchMealPlan,
+  insertMealPlan,
+  deleteMealPlan,
+  deleteSpecificMeal,
 };
