@@ -14,18 +14,51 @@ import {
   fetchAllRecipes,
   fetchAllCategories,
   fetchRecipesByCategory,
+  fetchMealPlan,
 } from "../util/database";
 import { AntDesign } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import getImageSource from "../util/image";
 
+const daysOfWeek = [
+  "יום א'",
+  "יום ב'",
+  "יום ג'",
+  "יום ד'",
+  "יום ה'",
+  "יום ו'",
+  "יום ש'",
+];
+
+const mealTypes = ["בוקר", "ביניים 1", "צהריים", "ביניים 2", "ערב"];
+
+const originalDaysOfWeek = [
+  "יום ראשון",
+  "יום שני",
+  "יום שלישי",
+  "יום רביעי",
+  "יום חמישי",
+  "יום שישי",
+  "יום שבת",
+];
+
+const mealTypeMap = {
+  "ארוחת בוקר": "בוקר",
+  "ארוחת ביניים 1": "ביניים 1",
+  "ארוחת צהריים": "צהריים",
+  "ארוחת ביניים 2": "ביניים 2",
+  "ארוחת ערב": "ערב",
+};
+
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);
-  const [categories, setCategories] = useState([]); // Categories data
+  const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
-  const [recipes, setRecipes] = useState([]); // Recipes for selected category
+  const [recipes, setRecipes] = useState([]);
   const [latestRecipes, setLatestRecipes] = useState([]);
+  const [mealPlan, setMealPlan] = useState({});
+  const [allMealPlanRecipes, setAllMealPlanRecipes] = useState([]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -35,23 +68,44 @@ const HomeScreen = ({ navigation }) => {
         selectCategory(fetchedCategories[0].id);
       }
     };
+
     loadCategories();
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      const fetchRecipes = async () => {
-        const success = true;
-        const data = await fetchAllRecipes();
-        if (success) {
-          const sortedByRecent = [...data]
-            .sort((a, b) => b.id - a.id)
-            .slice(0, 6);
-          setLatestRecipes(sortedByRecent);
-        } else {
-          console.log("Failed to fetch recipes");
-        }
+      const fetchMealPlanData = async () => {
+        const data = await fetchMealPlan();
+        const formattedData = data.reduce((acc, item) => {
+          if (!acc[item.day]) {
+            acc[item.day] = {};
+          }
+          acc[item.day][item.meal_type] = item.recipe_id;
+          return acc;
+        }, {});
+        setMealPlan(formattedData);
+
+        // Fetch all recipes in the meal plan
+        const mealPlanRecipeIds = [
+          ...new Set(data.map((item) => item.recipe_id)),
+        ];
+        const mealPlanRecipes = await fetchAllRecipes();
+        setAllMealPlanRecipes(
+          mealPlanRecipes.filter((recipe) =>
+            mealPlanRecipeIds.includes(recipe.id)
+          )
+        );
       };
+
+      const fetchRecipes = async () => {
+        const data = await fetchAllRecipes();
+        const sortedByRecent = [...data]
+          .sort((a, b) => b.id - a.id)
+          .slice(0, 6);
+        setLatestRecipes(sortedByRecent);
+      };
+
+      fetchMealPlanData();
       fetchRecipes();
     }, [])
   );
@@ -80,6 +134,59 @@ const HomeScreen = ({ navigation }) => {
       </Text>
     </TouchableOpacity>
   );
+
+  const renderMeal = (mealType) => {
+    const currentDayIndex = new Date().getDay();
+    const currentDay = originalDaysOfWeek[currentDayIndex];
+    const currentDayShort = daysOfWeek[currentDayIndex];
+    const originalMealType = Object.keys(mealTypeMap).find(
+      (key) => mealTypeMap[key] === mealType
+    );
+
+    const recipeId = mealPlan[currentDay]?.[originalMealType];
+    const recipe = allMealPlanRecipes.find((r) => r.id === recipeId);
+
+    if (!recipe) {
+      return (
+        <View>
+          <View style={styles.mealCardEmpty}>
+            <View style={styles.mealImagePlaceholder}>
+              <TouchableOpacity onPress={() => navigation.navigate("MealPlan")}>
+                <Text style={styles.mealEmptyText}>הוסף מתכון + </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <Text style={styles.mealTitle}>לא שובץ מתכון</Text>
+          <View style={styles.mealInfoContainer}>
+            <Ionicons name="alarm-outline" size={16} color="#727272" />
+            <Text style={styles.mealInfo}>
+              {mealType}, {currentDayShort},{" "}
+              {new Date().toLocaleDateString("he-IL")}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <TouchableOpacity
+        style={styles.mealContainer}
+        onPress={() =>
+          navigation.navigate("RecipeDisplay", { recipeId: recipe.id })
+        }
+      >
+        <Image source={getImageSource(recipe.image)} style={styles.mealImage} />
+        <Text style={styles.mealTitle}>{recipe.title}</Text>
+        <View style={styles.mealInfoContainer}>
+          <Ionicons name="alarm-outline" size={16} color="#727272" />
+          <Text style={styles.mealInfo}>
+            {mealType}, {currentDayShort},{" "}
+            {new Date().toLocaleDateString("he-IL")}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const toggleMenu = () => {
     setMenuVisible(!menuVisible);
@@ -175,20 +282,31 @@ const HomeScreen = ({ navigation }) => {
             <AntDesign name="leftsquare" size={40} color="#4CAF50" />
           </TouchableOpacity>
         </View>
-        <View>
+        <View style={styles.mealsHeader}>
           <Text style={styles.subTitle}>הארוחות שלי</Text>
-          {/* ***************************************/}
-          <View
-            style={{ backgroundColor: "white", width: 120, height: 150 }}
-          ></View>
+          <TouchableOpacity
+            style={styles.moreButton}
+            onPress={() => navigation.navigate("MealPlan")}
+          >
+            <Text style={styles.moreButtonText}>הצג עוד</Text>
+            <AntDesign name="arrowleft" size={24} color="#4CAF50" />
+          </TouchableOpacity>
         </View>
+        <FlatList
+          data={mealTypes}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => renderMeal(item)}
+          style={styles.mealsList}
+        />
         <View style={styles.latestRecipesHeader}>
           <Text style={styles.subTitle}>נוספו לאחרונה🔥</Text>
           <TouchableOpacity
             style={styles.moreButton}
             onPress={() => navigation.navigate("AllRecipes")}
           >
-            <Text style={styles.moreButtonText}>הצג עוד</Text>
+            <Text style={styles.moreButtonText}>לכל המתכונים</Text>
             <AntDesign name="arrowleft" size={24} color="#4CAF50" />
           </TouchableOpacity>
         </View>
@@ -235,9 +353,9 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.subTitle}>אולי יעניין אותך</Text>
           <TouchableOpacity
             style={styles.moreButton}
-            onPress={() => navigation.navigate("AllRecipes")}
+            onPress={() => navigation.navigate("AllCategories")}
           >
-            <Text style={styles.moreButtonText}> לכל המתכונים</Text>
+            <Text style={styles.moreButtonText}> לכל הקטגוריות</Text>
             <AntDesign name="arrowleft" size={24} color="#4CAF50" />
           </TouchableOpacity>
         </View>
@@ -398,15 +516,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     width: "100%",
-    marginTop: 15,
+    marginTop: 10,
     paddingVertical: 0,
     paddingLeft: 2,
+  },
+  mealsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 5,
   },
   latestList: {
     flexGrow: 0,
     backgroundColor: "transparent",
     padding: 0,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   moreButton: {
     paddingVertical: 5,
@@ -423,7 +548,8 @@ const styles = StyleSheet.create({
   },
   categoriesList: {
     alignItems: "center",
-    marginBottom: 5,
+    marginBottom: 10,
+    marginTop: 5,
   },
   categoryItem: {
     backgroundColor: "white",
@@ -445,6 +571,67 @@ const styles = StyleSheet.create({
   selectedCategoryText: {
     color: "white",
     fontWeight: "bold",
+  },
+  mealsList: {
+    flexGrow: 0,
+    backgroundColor: "transparent",
+    padding: 0,
+    paddingBottom: 10,
+    marginBottom: 15,
+  },
+  mealContainer: {
+    alignItems: "flex-start",
+    marginHorizontal: 10,
+  },
+  mealCard: {
+    width: 190,
+    marginRight: 10,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  mealCardEmpty: {
+    width: 190,
+    height: 100,
+    marginRight: 10,
+    borderRadius: 10,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "#ccc",
+    borderWidth: 1,
+  },
+  mealImage: {
+    width: "100%",
+    height: 100,
+    borderRadius: 10,
+  },
+  mealTypeText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginTop: 5,
+    textAlign: "center",
+  },
+  mealTitle: {
+    fontSize: 14,
+    marginLeft: 5,
+    textAlign: "left",
+    fontWeight: "bold",
+    paddingVertical: 5,
+  },
+  mealInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 3,
+  },
+  mealInfo: {
+    fontSize: 13,
+    marginLeft: 3,
+    textAlign: "left",
+    color: "#727272",
+  },
+  mealEmptyText: {
+    fontSize: 14,
+    color: "#727272",
   },
 });
 

@@ -71,7 +71,6 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
   const addRecipeHandler = () => {
     navigation.navigate("AllRecipes", {
       categoryId: categoryId,
-      addingToCategory: true,
       fromCategoryScreen: true,
     });
   };

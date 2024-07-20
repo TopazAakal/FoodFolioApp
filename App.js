@@ -20,6 +20,7 @@ import OutputScreen from "./screens/OutputScreen";
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import ShoppingListScreen from "./screens/ShoppingListScreen";
+import MealPlanningScreen from "./screens/MealPlanningScreen";
 
 I18nManager.forceRTL(true);
 
@@ -151,6 +152,11 @@ export default function App() {
               name="ShoppingList"
               component={ShoppingListScreen}
               options={{ title: "רשימת קניות" }}
+            />
+            <Stack.Screen
+              name="MealPlan"
+              component={MealPlanningScreen}
+              options={{ title: "לוח ארוחות" }}
             />
           </Stack.Navigator>
         </NavigationContainer>
