@@ -84,7 +84,10 @@ function AddRecipeByUrlScreen({ navigation }) {
           title: detectedText.title,
           ingredients: detectedText.ingredients,
           instructions: detectedText.instructions,
-          totaltime: detectedText.time,
+          totalTime:
+            detectedText["total time"] === "undefined"
+              ? "לא צוין"
+              : detectedText["total time"],
         };
         try {
           const newRecipeId = await insertRecipeWithCategories(recipeData);
