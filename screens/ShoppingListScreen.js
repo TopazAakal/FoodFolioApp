@@ -105,6 +105,7 @@ function ShoppingListScreen({ navigation, route }) {
       } else {
         combined[key] = {
           name: name,
+          department: ingredient.department || "אחר",
           quantity: quantity,
           unit: unit,
         };

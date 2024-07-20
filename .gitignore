@@ -36,3 +36,7 @@ yarn-error.*
 *.tsbuildinfo
 
 /FinalProjectSCE
+
+package-lock.json
+yarn.lock
+package.json

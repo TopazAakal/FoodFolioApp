@@ -5,6 +5,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { I18nManager } from "react-native";
 import LabeledInput from "../components/UI/LabeledInput";
@@ -22,6 +23,7 @@ import {
   fetchRecipeById,
 } from "../util/database";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import axios from "axios";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -44,6 +46,8 @@ function AddRecipeScreen() {
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showCategories, setShowCategories] = useState(false);
+  const [detectedText, setDetectedText] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const unitOptions = [
     { label: 'מ"ל', value: 'מ"ל' },
@@ -143,27 +147,73 @@ function AddRecipeScreen() {
     }
 
     // Ensure instructions are in the correct format
-    let parsedInstructions;
-    try {
-      parsedInstructions = JSON.parse(instructions);
-    } catch (error) {
-      const instructionLines = instructions
-        .split("\n")
-        .filter((line) => line.trim() !== "");
-      parsedInstructions = instructionLines.reduce((acc, line, index) => {
-        acc[index + 1] = line;
-        return acc;
-      }, {});
-    }
+    // let parsedInstructions;
+    // try {
+    //   parsedInstructions = JSON.parse(instructions);
+    // } catch (error) {
+    //   const instructionLines = instructions
+    //     .split("\n")
+    //     .filter((line) => line.trim() !== "");
+    //   parsedInstructions = instructionLines.reduce((acc, line, index) => {
+    //     acc[index + 1] = line;
+    //     return acc;
+    //   }, {});
+    // }
 
     // Ensure ingredients are in the correct format
-    let parsedIngredients;
+    // let parsedIngredients;
+    // try {
+    //   parsedIngredients = Array.isArray(ingredients)
+    //     ? ingredients
+    //     : JSON.parse(ingredients);
+    // } catch (error) {
+    //   console.error("Failed to parse ingredients:", error);
+    //   return;
+    // }
     try {
-      parsedIngredients = Array.isArray(ingredients)
-        ? ingredients
-        : JSON.parse(ingredients);
+      if (!ingredients) {
+        alert("Please insert an ingredients first.");
+        return;
+      }
+      setLoading(true);
+      const response = await axios.post(
+        "https://ilwcjy1wk4.execute-api.us-east-1.amazonaws.com/dev/",
+        {
+          ingredients: String(
+            "title: " +
+              title +
+              "; ingredients: " +
+              ingredients +
+              "; instructions: " +
+              instructions
+          ),
+        }
+      );
+      try {
+        const data = JSON.parse(response.data.body);
+
+        const resultString = data.result
+          .replace(/\\n/g, "")
+          .replace(/\\"/g, '"')
+          .replace(/(\d+):/g, '"$1":');
+        const detectedJson = JSON.parse(resultString);
+        console.log(detectedJson);
+
+        if (detectedJson.Ingredients) {
+          detectedJson.ingredients = detectedJson.Ingredients;
+          delete detectedJson.Ingredients;
+        }
+        console.log(detectedJson);
+
+        await setDetectedText(detectedJson);
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+        setLoading(false);
+        return;
+      }
     } catch (error) {
-      console.error("Failed to parse ingredients:", error);
+      console.error("Error fetching data:", error);
+      setLoading(false);
       return;
     }
 
@@ -171,8 +221,8 @@ function AddRecipeScreen() {
 
     const recipeData = {
       title,
-      ingredients: JSON.stringify(parsedIngredients),
-      instructions: JSON.stringify(parsedInstructions),
+      ingredients: JSON.stringify(detectedText.ingredients),
+      instructions: JSON.stringify(detectedText.instructions),
       totalTime,
       image: imageUri,
       categoryIds: categoryIds.map((id) => id.toString()),
@@ -249,7 +299,6 @@ function AddRecipeScreen() {
             ? updatedQuantity.toString()
             : updatedQuantity.toFixed(2),
         unit: updatedUnit,
-        //TODO: add departments
       };
 
       setIngredients((currentIngredients) => [
@@ -420,6 +469,12 @@ function AddRecipeScreen() {
 
         <CustomButton title="שמור מתכון" onPress={handleSaveRecipe} />
       </View>
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4db384" />
+          <Text style={styles.loadingText}>מביא את המתכון...</Text>
+        </View>
+      )}
     </KeyboardAwareScrollView>
   );
 }
@@ -559,5 +614,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#838181a8",
     textAlign: "right",
+  },
+  loadingContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  loadingText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 10,
   },
 });
