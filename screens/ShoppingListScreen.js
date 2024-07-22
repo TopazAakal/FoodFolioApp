@@ -2,6 +2,7 @@ import React, { useEffect, useState, useLayoutEffect } from "react";
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   FlatList,
   TouchableOpacity,
@@ -19,6 +20,23 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { AntDesign } from "@expo/vector-icons";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
+
+const departments = [
+  { name: "פירות וירקות", image: require("../images/fruits.png") },
+  { name: "בשר ועוף", image: require("../images/chicken.png") },
+  { name: "דגים", image: require("../images/fish.png") },
+  { name: "תבלינים", image: require("../images/spices.png") },
+  { name: "מוצרי חלב וביצים", image: require("../images/milk-eggs.png") },
+  { name: "ממרחים", image: require("../images/sauces.png") },
+  { name: "קפה ותה", image: require("../images/coffee.png") },
+  { name: "ממתקים", image: require("../images/sweets.png") },
+  { name: "אלכוהול", image: require("../images/alcohol.png") },
+  { name: "שימורים", image: require("../images/cans.png") },
+  { name: "לחם", image: require("../images/bread.png") },
+  { name: "אחר", image: require("../images/other.png") },
+];
+
+const departmentOrder = departments.map((department) => department.name);
 
 function ShoppingListScreen({ navigation, route }) {
   const [ingredientsList, setIngredientsList] = useState([]);
@@ -78,6 +96,29 @@ function ShoppingListScreen({ navigation, route }) {
     fetchIngredients();
   }, [selectedRecipes]);
 
+  const groupIngredientsByDepartment = (ingredients) => {
+    const grouped = {};
+
+    // Initialize grouped object with all departments
+    departments.forEach((department) => {
+      grouped[department.name] = [];
+    });
+
+    // Fill the departments with their respective ingredients
+    ingredients.forEach((ingredient) => {
+      const department = ingredient.department || "אחר";
+      if (!grouped[department]) {
+        grouped[department] = [];
+      }
+      grouped[department].push(ingredient);
+    });
+
+    // Sort the grouped object based on departmentOrder
+    return Object.keys(grouped)
+      .sort((a, b) => departmentOrder.indexOf(a) - departmentOrder.indexOf(b))
+      .map((department) => ({ department, ingredients: grouped[department] }));
+  };
+
   const combineIngredients = (ingredients) => {
     const combined = {};
     ingredients.forEach((ingredient) => {
@@ -107,6 +148,8 @@ function ShoppingListScreen({ navigation, route }) {
           name: name,
           quantity: quantity,
           unit: unit,
+          department: ingredient.department || "אחר",
+          checked: false,
         };
       }
     });
@@ -228,7 +271,7 @@ function ShoppingListScreen({ navigation, route }) {
   const renderItem = ({ item, index }) => {
     const itemKey = `${item.name}-${item.unit}-${index}`;
     return (
-      <View style={styles.itemContainer}>
+      <View style={styles.itemContainer} key={itemKey}>
         <TouchableOpacity onPress={() => toggleChecked(itemKey)}>
           <View style={styles.checkbox}>
             {item.checked && (
@@ -243,6 +286,18 @@ function ShoppingListScreen({ navigation, route }) {
     );
   };
 
+  const renderDepartmentHeader = (department) => {
+    const departmentData = departments.find((dep) => dep.name === department);
+    return (
+      <View style={styles.departmentHeader} key={department}>
+        <Image source={departmentData.image} style={styles.departmentImage} />
+        <Text style={styles.departmentTitle}>{departmentData.name}</Text>
+      </View>
+    );
+  };
+
+  const groupedIngredients = groupIngredientsByDepartment(ingredientsList);
+
   return (
     <View style={styles.container}>
       {searchVisible && (
@@ -254,9 +309,16 @@ function ShoppingListScreen({ navigation, route }) {
         />
       )}
       <FlatList
-        data={ingredientsList}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.name}-${item.unit}-${index}`}
+        data={groupedIngredients}
+        renderItem={({ item }) => (
+          <View key={item.department}>
+            {renderDepartmentHeader(item.department)}
+            {item.ingredients.map((ingredient, index) =>
+              renderItem({ item: ingredient, index })
+            )}
+          </View>
+        )}
+        keyExtractor={(item) => item.department}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
       <View style={styles.ButtonContainer}>
@@ -379,5 +441,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 10,
     textAlign: "right",
+  },
+  departmentHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 3,
+    backgroundColor: "#f8f8f8",
+    marginTop: 10,
+  },
+  departmentImage: {
+    width: 40,
+    height: 40,
+    marginRight: 10,
+  },
+  departmentTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
