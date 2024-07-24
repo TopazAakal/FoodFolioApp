@@ -210,48 +210,58 @@ const insertRecipeWithCategories = async (recipe) => {
   try {
     console.log("Inserting recipe:", recipe);
 
-    let ingredientsWithUnits;
+    // let ingredientsWithUnits;
 
-    // Check if ingredients are already in array format
-    if (Array.isArray(recipe.ingredients)) {
-      ingredientsWithUnits = recipe.ingredients.map((ingredient) => ({
-        ...ingredient,
-        unit: ingredient.unit || "",
-      }));
-    } else {
-      // If ingredients are in string format, parse them
-      try {
-        const ingredients = JSON.parse(recipe.ingredients);
-        ingredientsWithUnits = ingredients.map((ingredient) => ({
-          ...ingredient,
-          unit: ingredient.unit || "",
-        }));
-      } catch (error) {
-        console.error("Failed to parse ingredients:", error);
-        throw new Error("Invalid ingredients format");
-      }
-    }
+    // // Check if ingredients are already in array format
+    // if (Array.isArray(recipe.ingredients)) {
+    //   ingredientsWithUnits = recipe.ingredients.map((ingredient) => ({
+    //     ...ingredient,
+    //     unit: ingredient.unit || "",
+    //   }));
+    // } else {
+    //   // If ingredients are in string format, parse them
+    //   try {
+    //     const ingredients = JSON.parse(recipe.ingredients);
+    //     ingredientsWithUnits = ingredients.map((ingredient) => ({
+    //       ...ingredient,
+    //       unit: ingredient.unit || "",
+    //     }));
+    //     console.log("-------after Parsing-------: ", ingredients);
+    //   } catch (error) {
+    //     console.error("Failed to parse ingredients:", error);
+    //     throw new Error("Invalid ingredients format");
+    //   }
+    // }
 
-    const ingredientsJson = JSON.stringify(ingredientsWithUnits);
-    // Set default image if not provided
+    // const ingredientsJson = JSON.stringify(ingredientsWithUnits);
+    // // Set default image if not provided
     const image = recipe.image || require("../images/recipe_placeholder.jpg");
+
+    data = {
+      title: recipe.title,
+      ingredients: recipe.ingredients,
+      instructions: recipe.instructions,
+      image: image,
+      totalTime: recipe.totalTime,
+    };
+    console.log(data);
 
     // Insert recipe into recipes table
     const result = await db.runAsync(
       "INSERT INTO recipes (title, ingredients, instructions, image, totalTime) VALUES (?, ?, ?, ?, ?);",
       [
         recipe.title,
-        ingredientsJson,
-        JSON.stringify(recipe.instructions),
+        JSON.stringify(recipe.ingredients),
+        recipe.instructions,
         image,
         recipe.totalTime,
       ]
     );
+
     const recipeId = result.lastInsertRowId;
     console.log(`Recipe inserted with ID: ${recipeId}`);
     console.log("image", image);
     console.log("type of image", typeof image);
-
     // Insert categories associations if any
     if (
       recipe.categoryIds &&
@@ -267,7 +277,7 @@ const insertRecipeWithCategories = async (recipe) => {
     }
     return recipeId; // Return the new recipe ID after successful insertions
   } catch (error) {
-    console.error("Failed to insert recipe or associate categories:", error);
+    console.error("Failed to insert associate categories:", error);
     throw error; // Rethrow to handle errors in the calling function
   }
 };

@@ -5,6 +5,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { I18nManager } from "react-native";
 import LabeledInput from "../components/UI/LabeledInput";
@@ -22,6 +23,7 @@ import {
   fetchRecipeById,
 } from "../util/database";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import axios from "axios";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -44,6 +46,8 @@ function AddRecipeScreen() {
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showCategories, setShowCategories] = useState(false);
+  const [detectedText, setDetectedText] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const unitOptions = [
     { label: 'מ"ל', value: 'מ"ל' },
@@ -124,24 +128,6 @@ function AddRecipeScreen() {
   };
 
   const handleSaveRecipe = async () => {
-    let categoryIds = [...selectedCategories];
-
-    if (category.trim() !== "") {
-      const existingCategory = categories.find((cat) => cat.name === category);
-      if (!existingCategory) {
-        try {
-          const newCategoryId = await insertNewCategory(category);
-          console.log(`New category inserted with ID: ${newCategoryId}`);
-          categoryIds = [...categoryIds, newCategoryId.toString()];
-        } catch (error) {
-          console.error("Failed to insert new category", error);
-          return;
-        }
-      } else {
-        categoryIds = [...categoryIds, existingCategory.id.toString()];
-      }
-    }
-
     // Ensure instructions are in the correct format
     let parsedInstructions;
     try {
@@ -156,48 +142,125 @@ function AddRecipeScreen() {
       }, {});
     }
 
+    setInstructions(JSON.stringify(parsedInstructions));
+
     // Ensure ingredients are in the correct format
-    let parsedIngredients;
+    // let parsedIngredients;
+    // try {
+    //   parsedIngredients = Array.isArray(ingredients)
+    //     ? ingredients
+    //     : JSON.parse(ingredients);
+    // } catch (error) {
+    //   console.error("Failed to parse ingredients:", error);
+    //   return;
+    // }
     try {
-      parsedIngredients = Array.isArray(ingredients)
-        ? ingredients
-        : JSON.parse(ingredients);
+      if (!ingredients) {
+        alert("Please insert an ingredients first.");
+        return;
+      }
+      setLoading(true);
+      const response = await axios.post(
+        "https://ilwcjy1wk4.execute-api.us-east-1.amazonaws.com/dev/",
+        {
+          ingredients: String(
+            "title: " + title + "; ingredients: " + ingredients
+          ),
+        }
+      );
+      try {
+        const data = JSON.parse(response.data.body);
+
+        const resultString = data.result
+          .replace(/\\n/g, "")
+          .replace(/\\"/g, '"');
+        // .replace(/(\d+):/g, '"$1":');
+        const detectedJson = JSON.parse(resultString);
+        console.log(detectedJson);
+
+        if (detectedJson.Ingredients) {
+          detectedJson.ingredients = detectedJson.Ingredients;
+          delete detectedJson.Ingredients;
+        }
+        console.log(detectedJson);
+
+        setDetectedText(detectedJson);
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+        setLoading(false);
+        return;
+      }
     } catch (error) {
-      console.error("Failed to parse ingredients:", error);
+      console.error("Error fetching data:", error);
+      setLoading(false);
       return;
     }
-
-    const imageUri = recipeImage || defaultImage;
-
-    const recipeData = {
-      title,
-      ingredients: JSON.stringify(parsedIngredients),
-      instructions: JSON.stringify(parsedInstructions),
-      totalTime,
-      image: imageUri,
-      categoryIds: categoryIds.map((id) => id.toString()),
-    };
-
-    if (recipeId) {
-      const success = await updateRecipeWithCategories(
-        recipeId,
-        recipeData,
-        categoryIds
-      );
-      if (success) {
-        console.log(`Recipe updated successfully with ID: ${recipeId}`);
-        navigation.replace("RecipeDisplay", { recipeId: recipeId });
-      } else {
-        console.error("Failed to update recipe");
-      }
-    } else {
-      // Adding new recipe
-      console.log("Adding new recipe with data:", recipeData);
-      const newRecipeId = await insertRecipeWithCategories(recipeData);
-      console.log(`Recipe added successfully with ID: ${newRecipeId}`);
-      navigation.replace("AllCategories");
-    }
+    setLoading(false);
   };
+
+  useEffect(() => {
+    if (detectedText) {
+      const getCategoryIds = async () => {
+        let categoryIds = [...selectedCategories];
+        if (category.trim() !== "") {
+          const existingCategory = categories.find(
+            (cat) => cat.name === category
+          );
+          if (!existingCategory) {
+            try {
+              const newCategoryId = await insertNewCategory(category);
+              console.log(`New category inserted with ID: ${newCategoryId}`);
+              categoryIds = [...categoryIds, newCategoryId.toString()];
+            } catch (error) {
+              console.error("Failed to insert new category", error);
+              return categoryIds; // Return existing categories on error
+            }
+          } else {
+            categoryIds = [...categoryIds, existingCategory.id.toString()];
+          }
+        }
+        return categoryIds;
+      };
+
+      const saveRecipe = async (categoryIds) => {
+        const imageUri = recipeImage || defaultImage;
+        const recipeData = {
+          title,
+          ingredients: detectedText.ingredients,
+          instructions: instructions,
+          totalTime,
+          image: imageUri,
+          categoryIds: categoryIds.map((id) => id.toString()),
+        };
+
+        if (recipeId) {
+          const success = await updateRecipeWithCategories(
+            recipeId,
+            recipeData,
+            categoryIds
+          );
+          if (success) {
+            console.log(`Recipe updated successfully with ID: ${recipeId}`);
+            navigation.replace("RecipeDisplay", { recipeId: recipeId });
+          } else {
+            console.error("Failed to update recipe");
+          }
+        } else {
+          // Adding new recipe
+          console.log("Adding new recipe with data:", recipeData);
+          const newRecipeId = await insertRecipeWithCategories(recipeData);
+          console.log(`Recipe added successfully with ID: ${newRecipeId}`);
+          navigation.replace("AllCategories");
+        }
+      };
+
+      // Execute the async function to get category IDs and save the recipe
+      (async () => {
+        const categoryIds = await getCategoryIds();
+        await saveRecipe(categoryIds);
+      })();
+    }
+  }, [detectedText, recipeImage, title, totalTime, instructions, recipeId]);
 
   const insertNewCategory = async (categoryName) => {
     const result = await insertCategory(categoryName, "");
@@ -249,7 +312,6 @@ function AddRecipeScreen() {
             ? updatedQuantity.toString()
             : updatedQuantity.toFixed(2),
         unit: updatedUnit,
-        //TODO: add departments
       };
 
       setIngredients((currentIngredients) => [
@@ -420,6 +482,12 @@ function AddRecipeScreen() {
 
         <CustomButton title="שמור מתכון" onPress={handleSaveRecipe} />
       </View>
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4db384" />
+          <Text style={styles.loadingText}>מביא את המתכון...</Text>
+        </View>
+      )}
     </KeyboardAwareScrollView>
   );
 }
@@ -559,5 +627,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#838181a8",
     textAlign: "right",
+  },
+  loadingContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  loadingText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 10,
   },
 });
