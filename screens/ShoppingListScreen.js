@@ -9,13 +9,13 @@ import {
   Alert,
   TextInput,
 } from "react-native";
-import { fetchRecipeById } from "../util/database";
-import { FontAwesome5 } from "@expo/vector-icons";
 import {
+  fetchRecipeById,
   fetchShoppingList,
   saveShoppingList,
   clearShoppingList,
 } from "../util/database";
+import { FontAwesome5 } from "@expo/vector-icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { AntDesign } from "@expo/vector-icons";
 import * as Sharing from "expo-sharing";
@@ -48,8 +48,12 @@ function ShoppingListScreen({ navigation, route }) {
   useEffect(() => {
     const loadShoppingList = async () => {
       const list = await fetchShoppingList();
-      console.log("Loaded shopping list:", list);
-      setIngredientsList(list);
+      const initializedList = list.map((ingredient) => ({
+        ...ingredient,
+        checked: ingredient.checked ?? false,
+      }));
+      console.log("Loaded shopping list:", initializedList);
+      setIngredientsList(initializedList);
     };
 
     loadShoppingList();
@@ -149,7 +153,7 @@ function ShoppingListScreen({ navigation, route }) {
           quantity: quantity,
           unit: unit,
           department: ingredient.department || "אחר",
-          checked: false,
+          checked: ingredient.checked ?? false,
         };
       }
     });
@@ -157,8 +161,8 @@ function ShoppingListScreen({ navigation, route }) {
   };
 
   const toggleChecked = (key) => {
-    setIngredientsList(
-      ingredientsList.map((item) => {
+    setIngredientsList((prevList) =>
+      prevList.map((item) => {
         if (`${item.name}-${item.unit}` === key) {
           return { ...item, checked: !item.checked };
         }
@@ -170,13 +174,9 @@ function ShoppingListScreen({ navigation, route }) {
   // Save the shopping list to the database whenever it changes
   useEffect(() => {
     const saveList = async () => {
-      if (ingredientsList.length > 0) {
-        console.log("Saving shopping list:", ingredientsList);
-        await saveShoppingList(ingredientsList);
-        console.log("Shopping list saved successfully:", ingredientsList);
-      } else {
-        console.log("No ingredients to save.");
-      }
+      console.log("Saving shopping list:", ingredientsList);
+      await saveShoppingList(ingredientsList);
+      console.log("Shopping list saved successfully:", ingredientsList);
     };
 
     saveList();
@@ -279,9 +279,9 @@ function ShoppingListScreen({ navigation, route }) {
             )}
           </View>
         </TouchableOpacity>
-        <Text style={styles.itemText}>
-          {`${item.quantity} ${item.unit} ${item.name}`}
-        </Text>
+        <Text
+          style={styles.itemText}
+        >{`${item.quantity} ${item.unit} ${item.name}`}</Text>
       </View>
     );
   };
