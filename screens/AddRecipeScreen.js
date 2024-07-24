@@ -128,37 +128,21 @@ function AddRecipeScreen() {
   };
 
   const handleSaveRecipe = async () => {
-    let categoryIds = [...selectedCategories];
-
-    if (category.trim() !== "") {
-      const existingCategory = categories.find((cat) => cat.name === category);
-      if (!existingCategory) {
-        try {
-          const newCategoryId = await insertNewCategory(category);
-          console.log(`New category inserted with ID: ${newCategoryId}`);
-          categoryIds = [...categoryIds, newCategoryId.toString()];
-        } catch (error) {
-          console.error("Failed to insert new category", error);
-          return;
-        }
-      } else {
-        categoryIds = [...categoryIds, existingCategory.id.toString()];
-      }
+    // Ensure instructions are in the correct format
+    let parsedInstructions;
+    try {
+      parsedInstructions = JSON.parse(instructions);
+    } catch (error) {
+      const instructionLines = instructions
+        .split("\n")
+        .filter((line) => line.trim() !== "");
+      parsedInstructions = instructionLines.reduce((acc, line, index) => {
+        acc[index + 1] = line;
+        return acc;
+      }, {});
     }
 
-    // Ensure instructions are in the correct format
-    // let parsedInstructions;
-    // try {
-    //   parsedInstructions = JSON.parse(instructions);
-    // } catch (error) {
-    //   const instructionLines = instructions
-    //     .split("\n")
-    //     .filter((line) => line.trim() !== "");
-    //   parsedInstructions = instructionLines.reduce((acc, line, index) => {
-    //     acc[index + 1] = line;
-    //     return acc;
-    //   }, {});
-    // }
+    setInstructions(JSON.stringify(parsedInstructions));
 
     // Ensure ingredients are in the correct format
     // let parsedIngredients;
@@ -180,12 +164,7 @@ function AddRecipeScreen() {
         "https://ilwcjy1wk4.execute-api.us-east-1.amazonaws.com/dev/",
         {
           ingredients: String(
-            "title: " +
-              title +
-              "; ingredients: " +
-              ingredients +
-              "; instructions: " +
-              instructions
+            "title: " + title + "; ingredients: " + ingredients
           ),
         }
       );
@@ -194,8 +173,8 @@ function AddRecipeScreen() {
 
         const resultString = data.result
           .replace(/\\n/g, "")
-          .replace(/\\"/g, '"')
-          .replace(/(\d+):/g, '"$1":');
+          .replace(/\\"/g, '"');
+        // .replace(/(\d+):/g, '"$1":');
         const detectedJson = JSON.parse(resultString);
         console.log(detectedJson);
 
@@ -205,7 +184,7 @@ function AddRecipeScreen() {
         }
         console.log(detectedJson);
 
-        await setDetectedText(detectedJson);
+        setDetectedText(detectedJson);
       } catch (error) {
         console.error("Error parsing JSON:", error);
         setLoading(false);
@@ -216,38 +195,72 @@ function AddRecipeScreen() {
       setLoading(false);
       return;
     }
-
-    const imageUri = recipeImage || defaultImage;
-
-    const recipeData = {
-      title,
-      ingredients: JSON.stringify(detectedText.ingredients),
-      instructions: JSON.stringify(detectedText.instructions),
-      totalTime,
-      image: imageUri,
-      categoryIds: categoryIds.map((id) => id.toString()),
-    };
-
-    if (recipeId) {
-      const success = await updateRecipeWithCategories(
-        recipeId,
-        recipeData,
-        categoryIds
-      );
-      if (success) {
-        console.log(`Recipe updated successfully with ID: ${recipeId}`);
-        navigation.replace("RecipeDisplay", { recipeId: recipeId });
-      } else {
-        console.error("Failed to update recipe");
-      }
-    } else {
-      // Adding new recipe
-      console.log("Adding new recipe with data:", recipeData);
-      const newRecipeId = await insertRecipeWithCategories(recipeData);
-      console.log(`Recipe added successfully with ID: ${newRecipeId}`);
-      navigation.replace("AllCategories");
-    }
+    setLoading(false);
   };
+
+  useEffect(() => {
+    if (detectedText) {
+      const getCategoryIds = async () => {
+        let categoryIds = [...selectedCategories];
+        if (category.trim() !== "") {
+          const existingCategory = categories.find(
+            (cat) => cat.name === category
+          );
+          if (!existingCategory) {
+            try {
+              const newCategoryId = await insertNewCategory(category);
+              console.log(`New category inserted with ID: ${newCategoryId}`);
+              categoryIds = [...categoryIds, newCategoryId.toString()];
+            } catch (error) {
+              console.error("Failed to insert new category", error);
+              return categoryIds; // Return existing categories on error
+            }
+          } else {
+            categoryIds = [...categoryIds, existingCategory.id.toString()];
+          }
+        }
+        return categoryIds;
+      };
+
+      const saveRecipe = async (categoryIds) => {
+        const imageUri = recipeImage || defaultImage;
+        const recipeData = {
+          title,
+          ingredients: detectedText.ingredients,
+          instructions: instructions,
+          totalTime,
+          image: imageUri,
+          categoryIds: categoryIds.map((id) => id.toString()),
+        };
+
+        if (recipeId) {
+          const success = await updateRecipeWithCategories(
+            recipeId,
+            recipeData,
+            categoryIds
+          );
+          if (success) {
+            console.log(`Recipe updated successfully with ID: ${recipeId}`);
+            navigation.replace("RecipeDisplay", { recipeId: recipeId });
+          } else {
+            console.error("Failed to update recipe");
+          }
+        } else {
+          // Adding new recipe
+          console.log("Adding new recipe with data:", recipeData);
+          const newRecipeId = await insertRecipeWithCategories(recipeData);
+          console.log(`Recipe added successfully with ID: ${newRecipeId}`);
+          navigation.replace("AllCategories");
+        }
+      };
+
+      // Execute the async function to get category IDs and save the recipe
+      (async () => {
+        const categoryIds = await getCategoryIds();
+        await saveRecipe(categoryIds);
+      })();
+    }
+  }, [detectedText, recipeImage, title, totalTime, instructions, recipeId]);
 
   const insertNewCategory = async (categoryName) => {
     const result = await insertCategory(categoryName, "");

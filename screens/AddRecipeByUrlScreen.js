@@ -10,7 +10,6 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import CustomButton from "../components/UI/CustomButton";
 import { insertRecipeWithCategories } from "../util/database";
 import axios from "axios";
-import * as FileSystem from "expo-file-system";
 
 function AddRecipeByUrlScreen({ navigation }) {
   const [recipeUrl, setRecipeUrl] = useState("");
