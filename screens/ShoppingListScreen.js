@@ -9,17 +9,34 @@ import {
   Alert,
   TextInput,
 } from "react-native";
+import { FontAwesome5 } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { AntDesign } from "@expo/vector-icons";
+import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
+import { formatUnit } from "../util/unitConversion";
+
 import {
   fetchRecipeById,
   fetchShoppingList,
   saveShoppingList,
   clearShoppingList,
+  deleteShoppingListItems,
 } from "../util/database";
-import { FontAwesome5 } from "@expo/vector-icons";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { AntDesign } from "@expo/vector-icons";
-import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
+
+const unitOptions = [
+  { label: 'מ"ל', value: 'מ"ל' },
+  { label: "ליטר", value: "ליטר" },
+  { label: 'מ"ג', value: 'מ"ג' },
+  { label: "גרם", value: "גרם" },
+  { label: 'ק"ג', value: "קילוגרם" },
+  { label: "כוס", value: "כוס" },
+  { label: "כף", value: "כף" },
+  { label: "כפית", value: "כפית" },
+  { label: "יחידה", value: "יחידה" },
+  { label: "קורט", value: "קורט" },
+];
 
 const departments = [
   { name: "פירות וירקות", image: require("../images/fruits.png") },
@@ -42,67 +59,78 @@ function ShoppingListScreen({ navigation, route }) {
   const [groupedIngredients, setGroupedIngredients] = useState([]);
   const selectedRecipes = route.params?.selectedRecipes || [];
   const [menuVisible, setMenuVisible] = useState(false);
-  const [searchVisible, setSearchVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [showShoppingList, setShowShoppingList] = useState(true);
+  const [ingredientName, setIngredientName] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [selectedUnit, setSelectedUnit] = useState(unitOptions[0].value);
+  const [selectedDepartment, setSelectedDepartment] = useState(
+    departments[0].name
+  );
 
   useEffect(() => {
-    const loadShoppingList = async () => {
-      const list = await fetchShoppingList();
-      if (Array.isArray(list)) {
-        groupIngredientsByDepartment(list);
-      } else {
-        console.error("Loaded shopping list is not an array:", list);
-        setGroupedIngredients([]);
-      }
-    };
-
     loadShoppingList();
   }, []);
 
   useEffect(() => {
-    const fetchIngredients = async () => {
-      if (selectedRecipes.length > 0) {
-        let allIngredients = [];
-
-        for (let recipeId of selectedRecipes) {
-          const data = await fetchRecipeById(recipeId);
-
-          if (data) {
-            let ingredientsArray;
-            try {
-              ingredientsArray = JSON.parse(data.ingredients);
-
-              if (typeof ingredientsArray === "string") {
-                ingredientsArray = JSON.parse(ingredientsArray);
-              }
-
-              if (Array.isArray(ingredientsArray)) {
-                allIngredients = allIngredients.concat(ingredientsArray);
-              } else {
-                console.error(
-                  "Ingredients are not in array format after parsing:",
-                  ingredientsArray
-                );
-              }
-            } catch (error) {
-              console.error("Failed to parse ingredients:", error);
-            }
-          } else {
-            console.error("No data returned for recipe ID:", recipeId);
-          }
-        }
-
-        const combinedIngredients = combineIngredients(
-          groupedIngredients.flatMap((group) => group.ingredients),
-          allIngredients
-        );
-        groupIngredientsByDepartment(combinedIngredients);
-        handleSaveList(combinedIngredients);
-      }
-    };
-
-    fetchIngredients();
+    if (selectedRecipes.length > 0) {
+      fetchIngredientsForSelectedRecipes();
+    }
   }, [selectedRecipes]);
+
+  const loadShoppingList = async () => {
+    const list = await fetchShoppingList();
+    if (Array.isArray(list)) {
+      groupIngredientsByDepartment(list);
+    } else {
+      console.error("Loaded shopping list is not an array:", list);
+      setGroupedIngredients([]);
+    }
+  };
+
+  const fetchIngredientsForSelectedRecipes = async () => {
+    let allIngredients = [];
+
+    for (let recipeId of selectedRecipes) {
+      const data = await fetchRecipeById(recipeId);
+      if (data) {
+        const ingredientsArray = parseIngredients(data.ingredients);
+        if (ingredientsArray) {
+          allIngredients = allIngredients.concat(ingredientsArray);
+        }
+      } else {
+        console.error("No data returned for recipe ID:", recipeId);
+      }
+    }
+
+    const combinedIngredients = combineIngredients(
+      groupedIngredients.flatMap((group) => group.ingredients),
+      allIngredients
+    );
+    groupIngredientsByDepartment(combinedIngredients);
+    handleSaveList(combinedIngredients);
+  };
+
+  const parseIngredients = (ingredients) => {
+    try {
+      let parsedIngredients = JSON.parse(ingredients);
+      if (typeof parsedIngredients === "string") {
+        parsedIngredients = JSON.parse(parsedIngredients);
+      }
+      if (Array.isArray(parsedIngredients)) {
+        return parsedIngredients;
+      } else {
+        console.error(
+          "Ingredients are not in array format after parsing:",
+          parsedIngredients
+        );
+        return null;
+      }
+    } catch (error) {
+      console.error("Failed to parse ingredients:", error);
+      return null;
+    }
+  };
 
   const combineIngredients = (existingIngredients, newIngredients) => {
     const combined = {};
@@ -110,40 +138,41 @@ function ShoppingListScreen({ navigation, route }) {
     let idCounter = 1;
 
     allIngredients.forEach((ingredient) => {
-      if (
-        !ingredient ||
-        typeof ingredient !== "object" ||
-        Array.isArray(ingredient)
-      ) {
+      if (!isValidIngredient(ingredient)) {
         console.error("Invalid ingredient format:", ingredient);
         return;
       }
 
-      const name = ingredient.name || "Unknown ingredient";
-      const unit = ingredient.unit || "Unknown unit";
-      const quantity = parseFloat(ingredient.quantity) || 0;
-
-      if (quantity === 0 || !name || !unit) {
-        console.error("Invalid ingredient data:", ingredient);
-        return;
-      }
-
+      const { name, unit, quantity, department, checked } = ingredient;
       const key = `${name}-${unit}`;
+
       if (combined[key]) {
         combined[key].quantity += quantity;
       } else {
         combined[key] = {
           id: idCounter++,
-          name: name,
-          department: ingredient.department || "אחר",
-          quantity: quantity,
-          unit: unit,
-          checked: ingredient.checked || false,
+          name,
+          department: department || "אחר",
+          quantity,
+          unit,
+          checked: checked || false,
         };
       }
     });
 
     return Object.values(combined);
+  };
+
+  const isValidIngredient = (ingredient) => {
+    if (
+      !ingredient ||
+      typeof ingredient !== "object" ||
+      Array.isArray(ingredient)
+    ) {
+      return false;
+    }
+    const { name, unit, quantity } = ingredient;
+    return name && unit && parseFloat(quantity) > 0;
   };
 
   const groupIngredientsByDepartment = (ingredients) => {
@@ -152,29 +181,32 @@ function ShoppingListScreen({ navigation, route }) {
       return;
     }
 
-    const grouped = {};
-    departments.forEach((department) => {
-      grouped[department.name] = [];
-    });
-
+    const grouped = initializeGroupedDepartments();
     ingredients.forEach((ingredient) => {
       const department = ingredient.department || "אחר";
       if (grouped[department]) {
-        if (!ingredient.name) {
-          console.error("Ingredient name is missing:", ingredient);
-          return;
-        }
         grouped[department].push(ingredient);
       } else {
         console.error(`Invalid department: ${department}`);
       }
     });
 
-    const sortedGrouped = Object.keys(grouped)
+    const sortedGrouped = sortAndConvertToGroupedArray(grouped);
+    setGroupedIngredients(sortedGrouped);
+  };
+
+  const initializeGroupedDepartments = () => {
+    const grouped = {};
+    departments.forEach((department) => {
+      grouped[department.name] = [];
+    });
+    return grouped;
+  };
+
+  const sortAndConvertToGroupedArray = (grouped) => {
+    return Object.keys(grouped)
       .sort((a, b) => departmentOrder.indexOf(a) - departmentOrder.indexOf(b))
       .map((department) => ({ department, ingredients: grouped[department] }));
-
-    setGroupedIngredients(sortedGrouped);
   };
 
   const validateIngredients = (ingredients) => {
@@ -204,29 +236,75 @@ function ShoppingListScreen({ navigation, route }) {
       } catch (error) {
         console.error("Error saving shopping list:", error);
       }
+    } else {
+      console.log("No ingredients to save.");
     }
   };
 
   const clearList = () => {
-    Alert.alert(
-      "אישור מחיקה",
-      "האם אתה בטוח שברצונך למחוק את כל הרשימה?",
-      [
-        {
-          text: "ביטול",
-          style: "cancel",
-        },
-        {
-          text: "אישור",
-          onPress: async () => {
-            await clearShoppingList();
-            setGroupedIngredients([]);
-            console.log("Shopping list cleared");
+    const checkedItems = groupedIngredients
+      .flatMap((group) => group.ingredients)
+      .filter((ingredient) => ingredient.checked);
+
+    if (checkedItems.length > 0) {
+      // Confirm deletion of checked items
+      Alert.alert(
+        "אישור מחיקה",
+        "האם אתה בטוח שברצונך למחוק את המוצרים המסומנים?",
+        [
+          {
+            text: "ביטול",
+            style: "cancel",
           },
-        },
-      ],
-      { cancelable: false }
-    );
+          {
+            text: "אישור",
+            onPress: async () => {
+              const idsToDelete = checkedItems.map((item) => item.id);
+              await deleteShoppingListItems(idsToDelete);
+
+              const updatedGroupedIngredients = groupedIngredients.map(
+                (group) => ({
+                  ...group,
+                  ingredients: group.ingredients.filter(
+                    (ingredient) => !ingredient.checked
+                  ),
+                })
+              );
+
+              setGroupedIngredients(
+                updatedGroupedIngredients.filter(
+                  (group) => group.ingredients.length > 0
+                )
+              );
+              handleSaveList(
+                updatedGroupedIngredients.flatMap((group) => group.ingredients)
+              );
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    } else {
+      // Confirm deletion of entire list
+      Alert.alert(
+        "אישור מחיקה",
+        "האם אתה בטוח שברצונך למחוק את כל הרשימה?",
+        [
+          {
+            text: "ביטול",
+            style: "cancel",
+          },
+          {
+            text: "אישור",
+            onPress: async () => {
+              await clearShoppingList();
+              setGroupedIngredients([]);
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    }
   };
 
   useLayoutEffect(() => {
@@ -259,11 +337,8 @@ function ShoppingListScreen({ navigation, route }) {
 
   const handleAddProductsManually = () => {
     setMenuVisible(false);
-    setSearchVisible(true);
-  };
-
-  const handleSearch = (text) => {
-    setSearchQuery(text);
+    setShowManualInput(true);
+    setShowShoppingList(false);
   };
 
   const handleShareList = async () => {
@@ -292,7 +367,36 @@ function ShoppingListScreen({ navigation, route }) {
     await Sharing.shareAsync(fileUri);
   };
 
+  const addManualIngredient = () => {
+    const newIngredient = {
+      id: new Date().getTime(),
+      name: ingredientName,
+      quantity: parseFloat(quantity),
+      unit: selectedUnit,
+      department: selectedDepartment,
+      checked: false,
+    };
+
+    const updatedIngredients = combineIngredients(
+      groupedIngredients.flatMap((group) => group.ingredients),
+      [newIngredient]
+    );
+
+    groupIngredientsByDepartment(updatedIngredients);
+    handleSaveList(updatedIngredients);
+
+    setIngredientName("");
+    setQuantity("");
+    setSelectedUnit(unitOptions[0].value);
+    setSelectedDepartment(departments[0].name);
+    setShowManualInput(false);
+    setShowShoppingList(true);
+  };
+
   const renderItem = ({ item }) => {
+    const quantity = item.quantity ? parseFloat(item.quantity) : 1;
+    const unit = formatUnit(quantity, item.unit || "");
+
     return (
       <View style={styles.itemContainer} key={item.id}>
         <TouchableOpacity onPress={() => toggleChecked(item.id)}>
@@ -303,7 +407,7 @@ function ShoppingListScreen({ navigation, route }) {
           </View>
         </TouchableOpacity>
         <Text style={styles.itemText}>
-          {`${item.quantity} ${item.unit} ${item.name}`}
+          {`${item.quantity} ${unit} ${item.name}`}
         </Text>
       </View>
     );
@@ -339,52 +443,103 @@ function ShoppingListScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      {searchVisible && (
-        <TextInput
-          style={styles.searchBar}
-          placeholder="חפש מוצרים..."
-          value={searchQuery}
-          onChangeText={handleSearch}
-        />
+      {showManualInput && (
+        <View style={styles.ingredientSection}>
+          <View style={styles.ingredientInputContainer}>
+            <TextInput
+              style={styles.ingredientInput}
+              placeholder=" מוצר"
+              placeholderTextColor="#666"
+              value={ingredientName}
+              onChangeText={setIngredientName}
+            />
+            <TextInput
+              style={styles.quantityInput}
+              placeholder="0"
+              placeholderTextColor="#666"
+              value={quantity}
+              onChangeText={(text) => setQuantity(text.replace(/[^0-9]/g, ""))}
+              keyboardType="numeric"
+            />
+            <Picker
+              selectedValue={selectedUnit}
+              onValueChange={(itemValue) => setSelectedUnit(itemValue)}
+              style={styles.unitPicker}
+              itemStyle={styles.pickerItem}
+            >
+              {unitOptions.map((option) => (
+                <Picker.Item
+                  key={option.value}
+                  label={option.label}
+                  value={option.value}
+                />
+              ))}
+            </Picker>
+            <Picker
+              selectedValue={selectedDepartment}
+              onValueChange={(itemValue) => setSelectedDepartment(itemValue)}
+              style={styles.departmentPicker}
+              itemStyle={styles.pickerItem}
+            >
+              {departments.map((dept) => (
+                <Picker.Item
+                  key={dept.name}
+                  label={dept.name}
+                  value={dept.name}
+                />
+              ))}
+            </Picker>
+          </View>
+          <TouchableOpacity
+            onPress={addManualIngredient}
+            style={styles.addButton}
+          >
+            <Text style={styles.addButtonText}>הוסף מוצר</Text>
+          </TouchableOpacity>
+        </View>
       )}
-      {groupedIngredients.length > 0 ? (
-        <FlatList
-          data={groupedIngredients.filter(
-            (group) => group.ingredients.length > 0
-          )}
-          renderItem={({ item }) => (
-            <View key={item.department}>
-              {renderDepartmentHeader(item.department)}
-              {item.ingredients.map((ingredient, index) =>
-                renderItem({ item: ingredient, index })
+      {showShoppingList && (
+        <>
+          {groupedIngredients.length > 0 ? (
+            <FlatList
+              data={groupedIngredients.filter(
+                (group) => group.ingredients.length > 0
               )}
-            </View>
+              renderItem={({ item }) => (
+                <View key={item.department}>
+                  {renderDepartmentHeader(item.department)}
+                  {item.ingredients.map((ingredient, index) =>
+                    renderItem({ item: ingredient, index })
+                  )}
+                </View>
+              )}
+              keyExtractor={(item) =>
+                item.department + Math.random().toString(36).substring(7)
+              }
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+            />
+          ) : (
+            <Text>אין מוצרים ברשימה.</Text>
           )}
-          keyExtractor={(item) =>
-            item.department + Math.random().toString(36).substring(7)
-          }
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
-      ) : (
-        <Text>אין מוצרים ברשימה.</Text>
+        </>
+      )}
+      {menuVisible && (
+        <View style={styles.menu}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleAddProductsFromRecipe}
+          >
+            <Text style={styles.menuText}>הוספת מוצרים ממתכון</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleAddProductsManually}
+          >
+            <Text style={styles.menuText}>הוספת מוצרים ידנית</Text>
+          </TouchableOpacity>
+        </View>
       )}
       <View style={styles.ButtonContainer}>
-        {menuVisible && (
-          <View style={styles.menu}>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleAddProductsFromRecipe}
-            >
-              <Text style={styles.menuText}>הוספת מוצרים ממתכון</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleAddProductsManually}
-            >
-              <Text style={styles.menuText}>הוספת מוצרים ידנית</Text>
-            </TouchableOpacity>
-          </View>
-        )}
         <TouchableOpacity onPress={toggleMenu} style={styles.fab}>
           <Ionicons name="add" size={26} color="#FFFFFF" />
         </TouchableOpacity>
@@ -425,9 +580,6 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: "#e0e0e0",
-  },
-  clearButton: {
-    marginRight: 15,
   },
   ButtonContainer: {
     position: "absolute",
@@ -480,15 +632,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     fontWeight: "bold",
   },
-  searchBar: {
-    height: 40,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 10,
-    textAlign: "right",
-  },
+
   departmentHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -503,6 +647,83 @@ const styles = StyleSheet.create({
   },
   departmentTitle: {
     fontSize: 18,
+    fontWeight: "bold",
+  },
+  ingredientSection: {
+    marginBottom: 20,
+  },
+  ingredientInputContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  ingredientInput: {
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: "#ccc",
+    paddingVertical: 10,
+    fontSize: 14,
+    flex: 2,
+    height: 40,
+    textAlign: "center",
+    marginRight: 10,
+  },
+  quantityInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: "#ccc",
+    paddingVertical: 10,
+    fontSize: 16,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+    fontSize: 16,
+    width: "100%",
+  },
+  unitPicker: {
+    paddingVertical: 6,
+    flex: 2,
+    itemStyle: { height: 120, fontSize: 16 },
+  },
+  pickerItem: {
+    fontSize: 14,
+  },
+  departmentPicker: {
+    flex: 3,
+    paddingVertical: 6,
+    itemStyle: { height: 120, fontSize: 16 },
+  },
+  addButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderWidth: 2,
+    borderColor: "#4db384",
+    borderRadius: 15,
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row-reverse",
+    alignSelf: "center",
+    width: "auto",
+    minWidth: 160,
+  },
+
+  addButtonText: {
+    color: "#4db384",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginRight: 5,
+  },
+
+  addButtonIcon: {
+    color: "#4db384",
+    fontSize: 22,
+    paddingRight: 5,
     fontWeight: "bold",
   },
 });

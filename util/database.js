@@ -431,7 +431,6 @@ async function saveShoppingList(list) {
         [item.name, item.quantity, item.unit, item.department]
       );
     }
-    console.log("Shopping list saved successfully:", list);
   } catch (error) {
     console.error("Error saving shopping list:", error);
   }
@@ -443,6 +442,17 @@ async function clearShoppingList() {
     await db.runAsync("DELETE FROM shopping_list;");
   } catch (error) {
     console.error("Error clearing shopping list:", error);
+  }
+}
+
+async function deleteShoppingListItems(ids) {
+  try {
+    const db = await SQLite.openDatabaseAsync("recipes.db");
+    for (const id of ids) {
+      await db.runAsync("DELETE FROM shopping_list WHERE id = ?;", [id]);
+    }
+  } catch (error) {
+    console.error("Error deleting shopping list items:", error);
   }
 }
 
@@ -508,6 +518,7 @@ export {
   fetchShoppingList,
   saveShoppingList,
   clearShoppingList,
+  deleteShoppingListItems,
   fetchMealPlan,
   insertMealPlan,
   deleteMealPlan,
