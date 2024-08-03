@@ -16,7 +16,6 @@ import AddCategoryScreen from "./screens/AddCategoryScreen";
 import AddRecipeByUrlScreen from "./screens/AddRecipeByUrlScreen";
 import AddRecipeByImageScreen from "./screens/AddRecipeByImageScreen";
 import HomeScreen from "./screens/HomeScreen";
-import OutputScreen from "./screens/OutputScreen";
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import ShoppingListScreen from "./screens/ShoppingListScreen";
@@ -142,11 +141,6 @@ export default function App() {
               name="AddCategory"
               component={AddCategoryScreen}
               options={{ title: "קטגוריה חדשה" }}
-            />
-            <Stack.Screen
-              name="Output"
-              component={OutputScreen}
-              options={{ title: "המתכון" }}
             />
             <Stack.Screen
               name="ShoppingList"

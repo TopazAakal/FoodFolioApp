@@ -2,8 +2,9 @@ import React from "react";
 import { TouchableOpacity, Text, StyleSheet, Alert } from "react-native";
 import { deleteRecipeById } from "../util/database";
 
-const DeleteRecipeButton = ({ navigation, recipeId }) => {
+const DeleteRecipeButton = ({ navigation, recipeId, onPress }) => {
   const handleDelete = () => {
+    if (onPress) onPress();
     Alert.alert("מחיקת מתכון", "האם אתה בטוח שברצונך למחוק את המתכון?", [
       { text: "ביטול", style: "cancel" },
       {
@@ -42,14 +43,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 10,
-    width: "45%",
+    width: "80%",
     alignItems: "center",
     marginVertical: 10,
     padding: 15,
   },
-  deleteButton: {
-    backgroundColor: "#8a8a8a",
-  },
+  deleteButton: {},
   buttonText: {
     color: "white",
     fontSize: 18,
