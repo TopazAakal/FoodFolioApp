@@ -39,7 +39,7 @@ const departments = [
 const departmentOrder = departments.map((department) => department.name);
 
 function ShoppingListScreen({ navigation, route }) {
-  const [ingredientsList, setIngredientsList] = useState([]);
+  const [groupedIngredients, setGroupedIngredients] = useState([]);
   const selectedRecipes = route.params?.selectedRecipes || [];
   const [menuVisible, setMenuVisible] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
@@ -48,12 +48,12 @@ function ShoppingListScreen({ navigation, route }) {
   useEffect(() => {
     const loadShoppingList = async () => {
       const list = await fetchShoppingList();
-      const initializedList = list.map((ingredient) => ({
-        ...ingredient,
-        checked: ingredient.checked ?? false,
-      }));
-      console.log("Loaded shopping list:", initializedList);
-      setIngredientsList(initializedList);
+      if (Array.isArray(list)) {
+        groupIngredientsByDepartment(list);
+      } else {
+        console.error("Loaded shopping list is not an array:", list);
+        setGroupedIngredients([]);
+      }
     };
 
     loadShoppingList();
@@ -92,40 +92,24 @@ function ShoppingListScreen({ navigation, route }) {
           }
         }
 
-        const combinedIngredients = combineIngredients(allIngredients);
-        setIngredientsList((prevList) => [...prevList, ...combinedIngredients]);
+        const combinedIngredients = combineIngredients(
+          groupedIngredients.flatMap((group) => group.ingredients),
+          allIngredients
+        );
+        groupIngredientsByDepartment(combinedIngredients);
+        handleSaveList(combinedIngredients);
       }
     };
 
     fetchIngredients();
   }, [selectedRecipes]);
 
-  const groupIngredientsByDepartment = (ingredients) => {
-    const grouped = {};
-
-    // Initialize grouped object with all departments
-    departments.forEach((department) => {
-      grouped[department.name] = [];
-    });
-
-    // Fill the departments with their respective ingredients
-    ingredients.forEach((ingredient) => {
-      const department = ingredient.department || "אחר";
-      if (!grouped[department]) {
-        grouped[department] = [];
-      }
-      grouped[department].push(ingredient);
-    });
-
-    // Sort the grouped object based on departmentOrder
-    return Object.keys(grouped)
-      .sort((a, b) => departmentOrder.indexOf(a) - departmentOrder.indexOf(b))
-      .map((department) => ({ department, ingredients: grouped[department] }));
-  };
-
-  const combineIngredients = (ingredients) => {
+  const combineIngredients = (existingIngredients, newIngredients) => {
     const combined = {};
-    ingredients.forEach((ingredient) => {
+    const allIngredients = existingIngredients.concat(newIngredients);
+    let idCounter = 1;
+
+    allIngredients.forEach((ingredient) => {
       if (
         !ingredient ||
         typeof ingredient !== "object" ||
@@ -149,47 +133,77 @@ function ShoppingListScreen({ navigation, route }) {
         combined[key].quantity += quantity;
       } else {
         combined[key] = {
+          id: idCounter++,
           name: name,
           department: ingredient.department || "אחר",
           quantity: quantity,
           unit: unit,
-          department: ingredient.department || "אחר",
-          checked: ingredient.checked ?? false,
+          checked: ingredient.checked || false,
         };
       }
     });
+
     return Object.values(combined);
   };
 
-  const toggleChecked = (key) => {
-    setIngredientsList((prevList) =>
-      prevList.map((item) => {
-        if (`${item.name}-${item.unit}` === key) {
-          return { ...item, checked: !item.checked };
+  const groupIngredientsByDepartment = (ingredients) => {
+    if (!ingredients || ingredients.length === 0) {
+      setGroupedIngredients([]);
+      return;
+    }
+
+    const grouped = {};
+    departments.forEach((department) => {
+      grouped[department.name] = [];
+    });
+
+    ingredients.forEach((ingredient) => {
+      const department = ingredient.department || "אחר";
+      if (grouped[department]) {
+        if (!ingredient.name) {
+          console.error("Ingredient name is missing:", ingredient);
+          return;
         }
-        return item;
-      })
-    );
+        grouped[department].push(ingredient);
+      } else {
+        console.error(`Invalid department: ${department}`);
+      }
+    });
+
+    const sortedGrouped = Object.keys(grouped)
+      .sort((a, b) => departmentOrder.indexOf(a) - departmentOrder.indexOf(b))
+      .map((department) => ({ department, ingredients: grouped[department] }));
+
+    setGroupedIngredients(sortedGrouped);
   };
 
-  // Save the shopping list to the database whenever it changes
-  useEffect(() => {
-    const saveList = async () => {
-      console.log("Saving shopping list:", ingredientsList);
-      await saveShoppingList(ingredientsList);
-      console.log("Shopping list saved successfully:", ingredientsList);
-    };
+  const validateIngredients = (ingredients) => {
+    if (!Array.isArray(ingredients)) {
+      console.error("validateIngredients received invalid input:", ingredients);
+      return [];
+    }
 
-    saveList();
-  }, [ingredientsList]);
+    return ingredients.filter((ingredient) => {
+      if (!ingredient.name) {
+        console.error("Ingredient with invalid name:", ingredient);
+        return false;
+      }
+      return true;
+    });
+  };
 
-  const handleSaveList = async () => {
-    if (ingredientsList.length > 0) {
-      console.log("Saving shopping list:", ingredientsList);
-      await saveShoppingList(ingredientsList);
-      console.log("Shopping list saved successfully:", ingredientsList);
-    } else {
-      console.log("No ingredients to save.");
+  const handleSaveList = async (ingredients) => {
+    if (!Array.isArray(ingredients)) {
+      return;
+    }
+
+    const validIngredients = validateIngredients(ingredients);
+    if (validIngredients.length > 0) {
+      try {
+        await saveShoppingList(validIngredients);
+      } catch (error) {
+        console.error("Error saving shopping list:", error);
+      }
     }
   };
 
@@ -206,7 +220,7 @@ function ShoppingListScreen({ navigation, route }) {
           text: "אישור",
           onPress: async () => {
             await clearShoppingList();
-            setIngredientsList([]);
+            setGroupedIngredients([]);
             console.log("Shopping list cleared");
           },
         },
@@ -215,7 +229,7 @@ function ShoppingListScreen({ navigation, route }) {
     );
   };
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: "row" }}>
@@ -231,7 +245,7 @@ function ShoppingListScreen({ navigation, route }) {
         </View>
       ),
     });
-  }, [navigation, ingredientsList]);
+  }, [navigation, groupedIngredients]);
 
   const toggleMenu = () => {
     setMenuVisible(!menuVisible);
@@ -250,45 +264,57 @@ function ShoppingListScreen({ navigation, route }) {
 
   const handleSearch = (text) => {
     setSearchQuery(text);
-    //TODO
   };
 
   const handleShareList = async () => {
-    if (ingredientsList.length === 0) {
+    if (groupedIngredients.length === 0) {
       Alert.alert("הרשימה ריקה", "אין מוצרים לשיתוף");
       return;
     }
 
-    const listContent = ingredientsList
-      .map((item) => `${item.quantity} ${item.unit} ${item.name}`)
-      .join("\n");
+    const filteredGroupedIngredients = groupedIngredients.filter(
+      (group) => group.ingredients.length > 0
+    );
 
-    const fileUri = FileSystem.documentDirectory + "shopping_list.txt";
+    const listContent = filteredGroupedIngredients
+      .map((group) => {
+        const departmentHeader = `${group.department}:\n`;
+        const ingredientsList = group.ingredients
+          .map((item) => `- ${item.quantity} ${item.unit} ${item.name}`)
+          .join("\n");
+        return departmentHeader + ingredientsList;
+      })
+      .join("\n\n");
+
+    const fileUri = FileSystem.documentDirectory + "רשימת קניות.txt";
     await FileSystem.writeAsStringAsync(fileUri, listContent);
 
     await Sharing.shareAsync(fileUri);
   };
 
-  const renderItem = ({ item, index }) => {
-    const itemKey = `${item.name}-${item.unit}-${index}`;
+  const renderItem = ({ item }) => {
     return (
-      <View style={styles.itemContainer} key={itemKey}>
-        <TouchableOpacity onPress={() => toggleChecked(itemKey)}>
+      <View style={styles.itemContainer} key={item.id}>
+        <TouchableOpacity onPress={() => toggleChecked(item.id)}>
           <View style={styles.checkbox}>
             {item.checked && (
-              <FontAwesome5 name="check" size={16} color="green" />
+              <FontAwesome5 name="check" size={16} color="#4CAF50" />
             )}
           </View>
         </TouchableOpacity>
-        <Text
-          style={styles.itemText}
-        >{`${item.quantity} ${item.unit} ${item.name}`}</Text>
+        <Text style={styles.itemText}>
+          {`${item.quantity} ${item.unit} ${item.name}`}
+        </Text>
       </View>
     );
   };
 
   const renderDepartmentHeader = (department) => {
     const departmentData = departments.find((dep) => dep.name === department);
+    if (!departmentData) {
+      console.error(`No image found for department: ${department}`);
+      return null;
+    }
     return (
       <View style={styles.departmentHeader} key={department}>
         <Image source={departmentData.image} style={styles.departmentImage} />
@@ -297,7 +323,19 @@ function ShoppingListScreen({ navigation, route }) {
     );
   };
 
-  const groupedIngredients = groupIngredientsByDepartment(ingredientsList);
+  const toggleChecked = (id) => {
+    setGroupedIngredients((prevGrouped) =>
+      prevGrouped.map((group) => ({
+        ...group,
+        ingredients: group.ingredients.map((ingredient) => {
+          if (ingredient.id === id) {
+            return { ...ingredient, checked: !ingredient.checked };
+          }
+          return ingredient;
+        }),
+      }))
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -309,19 +347,27 @@ function ShoppingListScreen({ navigation, route }) {
           onChangeText={handleSearch}
         />
       )}
-      <FlatList
-        data={groupedIngredients}
-        renderItem={({ item }) => (
-          <View key={item.department}>
-            {renderDepartmentHeader(item.department)}
-            {item.ingredients.map((ingredient, index) =>
-              renderItem({ item: ingredient, index })
-            )}
-          </View>
-        )}
-        keyExtractor={(item) => item.department}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      {groupedIngredients.length > 0 ? (
+        <FlatList
+          data={groupedIngredients.filter(
+            (group) => group.ingredients.length > 0
+          )}
+          renderItem={({ item }) => (
+            <View key={item.department}>
+              {renderDepartmentHeader(item.department)}
+              {item.ingredients.map((ingredient, index) =>
+                renderItem({ item: ingredient, index })
+              )}
+            </View>
+          )}
+          keyExtractor={(item) =>
+            item.department + Math.random().toString(36).substring(7)
+          }
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      ) : (
+        <Text>אין מוצרים ברשימה.</Text>
+      )}
       <View style={styles.ButtonContainer}>
         {menuVisible && (
           <View style={styles.menu}>
