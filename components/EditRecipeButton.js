@@ -1,8 +1,9 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 
-const EditRecipeButton = ({ navigation, recipeId }) => {
+const EditRecipeButton = ({ navigation, recipeId, onPress }) => {
   const handleEdit = () => {
+    if (onPress) onPress();
     navigation.navigate("AddRecipe", { recipeId });
   };
 
@@ -22,7 +23,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 10,
-    width: "45%",
+    width: "80%",
     alignItems: "center",
     marginVertical: 10,
     padding: 15,

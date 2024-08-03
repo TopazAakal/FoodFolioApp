@@ -32,3 +32,5 @@ export const formatUnit = (quantity, unit) => {
   }
   return unit;
 };
+
+export { pluralUnits, singularUnits };

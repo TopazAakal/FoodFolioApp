@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from "react-native";
 import { fetchRecipeById } from "../util/database";
 import { I18nManager } from "react-native";
@@ -21,6 +22,8 @@ import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import { FontAwesome5 } from "@expo/vector-icons";
 import getImageSource from "../util/image";
+import { formatUnit, singularUnits, pluralUnits } from "../util/unitConversion";
+import { Ionicons } from "@expo/vector-icons";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -35,32 +38,7 @@ function RecipeDeatailScreen({ navigation, route }) {
   });
   const [displayedIngredients, setDisplayedIngredients] = useState([]);
   const [isConvertModalVisible, setConvertModalVisible] = useState(false);
-
-  const pluralUnits = {
-    'מ"ל': "מיליליטרים",
-    ליטר: "ליטרים",
-    'מ"ג': "מיליגרם",
-    גרם: "גרם",
-    'ק"ג': "קילוגרם",
-    כוס: "כוסות",
-    כף: "כפות",
-    כפית: "כפיות",
-    יחידה: "יחידות",
-    קורט: "קורט",
-  };
-
-  const singularUnits = {
-    מיליליטרים: 'מ"ל',
-    ליטרים: "ליטר",
-    מיליגרם: 'מ"ג',
-    גרם: "גרם",
-    קילוגרם: 'ק"ג',
-    כוסות: "כוס",
-    כפות: "כף",
-    כפיות: "כפית",
-    יחידות: "יחידה",
-    קורט: "קורט",
-  };
+  const [isOptionsModalVisible, setIsOptionsModalVisible] = useState(false);
 
   useEffect(() => {
     const { recipeId, selectedCategory } = route.params;
@@ -139,14 +117,7 @@ function RecipeDeatailScreen({ navigation, route }) {
       const quantity = ingredient.quantity
         ? parseFloat(ingredient.quantity)
         : 1;
-      let unit = ingredient.unit || "";
-
-      // Pluralization and singularization logic
-      if (quantity > 1 && pluralUnits[unit]) {
-        unit = pluralUnits[unit];
-      } else if (quantity <= 1) {
-        unit = singularUnits[unit] || unit;
-      }
+      const unit = formatUnit(quantity, ingredient.unit || "");
 
       return (
         <IngredientItem key={index} ingredient={{ ...ingredient, unit }} />
@@ -277,15 +248,35 @@ function RecipeDeatailScreen({ navigation, route }) {
     await Sharing.shareAsync(uri);
   };
 
+  const openOptionsModal = () => {
+    setIsOptionsModalVisible(true);
+  };
+
+  const closeOptionsModal = () => {
+    setIsOptionsModalVisible(false);
+  };
+
   return (
     <ScrollView style={styles.screen}>
       <Image source={getImageSource(recipe.image)} style={styles.recipeImage} />
       <View style={styles.detailsContainer}>
         <View style={styles.titleRow}>
           <Text style={styles.recipeTitle}>{recipe.title}</Text>
-          <TouchableOpacity onPress={generatePdf} style={styles.shareButton}>
-            <FontAwesome5 name="file-export" size={24} color="black" />
-          </TouchableOpacity>
+          <View style={styles.iconsContainer}>
+            <TouchableOpacity onPress={generatePdf} style={styles.iconButton}>
+              <FontAwesome5 name="file-export" size={24} color="black" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={openOptionsModal}
+              style={styles.iconButton}
+            >
+              <Ionicons
+                name="ellipsis-horizontal-circle"
+                size={32}
+                color="black"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.metaInfo}>
           <Text style={styles.categoryName}>{recipe.categoryToShow}</Text>
@@ -316,17 +307,6 @@ function RecipeDeatailScreen({ navigation, route }) {
       </View>
       <TimerControls />
 
-      <View style={styles.buttonContainer}>
-        <EditRecipeButton
-          navigation={navigation}
-          recipeId={route.params?.recipeId}
-        />
-        <DeleteRecipeButton
-          navigation={navigation}
-          recipeId={route.params?.recipeId}
-        />
-      </View>
-
       <ConversionModal
         isVisible={isConvertModalVisible}
         onClose={() => setConvertModalVisible(false)}
@@ -335,6 +315,34 @@ function RecipeDeatailScreen({ navigation, route }) {
         pluralUnits={pluralUnits}
         singularUnits={singularUnits}
       />
+
+      <Modal
+        visible={isOptionsModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeOptionsModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <EditRecipeButton
+              navigation={navigation}
+              recipeId={route.params?.recipeId}
+              onPress={closeOptionsModal}
+            />
+            <DeleteRecipeButton
+              navigation={navigation}
+              recipeId={route.params?.recipeId}
+              onPress={closeOptionsModal}
+            />
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={closeOptionsModal}
+            >
+              <Text style={styles.modalOptionText}>ביטול</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -361,15 +369,16 @@ const styles = StyleSheet.create({
   },
   titleRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
+    position: "relative",
   },
   recipeTitle: {
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 8,
     flex: 1,
+    marginBottom: 10,
   },
   shareButton: {
     padding: 10,
@@ -454,5 +463,38 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: "#cccccc",
+  },
+  iconsContainer: {
+    flexDirection: "row",
+    position: "absolute",
+    right: 0,
+  },
+  iconButton: {
+    paddingHorizontal: 5,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    width: "70%",
+    alignItems: "center",
+  },
+  modalOption: {
+    paddingVertical: 5,
+    width: "100%",
+    alignItems: "center",
+  },
+  modalOptionText: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
