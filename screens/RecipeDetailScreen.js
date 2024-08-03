@@ -6,8 +6,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   ScrollView,
-  Modal,
 } from "react-native";
 import { fetchRecipeById } from "../util/database";
 import { I18nManager } from "react-native";
@@ -24,6 +24,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import getImageSource from "../util/image";
 import { formatUnit, singularUnits, pluralUnits } from "../util/unitConversion";
 import { Ionicons } from "@expo/vector-icons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -37,8 +38,8 @@ function RecipeDeatailScreen({ navigation, route }) {
     ingredients: [],
   });
   const [displayedIngredients, setDisplayedIngredients] = useState([]);
+  const [menuVisible, setMenuVisible] = useState(false);
   const [isConvertModalVisible, setConvertModalVisible] = useState(false);
-  const [isOptionsModalVisible, setIsOptionsModalVisible] = useState(false);
 
   useEffect(() => {
     const { recipeId, selectedCategory } = route.params;
@@ -248,12 +249,12 @@ function RecipeDeatailScreen({ navigation, route }) {
     await Sharing.shareAsync(uri);
   };
 
-  const openOptionsModal = () => {
-    setIsOptionsModalVisible(true);
+  const toggleOptionsMenu = () => {
+    setMenuVisible((prevState) => !prevState);
   };
 
-  const closeOptionsModal = () => {
-    setIsOptionsModalVisible(false);
+  const closeOptionsMenu = () => {
+    setMenuVisible(false);
   };
 
   return (
@@ -263,18 +264,11 @@ function RecipeDeatailScreen({ navigation, route }) {
         <View style={styles.titleRow}>
           <Text style={styles.recipeTitle}>{recipe.title}</Text>
           <View style={styles.iconsContainer}>
-            <TouchableOpacity onPress={generatePdf} style={styles.iconButton}>
-              <FontAwesome5 name="file-export" size={24} color="black" />
-            </TouchableOpacity>
             <TouchableOpacity
-              onPress={openOptionsModal}
+              onPress={toggleOptionsMenu}
               style={styles.iconButton}
             >
-              <Ionicons
-                name="ellipsis-horizontal-circle"
-                size={32}
-                color="black"
-              />
+              <FontAwesome name="ellipsis-v" size={26} color="black" />
             </TouchableOpacity>
           </View>
         </View>
@@ -316,33 +310,25 @@ function RecipeDeatailScreen({ navigation, route }) {
         singularUnits={singularUnits}
       />
 
-      <Modal
-        visible={isOptionsModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={closeOptionsModal}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
+      {menuVisible && (
+        <TouchableWithoutFeedback onPress={closeOptionsMenu}>
+          <View style={styles.menu}>
+            <TouchableOpacity onPress={generatePdf} style={styles.menuItem}>
+              <Text style={styles.menuText}>ייצוא ל pdf</Text>
+            </TouchableOpacity>
             <EditRecipeButton
               navigation={navigation}
               recipeId={route.params?.recipeId}
-              onPress={closeOptionsModal}
+              onPress={closeOptionsMenu}
             />
             <DeleteRecipeButton
               navigation={navigation}
               recipeId={route.params?.recipeId}
-              onPress={closeOptionsModal}
+              onPress={closeOptionsMenu}
             />
-            <TouchableOpacity
-              style={styles.modalOption}
-              onPress={closeOptionsModal}
-            >
-              <Text style={styles.modalOptionText}>ביטול</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
+        </TouchableWithoutFeedback>
+      )}
     </ScrollView>
   );
 }
@@ -470,31 +456,35 @@ const styles = StyleSheet.create({
     right: 0,
   },
   iconButton: {
-    paddingHorizontal: 5,
+    paddingHorizontal: 10,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
+  menu: {
     backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
-    width: "70%",
-    alignItems: "center",
-  },
-  modalOption: {
+    borderRadius: 8,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
     paddingVertical: 5,
-    width: "100%",
-    alignItems: "center",
+    paddingHorizontal: 5,
+    width: 140,
+    position: "absolute",
+    top: 330,
+    right: 32,
+    zIndex: 1001,
   },
-  modalOptionText: {
-    fontSize: 18,
-    fontWeight: "bold",
+  menuItem: {
+    alignItems: "center",
+    padding: 7,
+  },
+  menuText: {
+    color: "black",
+    fontSize: 16,
   },
 });

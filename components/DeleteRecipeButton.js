@@ -39,20 +39,15 @@ const DeleteRecipeButton = ({ navigation, recipeId, onPress }) => {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#cccccc",
-    paddingVertical: 10,
-    paddingHorizontal: 30,
     borderRadius: 10,
-    width: "80%",
+    width: "100%",
     alignItems: "center",
-    marginVertical: 10,
-    padding: 15,
+    padding: 7,
   },
   deleteButton: {},
   buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: "black",
+    fontSize: 16,
   },
 });
 
