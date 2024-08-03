@@ -80,7 +80,7 @@ function ImagePicker({ onTakeImage, initialImage, style }) {
     }
 
     const image = await launchCameraAsync({
-      allowsEditing: true,
+      allowsEditing: false,
       // aspect: [3, 4],
       quality: 1,
     });
@@ -100,7 +100,7 @@ function ImagePicker({ onTakeImage, initialImage, style }) {
     }
 
     const result = await launchImageLibraryAsync({
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 1,
     });
 
