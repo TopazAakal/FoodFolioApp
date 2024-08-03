@@ -58,6 +58,8 @@ async function initDB() {
       console.error("Error creating recipe_categories table:", error);
     }
 
+    //await db.runAsync(`DROP TABLE IF EXISTS shopping_list;`);
+
     // Create the shopping_list table
     try {
       await db.runAsync(`
@@ -65,7 +67,8 @@ async function initDB() {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
           quantity REAL NOT NULL,
-          unit TEXT NOT NULL
+          unit TEXT NOT NULL,
+          department TEXT DEFAULT 'אחר'
         );
       `);
       console.log("Shopping_list table created successfully");
@@ -411,7 +414,6 @@ async function fetchShoppingList() {
   try {
     const db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync("SELECT * FROM shopping_list;");
-    console.log("Fetched shopping list:", rows);
     return rows;
   } catch (error) {
     console.error("Error fetching shopping list:", error);
@@ -422,11 +424,11 @@ async function fetchShoppingList() {
 async function saveShoppingList(list) {
   try {
     const db = await SQLite.openDatabaseAsync("recipes.db");
-    await db.runAsync("DELETE FROM shopping_list");
+    await db.runAsync("DELETE FROM shopping_list;");
     for (const item of list) {
       await db.runAsync(
-        "INSERT INTO shopping_list (name, quantity, unit) VALUES (?, ?, ?);",
-        [item.name, item.quantity, item.unit]
+        "INSERT INTO shopping_list (name, quantity, unit, department) VALUES (?, ?, ?, ?);",
+        [item.name, item.quantity, item.unit, item.department]
       );
     }
     console.log("Shopping list saved successfully:", list);
@@ -439,7 +441,6 @@ async function clearShoppingList() {
   try {
     const db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync("DELETE FROM shopping_list;");
-    console.log("Shopping list cleared successfully");
   } catch (error) {
     console.error("Error clearing shopping list:", error);
   }

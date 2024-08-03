@@ -85,9 +85,9 @@ function AddRecipeByImageScreen({ navigation }) {
           instructions: detectedText.instructions,
           imageUri: imageUri,
           totalTime:
-            detectedText["Total Time"] === "0 דקות"
+            detectedText["totalTime"] === "0 דקות"
               ? "לא צוין"
-              : detectedText["Total Time"],
+              : detectedText["totalTime"],
         };
         try {
           const newRecipeId = await insertRecipeWithCategories(recipeData);
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   imagePickerStyle: {
-    height: 500,
+    height: 400,
   },
   loadingContainer: {
     position: "absolute",

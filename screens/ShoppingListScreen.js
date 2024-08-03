@@ -2,26 +2,44 @@ import React, { useEffect, useState, useLayoutEffect } from "react";
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   FlatList,
   TouchableOpacity,
   Alert,
   TextInput,
 } from "react-native";
-import { fetchRecipeById } from "../util/database";
-import { FontAwesome5 } from "@expo/vector-icons";
 import {
+  fetchRecipeById,
   fetchShoppingList,
   saveShoppingList,
   clearShoppingList,
 } from "../util/database";
+import { FontAwesome5 } from "@expo/vector-icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { AntDesign } from "@expo/vector-icons";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 
+const departments = [
+  { name: "פירות וירקות", image: require("../images/fruits.png") },
+  { name: "בשר ועוף", image: require("../images/chicken.png") },
+  { name: "דגים", image: require("../images/fish.png") },
+  { name: "תבלינים", image: require("../images/spices.png") },
+  { name: "מוצרי חלב וביצים", image: require("../images/milk-eggs.png") },
+  { name: "ממרחים", image: require("../images/sauces.png") },
+  { name: "קפה ותה", image: require("../images/coffee.png") },
+  { name: "ממתקים", image: require("../images/sweets.png") },
+  { name: "אלכוהול", image: require("../images/alcohol.png") },
+  { name: "שימורים", image: require("../images/cans.png") },
+  { name: "לחם", image: require("../images/bread.png") },
+  { name: "אחר", image: require("../images/other.png") },
+];
+
+const departmentOrder = departments.map((department) => department.name);
+
 function ShoppingListScreen({ navigation, route }) {
-  const [ingredientsList, setIngredientsList] = useState([]);
+  const [groupedIngredients, setGroupedIngredients] = useState([]);
   const selectedRecipes = route.params?.selectedRecipes || [];
   const [menuVisible, setMenuVisible] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
@@ -30,8 +48,12 @@ function ShoppingListScreen({ navigation, route }) {
   useEffect(() => {
     const loadShoppingList = async () => {
       const list = await fetchShoppingList();
-      console.log("Loaded shopping list:", list);
-      setIngredientsList(list);
+      if (Array.isArray(list)) {
+        groupIngredientsByDepartment(list);
+      } else {
+        console.error("Loaded shopping list is not an array:", list);
+        setGroupedIngredients([]);
+      }
     };
 
     loadShoppingList();
@@ -70,17 +92,24 @@ function ShoppingListScreen({ navigation, route }) {
           }
         }
 
-        const combinedIngredients = combineIngredients(allIngredients);
-        setIngredientsList((prevList) => [...prevList, ...combinedIngredients]);
+        const combinedIngredients = combineIngredients(
+          groupedIngredients.flatMap((group) => group.ingredients),
+          allIngredients
+        );
+        groupIngredientsByDepartment(combinedIngredients);
+        handleSaveList(combinedIngredients);
       }
     };
 
     fetchIngredients();
   }, [selectedRecipes]);
 
-  const combineIngredients = (ingredients) => {
+  const combineIngredients = (existingIngredients, newIngredients) => {
     const combined = {};
-    ingredients.forEach((ingredient) => {
+    const allIngredients = existingIngredients.concat(newIngredients);
+    let idCounter = 1;
+
+    allIngredients.forEach((ingredient) => {
       if (
         !ingredient ||
         typeof ingredient !== "object" ||
@@ -104,49 +133,77 @@ function ShoppingListScreen({ navigation, route }) {
         combined[key].quantity += quantity;
       } else {
         combined[key] = {
+          id: idCounter++,
           name: name,
           department: ingredient.department || "אחר",
           quantity: quantity,
           unit: unit,
+          checked: ingredient.checked || false,
         };
       }
     });
+
     return Object.values(combined);
   };
 
-  const toggleChecked = (key) => {
-    setIngredientsList(
-      ingredientsList.map((item) => {
-        if (`${item.name}-${item.unit}` === key) {
-          return { ...item, checked: !item.checked };
+  const groupIngredientsByDepartment = (ingredients) => {
+    if (!ingredients || ingredients.length === 0) {
+      setGroupedIngredients([]);
+      return;
+    }
+
+    const grouped = {};
+    departments.forEach((department) => {
+      grouped[department.name] = [];
+    });
+
+    ingredients.forEach((ingredient) => {
+      const department = ingredient.department || "אחר";
+      if (grouped[department]) {
+        if (!ingredient.name) {
+          console.error("Ingredient name is missing:", ingredient);
+          return;
         }
-        return item;
-      })
-    );
+        grouped[department].push(ingredient);
+      } else {
+        console.error(`Invalid department: ${department}`);
+      }
+    });
+
+    const sortedGrouped = Object.keys(grouped)
+      .sort((a, b) => departmentOrder.indexOf(a) - departmentOrder.indexOf(b))
+      .map((department) => ({ department, ingredients: grouped[department] }));
+
+    setGroupedIngredients(sortedGrouped);
   };
 
-  // Save the shopping list to the database whenever it changes
-  useEffect(() => {
-    const saveList = async () => {
-      if (ingredientsList.length > 0) {
-        console.log("Saving shopping list:", ingredientsList);
-        await saveShoppingList(ingredientsList);
-        console.log("Shopping list saved successfully:", ingredientsList);
-      } else {
-        console.log("No ingredients to save.");
+  const validateIngredients = (ingredients) => {
+    if (!Array.isArray(ingredients)) {
+      console.error("validateIngredients received invalid input:", ingredients);
+      return [];
+    }
+
+    return ingredients.filter((ingredient) => {
+      if (!ingredient.name) {
+        console.error("Ingredient with invalid name:", ingredient);
+        return false;
       }
-    };
+      return true;
+    });
+  };
 
-    saveList();
-  }, [ingredientsList]);
+  const handleSaveList = async (ingredients) => {
+    if (!Array.isArray(ingredients)) {
+      return;
+    }
 
-  const handleSaveList = async () => {
-    if (ingredientsList.length > 0) {
-      console.log("Saving shopping list:", ingredientsList);
-      await saveShoppingList(ingredientsList);
-      console.log("Shopping list saved successfully:", ingredientsList);
-    } else {
-      console.log("No ingredients to save.");
+    const validIngredients = validateIngredients(ingredients);
+    if (validIngredients.length > 0) {
+      try {
+        await saveShoppingList(validIngredients);
+      } catch (error) {
+        console.error("Error saving shopping list:", error);
+      }
     }
   };
 
@@ -163,7 +220,7 @@ function ShoppingListScreen({ navigation, route }) {
           text: "אישור",
           onPress: async () => {
             await clearShoppingList();
-            setIngredientsList([]);
+            setGroupedIngredients([]);
             console.log("Shopping list cleared");
           },
         },
@@ -172,7 +229,7 @@ function ShoppingListScreen({ navigation, route }) {
     );
   };
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View style={{ flexDirection: "row" }}>
@@ -188,7 +245,7 @@ function ShoppingListScreen({ navigation, route }) {
         </View>
       ),
     });
-  }, [navigation, ingredientsList]);
+  }, [navigation, groupedIngredients]);
 
   const toggleMenu = () => {
     setMenuVisible(!menuVisible);
@@ -207,33 +264,41 @@ function ShoppingListScreen({ navigation, route }) {
 
   const handleSearch = (text) => {
     setSearchQuery(text);
-    //TODO
   };
 
   const handleShareList = async () => {
-    if (ingredientsList.length === 0) {
+    if (groupedIngredients.length === 0) {
       Alert.alert("הרשימה ריקה", "אין מוצרים לשיתוף");
       return;
     }
 
-    const listContent = ingredientsList
-      .map((item) => `${item.quantity} ${item.unit} ${item.name}`)
-      .join("\n");
+    const filteredGroupedIngredients = groupedIngredients.filter(
+      (group) => group.ingredients.length > 0
+    );
 
-    const fileUri = FileSystem.documentDirectory + "shopping_list.txt";
+    const listContent = filteredGroupedIngredients
+      .map((group) => {
+        const departmentHeader = `${group.department}:\n`;
+        const ingredientsList = group.ingredients
+          .map((item) => `- ${item.quantity} ${item.unit} ${item.name}`)
+          .join("\n");
+        return departmentHeader + ingredientsList;
+      })
+      .join("\n\n");
+
+    const fileUri = FileSystem.documentDirectory + "רשימת קניות.txt";
     await FileSystem.writeAsStringAsync(fileUri, listContent);
 
     await Sharing.shareAsync(fileUri);
   };
 
-  const renderItem = ({ item, index }) => {
-    const itemKey = `${item.name}-${item.unit}-${index}`;
+  const renderItem = ({ item }) => {
     return (
-      <View style={styles.itemContainer}>
-        <TouchableOpacity onPress={() => toggleChecked(itemKey)}>
+      <View style={styles.itemContainer} key={item.id}>
+        <TouchableOpacity onPress={() => toggleChecked(item.id)}>
           <View style={styles.checkbox}>
             {item.checked && (
-              <FontAwesome5 name="check" size={16} color="green" />
+              <FontAwesome5 name="check" size={16} color="#4CAF50" />
             )}
           </View>
         </TouchableOpacity>
@@ -241,6 +306,34 @@ function ShoppingListScreen({ navigation, route }) {
           {`${item.quantity} ${item.unit} ${item.name}`}
         </Text>
       </View>
+    );
+  };
+
+  const renderDepartmentHeader = (department) => {
+    const departmentData = departments.find((dep) => dep.name === department);
+    if (!departmentData) {
+      console.error(`No image found for department: ${department}`);
+      return null;
+    }
+    return (
+      <View style={styles.departmentHeader} key={department}>
+        <Image source={departmentData.image} style={styles.departmentImage} />
+        <Text style={styles.departmentTitle}>{departmentData.name}</Text>
+      </View>
+    );
+  };
+
+  const toggleChecked = (id) => {
+    setGroupedIngredients((prevGrouped) =>
+      prevGrouped.map((group) => ({
+        ...group,
+        ingredients: group.ingredients.map((ingredient) => {
+          if (ingredient.id === id) {
+            return { ...ingredient, checked: !ingredient.checked };
+          }
+          return ingredient;
+        }),
+      }))
     );
   };
 
@@ -254,12 +347,27 @@ function ShoppingListScreen({ navigation, route }) {
           onChangeText={handleSearch}
         />
       )}
-      <FlatList
-        data={ingredientsList}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.name}-${item.unit}-${index}`}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      {groupedIngredients.length > 0 ? (
+        <FlatList
+          data={groupedIngredients.filter(
+            (group) => group.ingredients.length > 0
+          )}
+          renderItem={({ item }) => (
+            <View key={item.department}>
+              {renderDepartmentHeader(item.department)}
+              {item.ingredients.map((ingredient, index) =>
+                renderItem({ item: ingredient, index })
+              )}
+            </View>
+          )}
+          keyExtractor={(item) =>
+            item.department + Math.random().toString(36).substring(7)
+          }
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      ) : (
+        <Text>אין מוצרים ברשימה.</Text>
+      )}
       <View style={styles.ButtonContainer}>
         {menuVisible && (
           <View style={styles.menu}>
@@ -380,5 +488,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 10,
     textAlign: "right",
+  },
+  departmentHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 3,
+    backgroundColor: "#f8f8f8",
+    marginTop: 10,
+  },
+  departmentImage: {
+    width: 40,
+    height: 40,
+    marginRight: 10,
+  },
+  departmentTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });

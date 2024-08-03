@@ -199,6 +199,31 @@ function RecipeDeatailScreen({ navigation, route }) {
       }
     }
 
+    // Clean up and format the instructions
+    let formattedInstructions = "";
+    if (recipe.instructions) {
+      try {
+        const instructionsObject =
+          typeof recipe.instructions === "string"
+            ? JSON.parse(recipe.instructions)
+            : recipe.instructions;
+
+        if (
+          typeof instructionsObject === "object" &&
+          instructionsObject !== null
+        ) {
+          formattedInstructions = Object.entries(instructionsObject)
+            .map(([step, text]) => `<li>${text}</li>`)
+            .join("");
+        } else {
+          formattedInstructions = `<li>${instructionsObject}</li>`;
+        }
+      } catch (error) {
+        console.error("Failed to parse instructions:", error);
+        formattedInstructions = "<li>הוראות הכנה לא זמינות</li>";
+      }
+    }
+
     const html = `
       <html dir="rtl" lang="he">
         <head>
@@ -213,6 +238,7 @@ function RecipeDeatailScreen({ navigation, route }) {
             .heading { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
             .ingredient-item { margin-bottom: 5px; }
             .recipe-image { width: 100%; height: auto; margin-bottom: 20px; }
+            ol { padding-right: 20px; }
           </style>
         </head>
         <body>
@@ -222,7 +248,7 @@ function RecipeDeatailScreen({ navigation, route }) {
             <div class="meta-info">
               <span>${recipe.categoryToShow}</span>
               <span>&#8226;</span>
-              <span>${recipe.totalTime}</span>
+              <span>${recipe.totalTime || "לא צוין"}</span>
             </div>
             <div class="ingredients">
               <div class="heading">מרכיבים</div>
@@ -237,17 +263,10 @@ function RecipeDeatailScreen({ navigation, route }) {
                 .join("")}
             </div>
             <div class="instructions">
-            <div class="heading">הוראות הכנה</div>
-              ${Object.entries(recipe.instructions)
-                .map(
-                  ([step, text]) => `
-                <div class="instruction-item">
-                  ${step}. ${text}
-                </div>
-              `
-                )
-                .join("")}
-            </div>
+              <div class="heading">הוראות הכנה</div>
+              <ol>
+                ${formattedInstructions}
+              </ol>
             </div>
           </div>
         </body>
