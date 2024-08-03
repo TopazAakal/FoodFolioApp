@@ -24,6 +24,7 @@ import {
 } from "../util/database";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import axios from "axios";
+import { formatUnit, singularUnits, pluralUnits } from "../util/unitConversion";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -61,19 +62,6 @@ function AddRecipeScreen() {
     { label: "יחידה", value: "יחידה" },
     { label: "קורט", value: "קורט" },
   ];
-
-  const pluralUnits = {
-    'מ"ל': "מיליליטרים",
-    ליטר: "ליטרים",
-    'מ"ג': "מיליגרם",
-    גרם: "גרם",
-    'ק"ג': "קילוגרם",
-    כוס: "כוסות",
-    כף: "כפות",
-    כפית: "כפיות",
-    יחידה: "יחידות",
-    קורט: "קורט",
-  };
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -144,16 +132,6 @@ function AddRecipeScreen() {
 
     setInstructions(JSON.stringify(parsedInstructions));
 
-    // Ensure ingredients are in the correct format
-    // let parsedIngredients;
-    // try {
-    //   parsedIngredients = Array.isArray(ingredients)
-    //     ? ingredients
-    //     : JSON.parse(ingredients);
-    // } catch (error) {
-    //   console.error("Failed to parse ingredients:", error);
-    //   return;
-    // }
     try {
       if (!ingredients) {
         alert("Please insert an ingredients first.");
@@ -174,7 +152,6 @@ function AddRecipeScreen() {
         const resultString = data.result
           .replace(/\\n/g, "")
           .replace(/\\"/g, '"');
-        // .replace(/(\d+):/g, '"$1":');
         const detectedJson = JSON.parse(resultString);
         console.log(detectedJson);
 
@@ -301,9 +278,7 @@ function AddRecipeScreen() {
       }
 
       // Pluralization logic
-      if (updatedQuantity > 1 && pluralUnits[updatedUnit]) {
-        updatedUnit = pluralUnits[updatedUnit];
-      }
+      updatedUnit = formatUnit(updatedQuantity, updatedUnit);
 
       const newIngredient = {
         name: ingredientName,
@@ -352,12 +327,8 @@ function AddRecipeScreen() {
 
     return ingredientsArray.map((ingredient, index) => {
       const quantity = parseFloat(ingredient.quantity);
-      let unit = ingredient.unit;
+      const unit = formatUnit(quantity, ingredient.unit);
 
-      // Pluralization logic
-      if (quantity > 1 && pluralUnits[unit]) {
-        unit = pluralUnits[unit];
-      }
       return (
         <View key={index} style={styles.ingredientListItem}>
           <Text style={styles.ingredientText}>
