@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
@@ -16,6 +18,8 @@ import { AntDesign } from "@expo/vector-icons";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import { formatUnit } from "../util/unitConversion";
+import Feather from "@expo/vector-icons/Feather";
+import CustomModalDropdown from "../components/UI/CustomModalDropdown";
 
 import {
   fetchRecipeById,
@@ -67,6 +71,14 @@ function ShoppingListScreen({ navigation, route }) {
   const [selectedDepartment, setSelectedDepartment] = useState(
     departments[0].name
   );
+
+  const [dropdownTop, setDropdownTop] = useState(null);
+  const [dropdownLeft, setDropdownLeft] = useState(null);
+  const [departmentDropdownTop, setDepartmentDropdownTop] = useState(null);
+  const [departmentDropdownLeft, setDepartmentDropdownLeft] = useState(null);
+
+  const unitLabels = unitOptions.map((option) => option.label);
+  const departmentLabels = departments.map((department) => department.name);
 
   useEffect(() => {
     loadShoppingList();
@@ -309,21 +321,22 @@ function ShoppingListScreen({ navigation, route }) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <View style={{ flexDirection: "row" }}>
-          <TouchableOpacity onPress={clearList} style={{ marginRight: 15 }}>
-            <FontAwesome5 name="trash" size={24} color="black" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleShareList}
-            style={{ marginRight: 15 }}
-          >
-            <AntDesign name="sharealt" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
-      ),
+      headerRight: () =>
+        !showManualInput && (
+          <View style={{ flexDirection: "row" }}>
+            <TouchableOpacity onPress={clearList} style={{ marginRight: 15 }}>
+              <FontAwesome5 name="trash" size={24} color="black" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleShareList}
+              style={{ marginRight: 15 }}
+            >
+              <AntDesign name="sharealt" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+        ),
     });
-  }, [navigation, groupedIngredients]);
+  }, [navigation, groupedIngredients, showManualInput]);
 
   const toggleMenu = () => {
     setMenuVisible(!menuVisible);
@@ -442,109 +455,155 @@ function ShoppingListScreen({ navigation, route }) {
   };
 
   return (
-    <View style={styles.container}>
-      {showManualInput && (
-        <View style={styles.ingredientSection}>
-          <View style={styles.ingredientInputContainer}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        {showManualInput && (
+          <View style={styles.addIngredientSection}>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>הוספת מוצר לרשימת קניות</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowManualInput(false);
+                  setShowShoppingList(true);
+                }}
+              >
+                <Feather name="x" size={28} color="black" />
+              </TouchableOpacity>
+            </View>
             <TextInput
               style={styles.ingredientInput}
-              placeholder=" מוצר"
+              placeholder="שם המוצר"
               placeholderTextColor="#666"
               value={ingredientName}
               onChangeText={setIngredientName}
+              returnKeyType="done"
             />
-            <TextInput
-              style={styles.quantityInput}
-              placeholder="0"
-              placeholderTextColor="#666"
-              value={quantity}
-              onChangeText={(text) => setQuantity(text.replace(/[^0-9]/g, ""))}
-              keyboardType="numeric"
-            />
-            <Picker
-              selectedValue={selectedUnit}
-              onValueChange={(itemValue) => setSelectedUnit(itemValue)}
-              style={styles.unitPicker}
-              itemStyle={styles.pickerItem}
+            <View style={styles.quantityUnitContainer}>
+              <TextInput
+                style={styles.quantityInput}
+                placeholder="0"
+                placeholderTextColor="#666"
+                value={quantity}
+                onChangeText={(text) =>
+                  setQuantity(text.replace(/[^0-9]/g, ""))
+                }
+                keyboardType="numeric"
+              />
+              <View
+                style={styles.pickerContainer}
+                onLayout={(event) => {
+                  const { x, y } = event.nativeEvent.layout;
+                  setDropdownLeft(x);
+                  setDropdownTop(y);
+                }}
+              >
+                {unitOptions.length > 0 && (
+                  <CustomModalDropdown
+                    options={unitLabels}
+                    defaultValue={unitOptions[0].label}
+                    style={styles.dropdown}
+                    textStyle={styles.dropdownText}
+                    dropdownStyle={[styles.dropdownStyle, { width: "45%" }]}
+                    dropdownTextStyle={styles.dropdownOptionText}
+                    dropdownTextHighlightStyle={styles.dropdownOptionText}
+                    onSelect={(index, value) =>
+                      setSelectedUnit(unitOptions[index].value)
+                    }
+                    adjustFrame={(style) => {
+                      style.left = dropdownLeft + 225;
+                      style.top = dropdownTop + 295;
+                      return style;
+                    }}
+                  />
+                )}
+              </View>
+            </View>
+            <View
+              style={styles.pickerContainerFull}
+              onLayout={(event) => {
+                const { x, y } = event.nativeEvent.layout;
+                setDepartmentDropdownLeft(x);
+                setDepartmentDropdownTop(y);
+              }}
             >
-              {unitOptions.map((option) => (
-                <Picker.Item
-                  key={option.value}
-                  label={option.label}
-                  value={option.value}
+              {departments.length > 0 && (
+                <CustomModalDropdown
+                  options={departmentLabels}
+                  defaultValue={departments[0].name}
+                  style={styles.dropdown}
+                  textStyle={styles.dropdownText}
+                  dropdownStyle={[styles.dropdownStyle, { width: "95%" }]}
+                  dropdownTextStyle={styles.dropdownOptionText}
+                  dropdownTextHighlightStyle={styles.dropdownOptionText}
+                  onSelect={(index, value) =>
+                    setSelectedDepartment(departments[index].name)
+                  }
+                  adjustFrame={(style) => {
+                    style.left = departmentDropdownLeft + 10;
+                    style.top = departmentDropdownTop + 165;
+                    return style;
+                  }}
                 />
-              ))}
-            </Picker>
-            <Picker
-              selectedValue={selectedDepartment}
-              onValueChange={(itemValue) => setSelectedDepartment(itemValue)}
-              style={styles.departmentPicker}
-              itemStyle={styles.pickerItem}
+              )}
+            </View>
+            <TouchableOpacity
+              onPress={addManualIngredient}
+              style={styles.addButton}
             >
-              {departments.map((dept) => (
-                <Picker.Item
-                  key={dept.name}
-                  label={dept.name}
-                  value={dept.name}
-                />
-              ))}
-            </Picker>
+              <Text style={styles.addButtonText}>הוסף מוצר</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={addManualIngredient}
-            style={styles.addButton}
-          >
-            <Text style={styles.addButtonText}>הוסף מוצר</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      {showShoppingList && (
-        <>
-          {groupedIngredients.length > 0 ? (
-            <FlatList
-              data={groupedIngredients.filter(
-                (group) => group.ingredients.length > 0
-              )}
-              renderItem={({ item }) => (
-                <View key={item.department}>
-                  {renderDepartmentHeader(item.department)}
-                  {item.ingredients.map((ingredient, index) =>
-                    renderItem({ item: ingredient, index })
-                  )}
-                </View>
-              )}
-              keyExtractor={(item) =>
-                item.department + Math.random().toString(36).substring(7)
-              }
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-            />
-          ) : (
-            <Text>אין מוצרים ברשימה.</Text>
-          )}
-        </>
-      )}
-      {menuVisible && (
-        <View style={styles.menu}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={handleAddProductsFromRecipe}
-          >
-            <Text style={styles.menuText}>הוספת מוצרים ממתכון</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={handleAddProductsManually}
-          >
-            <Text style={styles.menuText}>הוספת מוצרים ידנית</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      <View style={styles.ButtonContainer}>
-        <TouchableOpacity onPress={toggleMenu} style={styles.fab}>
-          <Ionicons name="add" size={26} color="#FFFFFF" />
-        </TouchableOpacity>
+        )}
+        {showShoppingList && (
+          <>
+            {groupedIngredients.length > 0 ? (
+              <FlatList
+                data={groupedIngredients.filter(
+                  (group) => group.ingredients.length > 0
+                )}
+                renderItem={({ item }) => (
+                  <View key={item.department}>
+                    {renderDepartmentHeader(item.department)}
+                    {item.ingredients.map((ingredient, index) =>
+                      renderItem({ item: ingredient, index })
+                    )}
+                  </View>
+                )}
+                keyExtractor={(item) =>
+                  item.department + Math.random().toString(36).substring(7)
+                }
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+              />
+            ) : (
+              <Text>אין מוצרים ברשימה.</Text>
+            )}
+          </>
+        )}
+        {menuVisible && (
+          <View style={styles.menu}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleAddProductsFromRecipe}
+            >
+              <Text style={styles.menuText}>הוספת מוצרים ממתכון</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleAddProductsManually}
+            >
+              <Text style={styles.menuText}>הוספת מוצרים ידנית</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {!showManualInput && (
+          <View style={styles.ButtonContainer}>
+            <TouchableOpacity onPress={toggleMenu} style={styles.fab}>
+              <Ionicons name="add" size={26} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -649,8 +708,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  ingredientSection: {
+  addIngredientSection: {
     marginBottom: 20,
+  },
+  title: {
+    fontSize: 22,
+    color: "#2A3631",
+    fontWeight: "bold",
+    textAlign: "left",
+  },
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingBottom: 10,
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   ingredientInputContainer: {
     flexDirection: "row",
@@ -661,12 +734,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     borderColor: "#ccc",
+    paddingHorizontal: 10,
     paddingVertical: 10,
-    fontSize: 14,
-    flex: 2,
-    height: 40,
-    textAlign: "center",
-    marginRight: 10,
+    fontSize: 16,
+    textAlign: "right",
+    marginVertical: 10,
+    height: 45,
+  },
+  quantityUnitContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
   },
   quantityInput: {
     flex: 1,
@@ -675,7 +754,55 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     paddingVertical: 10,
     fontSize: 16,
-    textAlign: "center",
+    textAlign: "right",
+    paddingLeft: 5,
+    marginRight: 10,
+    height: 45,
+  },
+  pickerContainer: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    overflow: "hidden",
+    marginVertical: 10,
+    height: 45,
+  },
+  pickerContainerFull: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    overflow: "hidden",
+    marginBottom: 10,
+    height: 45,
+  },
+  picker: {
+    width: "100%",
+    height: 45,
+  },
+  pickerItem: {
+    fontSize: 14,
+  },
+  dropdown: {
+    borderColor: "#ccc",
+    borderRadius: 10,
+    padding: 10,
+    width: "100%",
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  dropdownStyle: {
+    borderRadius: 10,
+    borderWidth: 1,
+    position: "absolute",
+  },
+  dropdownOptionText: {
+    fontSize: 16,
+    color: "#666",
+    padding: 10,
+    textAlign: "left",
   },
   input: {
     borderWidth: 1,
@@ -686,44 +813,27 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   unitPicker: {
-    paddingVertical: 6,
-    flex: 2,
-    itemStyle: { height: 120, fontSize: 16 },
-  },
-  pickerItem: {
-    fontSize: 14,
+    width: "100%",
   },
   departmentPicker: {
-    flex: 3,
+    width: "100%",
     paddingVertical: 6,
     itemStyle: { height: 120, fontSize: 16 },
+    marginBottom: 10,
   },
   addButton: {
-    justifyContent: "center",
-    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderWidth: 2,
-    borderColor: "#4db384",
+    borderColor: "#19A160",
     borderRadius: 15,
-    backgroundColor: "#FFFFFF",
-    flexDirection: "row-reverse",
+    backgroundColor: "#19A160",
     alignSelf: "center",
-    width: "auto",
-    minWidth: 160,
+    marginTop: 20,
   },
-
   addButtonText: {
-    color: "#4db384",
+    color: "white",
     fontSize: 16,
-    fontWeight: "bold",
-    marginRight: 5,
-  },
-
-  addButtonIcon: {
-    color: "#4db384",
-    fontSize: 22,
-    paddingRight: 5,
     fontWeight: "bold",
   },
 });
