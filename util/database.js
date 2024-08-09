@@ -100,6 +100,9 @@ async function initDB() {
       console.error("Error inserting default category:", error);
     }
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error initializing database:", error);
   }
 }
@@ -110,6 +113,9 @@ async function fetchAllRecipes() {
     const rows = await db.getAllAsync("SELECT * FROM recipes;");
     return rows;
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error fetching recipes:", error);
   }
 }
@@ -130,6 +136,9 @@ async function fetchRecipeById(id) {
     );
     return row;
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error fetching recipe with ID:", id, error);
   }
 }
@@ -142,6 +151,9 @@ async function deleteRecipeById(id) {
     await db.runAsync("DELETE FROM recipes WHERE id = ?;", [id]);
     console.log("Recipe deleted successfully");
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Failed to delete recipe:", error);
   }
 }
@@ -154,6 +166,9 @@ async function fetchAllCategories() {
     );
     return rows;
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Failed to fetch categories", error);
   }
 }
@@ -187,6 +202,9 @@ async function insertCategory(name, image = DEFAULT_CATEGORY_IMAGE) {
       return { success: false, id: null };
     }
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error inserting new category:", error);
     return { success: false, id: null };
   }
@@ -203,6 +221,9 @@ const deleteCategoryById = async (categoryId) => {
     }
     return { success: true, rowsAffected: result.rowsAffected };
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error deleting category:", error);
     throw new Error("Failed to delete category");
   }
@@ -213,31 +234,31 @@ const insertRecipeWithCategories = async (recipe) => {
   try {
     console.log("Inserting recipe:", recipe);
 
-    // let ingredientsWithUnits;
+    let ingredientsWithUnits;
 
-    // // Check if ingredients are already in array format
-    // if (Array.isArray(recipe.ingredients)) {
-    //   ingredientsWithUnits = recipe.ingredients.map((ingredient) => ({
-    //     ...ingredient,
-    //     unit: ingredient.unit || "",
-    //   }));
-    // } else {
-    //   // If ingredients are in string format, parse them
-    //   try {
-    //     const ingredients = JSON.parse(recipe.ingredients);
-    //     ingredientsWithUnits = ingredients.map((ingredient) => ({
-    //       ...ingredient,
-    //       unit: ingredient.unit || "",
-    //     }));
-    //     console.log("-------after Parsing-------: ", ingredients);
-    //   } catch (error) {
-    //     console.error("Failed to parse ingredients:", error);
-    //     throw new Error("Invalid ingredients format");
-    //   }
-    // }
+    // Check if ingredients are already in array format
+    if (Array.isArray(recipe.ingredients)) {
+      ingredientsWithUnits = recipe.ingredients.map((ingredient) => ({
+        ...ingredient,
+        unit: ingredient.unit || "",
+      }));
+    } else {
+      // If ingredients are in string format, parse them
+      try {
+        const ingredients = JSON.parse(recipe.ingredients);
+        ingredientsWithUnits = ingredients.map((ingredient) => ({
+          ...ingredient,
+          unit: ingredient.unit || "",
+        }));
+        console.log("-------after Parsing-------: ", ingredients);
+      } catch (error) {
+        console.error("Failed to parse ingredients:", error);
+        throw new Error("Invalid ingredients format");
+      }
+    }
 
-    // const ingredientsJson = JSON.stringify(ingredientsWithUnits);
-    // // Set default image if not provided
+    const ingredientsJson = JSON.stringify(ingredientsWithUnits);
+    // Set default image if not provided
     const image = recipe.image || require("../images/recipe_placeholder.jpg");
 
     data = {
@@ -280,6 +301,9 @@ const insertRecipeWithCategories = async (recipe) => {
     }
     return recipeId; // Return the new recipe ID after successful insertions
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Failed to insert associate categories:", error);
     throw error; // Rethrow to handle errors in the calling function
   }
@@ -297,6 +321,9 @@ async function fetchAllRecipesWithCategories() {
     `);
     return rows;
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error fetching recipes with categories", error);
     throw error;
   }
@@ -329,6 +356,9 @@ async function updateRecipeWithCategories(id, recipe, categoryIds) {
     console.log("Recipe updated successfully with new category associations");
     return true; // Indicate success
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Failed to update recipe:", error);
     return false; // Indicate failure
   }
@@ -343,6 +373,9 @@ const fetchRecipesByCategory = async (categoryId) => {
     );
     return recipes;
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error fetching recipes by category:", error);
     return null;
   }
@@ -360,6 +393,9 @@ const deleteRecipeFromCategory = async (recipeId, categoryId, callback) => {
       callback();
     }
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Failed to delete recipe from category:", error);
   }
 };
@@ -374,6 +410,9 @@ async function resetDatabase() {
     `);
     console.log("All specified tables were dropped successfully");
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error dropping tables: ", error);
     throw error;
   }
@@ -405,6 +444,9 @@ const addRecipeToCategory = async (categoryId, recipeId) => {
       };
     }
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Failed to add recipe to category:", error);
     return { success: false, message: "Failed to add recipe to category" };
   }
@@ -416,6 +458,9 @@ async function fetchShoppingList() {
     const rows = await db.getAllAsync("SELECT * FROM shopping_list;");
     return rows;
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error fetching shopping list:", error);
     return [];
   }
@@ -432,6 +477,9 @@ async function saveShoppingList(list) {
       );
     }
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error saving shopping list:", error);
   }
 }
@@ -441,6 +489,9 @@ async function clearShoppingList() {
     const db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync("DELETE FROM shopping_list;");
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error clearing shopping list:", error);
   }
 }
@@ -452,6 +503,9 @@ async function deleteShoppingListItems(ids) {
       await db.runAsync("DELETE FROM shopping_list WHERE id = ?;", [id]);
     }
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error deleting shopping list items:", error);
   }
 }
@@ -462,6 +516,9 @@ async function fetchMealPlan() {
     const rows = await db.getAllAsync("SELECT * FROM meal_plan;");
     return rows;
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error fetching meal plan:", error);
   }
 }
@@ -474,6 +531,9 @@ async function insertMealPlan(day, mealType, recipeId) {
       [day, mealType, recipeId]
     );
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error inserting meal plan:", error);
   }
 }
@@ -484,6 +544,9 @@ async function deleteMealPlan() {
     await db.runAsync("DELETE FROM meal_plan;");
     console.log("Meal plan deleted successfully");
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error deleting meal plan:", error);
   }
 }
@@ -497,6 +560,9 @@ async function deleteSpecificMeal(day, mealType) {
     );
     console.log("Specific meal deleted successfully");
   } catch (error) {
+    if (db) {
+      db.closeSync();
+    }
     console.error("Error deleting specific meal:", error);
   }
 }

@@ -4,11 +4,13 @@ import {
   TextInput,
   Text,
   StyleSheet,
+  Alert,
   ActivityIndicator,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import CustomButton from "../components/UI/CustomButton";
 import { insertRecipeWithCategories } from "../util/database";
+import { MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 
 function AddRecipeByUrlScreen({ navigation }) {
@@ -101,19 +103,38 @@ function AddRecipeByUrlScreen({ navigation }) {
     }
   }, [detectedText, navigation]);
 
+  const showSupportedSites = () => {
+    Alert.alert(
+      "אתרים נתמכים",
+      "רשימת האתרים הנתמכים:\n- 10 דקות\n- אליטה אופק\n- עדיקוש\n- ענת אלישע\n- דניאל עמית\n- השולחן\n- לייזה פאנלים\n- רחלי קרוט\n- שירי עמית  ",
+      [{ text: "סגור", style: "cancel" }]
+    );
+  };
+
   return (
     <KeyboardAwareScrollView
       style={styles.rootContainer}
       contentContainerStyle={styles.contentContainer}
     >
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="הזן קישור למתכון"
-          value={recipeUrl}
-          onChangeText={setRecipeUrl}
-          autoCapitalize="none"
-          keyboardType="url"
+      <View style={styles.elementContainer}>
+        <View style={styles.form}>
+          <TextInput
+            style={styles.input}
+            placeholder="הזן קישור למתכון"
+            value={recipeUrl}
+            onChangeText={setRecipeUrl}
+            autoCapitalize="none"
+            keyboardType="url"
+          />
+        </View>
+        <MaterialIcons
+          styles={styles.infoIcon}
+          name="info-outline"
+          size={28}
+          padding={10}
+          color="black"
+          onPress={showSupportedSites}
+          style={styles.infoIcon}
         />
       </View>
       <CustomButton
@@ -142,9 +163,18 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "flex-end",
   },
+  elementContainer: {
+    flexDirection: "row",
+  },
   form: {
-    margin: 20,
-    paddingHorizontal: 5,
+    flex: 1,
+    marginTop: 10,
+    marginLeft: 10,
+    paddingLeft: 10,
+  },
+  infoIcon: {
+    flex: 0.1,
+    marginTop: 10,
   },
   input: {
     borderWidth: 1,

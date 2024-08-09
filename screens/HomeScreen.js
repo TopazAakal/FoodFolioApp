@@ -381,28 +381,49 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  // ==== General styles =====
   container: {
     flex: 1,
     backgroundColor: "#fff",
     padding: 15,
-    paddingBottom: 50,
+    paddingTop: 50,
+    paddingBottom: 20,
     alignItems: "flex-start",
   },
   contentContainer: {
-    padding: 15,
-    paddingBottom: 50,
     alignItems: "flex-start",
   },
   greeting: {
     fontSize: 24,
-    marginBottom: 20,
+    marginBottom: 10,
     fontWeight: "bold",
   },
+
+  moreButton: {
+    paddingVertical: 5,
+    backgroundColor: "transparent",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  moreButtonText: {
+    color: "#4CAF50",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginRight: 5,
+  },
+
+  subTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    alignContent: "center",
+  },
+  // ==== Search styles =====
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginBottom: 25,
+    marginBottom: 15,
   },
   searchContainer: {
     flex: 1,
@@ -422,28 +443,168 @@ const styles = StyleSheet.create({
     textAlign: "right",
     marginRight: 5,
   },
+  // ==== Meals styles =====
+  mealsList: {
+    flexGrow: 0,
+    backgroundColor: "transparent",
+  },
+  mealContainer: {
+    alignItems: "flex-start",
+    marginHorizontal: 10,
+    marginBottom: 25,
+  },
+  mealCard: {
+    width: 190,
+    marginRight: 10,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  mealCardEmpty: {
+    width: 190,
+    height: 100,
+    marginRight: 10,
+    borderRadius: 10,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "#ccc",
+    borderWidth: 1,
+  },
+  mealImage: {
+    width: "100%",
+    height: 100,
+    borderRadius: 10,
+  },
+  mealTypeText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  mealTitle: {
+    fontSize: 14,
+    marginLeft: 5,
+    textAlign: "left",
+    fontWeight: "bold",
+  },
+
+  mealInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 3,
+    marginBottom: 10,
+  },
+
+  mealInfo: {
+    fontSize: 13,
+    marginLeft: 3,
+    textAlign: "left",
+    color: "#727272",
+  },
+  mealEmptyText: {
+    fontSize: 14,
+    color: "#727272",
+  },
+
+  // ==== Recipes styles =====
+  recipeCard: {
+    width: 170,
+    marginRight: 15,
+    borderRadius: 10,
+    overflow: "hidden",
+    marginTop: 10,
+  },
+  recipeImage: {
+    width: "100%",
+    height: 120,
+    borderRadius: 10,
+  },
+  recipeTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "left",
+    marginBottom: 15,
+  },
+
+  // ==== Categories styles =====
+  latestList: {
+    flexGrow: 0,
+    backgroundColor: "transparent",
+  },
+
+  // ==== Headers styles =====
+  latestRecipesHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: -10,
+    marginTop: 10,
+  },
+  interestHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    alignSelf: "center",
+    width: "100%",
+    // marginTop: 10,
+  },
+
+  mealsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 5,
+  },
+
+  // ==== Categories styles =====
+  categoryItem: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ebeeec",
+    marginHorizontal: 5,
+  },
+  categoryText: {
+    color: "#acacac",
+    fontSize: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  selectedCategoryItem: {
+    backgroundColor: "#4CAF50",
+    borderColor: "#4CAF50",
+  },
+  selectedCategoryText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+
+  // === Menu styles ===
   iconStyle: {
     marginRight: 10,
     color: "#ccc",
   },
+
   fab: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: "#4CAF50",
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
-    right: 15,
-    bottom: 30,
+    right: 16,
+    bottom: 16,
     zIndex: 1000,
   },
 
   ButtonContainer: {
     position: "absolute",
     left: 0,
-    right: 0,
-    bottom: 15,
+    right: -5,
+    bottom: -14.5, // to bottom corner -14.5
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
@@ -479,159 +640,6 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 16,
     paddingHorizontal: 5,
-  },
-  recipeCard: {
-    width: 170,
-    marginRight: 15,
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  recipeImage: {
-    width: "100%",
-    height: 120,
-    borderRadius: 10,
-  },
-  recipeTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 5,
-    textAlign: "left",
-  },
-  subTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    alignContent: "center",
-  },
-  latestRecipesHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 10,
-    paddingLeft: 2,
-  },
-  interestHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    alignSelf: "center",
-    width: "100%",
-    marginTop: 10,
-    paddingVertical: 0,
-    paddingLeft: 2,
-  },
-  mealsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 5,
-  },
-  latestList: {
-    flexGrow: 0,
-    backgroundColor: "transparent",
-    padding: 0,
-    marginBottom: 10,
-  },
-  moreButton: {
-    paddingVertical: 5,
-    backgroundColor: "transparent",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  moreButtonText: {
-    color: "#4CAF50",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginRight: 5,
-  },
-  categoriesList: {
-    alignItems: "center",
-    marginBottom: 10,
-    marginTop: 5,
-  },
-  categoryItem: {
-    backgroundColor: "white",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ebeeec",
-    marginHorizontal: 5,
-  },
-  categoryText: {
-    color: "#acacac",
-    fontSize: 14,
-  },
-  selectedCategoryItem: {
-    backgroundColor: "#4CAF50",
-    borderColor: "#4CAF50",
-  },
-  selectedCategoryText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-  mealsList: {
-    flexGrow: 0,
-    backgroundColor: "transparent",
-    padding: 0,
-    paddingBottom: 10,
-    marginBottom: 15,
-  },
-  mealContainer: {
-    alignItems: "flex-start",
-    marginHorizontal: 10,
-  },
-  mealCard: {
-    width: 190,
-    marginRight: 10,
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  mealCardEmpty: {
-    width: 190,
-    height: 100,
-    marginRight: 10,
-    borderRadius: 10,
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-    borderColor: "#ccc",
-    borderWidth: 1,
-  },
-  mealImage: {
-    width: "100%",
-    height: 100,
-    borderRadius: 10,
-  },
-  mealTypeText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginTop: 5,
-    textAlign: "center",
-  },
-  mealTitle: {
-    fontSize: 14,
-    marginLeft: 5,
-    textAlign: "left",
-    fontWeight: "bold",
-    paddingVertical: 5,
-  },
-  mealInfoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginLeft: 3,
-  },
-  mealInfo: {
-    fontSize: 13,
-    marginLeft: 3,
-    textAlign: "left",
-    color: "#727272",
-  },
-  mealEmptyText: {
-    fontSize: 14,
-    color: "#727272",
   },
 });
 
