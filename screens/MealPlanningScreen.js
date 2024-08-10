@@ -1,4 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import {
   View,
   Text,
@@ -19,6 +24,7 @@ import {
   deleteSpecificMeal,
   fetchAllCategories,
   fetchRecipesByCategory,
+  clearShoppingList,
 } from "../util/database";
 import { Ionicons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
@@ -53,6 +59,7 @@ function MealPlanningScreen({ navigation }) {
   const [draggedRecipe, setDraggedRecipe] = useState(null);
   const [daysWithDates, setDaysWithDates] = useState([]);
   const [selectedMealForDeletion, setSelectedMealForDeletion] = useState(null);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -240,6 +247,10 @@ function MealPlanningScreen({ navigation }) {
     }
   };
 
+  const toggleMenu = () => {
+    setMenuVisible(!menuVisible);
+  };
+
   const renderMeal = (mealType) => {
     const fullDayString = daysWithDates[selectedDayIndex];
     if (!fullDayString) {
@@ -314,6 +325,68 @@ function MealPlanningScreen({ navigation }) {
     );
   };
 
+  const extractRecipeIdsFromMealPlan = () => {
+    const recipeIds = [];
+    for (const day in mealPlan) {
+      for (const mealType in mealPlan[day]) {
+        const recipeId = mealPlan[day][mealType];
+        if (recipeId && !recipeIds.includes(recipeId)) {
+          recipeIds.push(recipeId);
+        }
+      }
+    }
+    return recipeIds;
+  };
+
+  const handleCreateShoppingList = async () => {
+    const recipeIds = extractRecipeIdsFromMealPlan();
+    if (recipeIds.length > 0) {
+      await clearShoppingList();
+      navigation.navigate("ShoppingList", { selectedRecipes: recipeIds });
+    }
+  };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ position: "relative" }}>
+          <TouchableOpacity onPress={toggleMenu} style={{ paddingRight: 15 }}>
+            <Ionicons name="ellipsis-vertical-circle" size={28} color="black" />
+          </TouchableOpacity>
+          {menuVisible && (
+            <View
+              style={{
+                position: "absolute",
+                top: 20,
+                right: 30,
+                backgroundColor: "white",
+                borderRadius: 8,
+                paddingHorizontal: 3,
+                paddingVertical: 5,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.8,
+                shadowRadius: 2,
+                elevation: 5,
+                zIndex: 1000,
+                width: "70%",
+              }}
+            >
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleCreateShoppingList}
+              >
+                <Text style={styles.menuText}>
+                  יצירת רשימת קניות מהלוח השבועי
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      ),
+    });
+  }, [navigation, toggleMenu, menuVisible]);
+
   return (
     <DraxProvider>
       <ScrollView style={styles.container}>
@@ -373,6 +446,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 20,
     alignSelf: "center",
+    position: "relative",
+    zIndex: 10,
   },
   arrowButton: {
     paddingHorizontal: 40,
@@ -504,6 +579,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginBottom: 20,
     backgroundColor: "#F8F9F8",
+    zIndex: 0,
   },
   recipeList: {},
   dragging: {
@@ -521,5 +597,14 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.7)",
     borderRadius: 12,
     padding: 3,
+  },
+
+  menuItem: {
+    paddingVertical: 3,
+  },
+  menuText: {
+    fontSize: 16,
+    color: "black",
+    textAlign: "center",
   },
 });
