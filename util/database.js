@@ -4,9 +4,10 @@ const DEFAULT_CATEGORY_IMAGE = "../images/category_placeholder.jpg";
 const DEFAULT_RECIPE_IMAGE = "../images/recipe_placeholder.jpg";
 
 async function initDB() {
+  let db;
   try {
     //await resetDatabase(); // Ensure this completes before proceeding
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
 
     // Set journal mode to Write-Ahead Logging
     await db.runAsync(`PRAGMA journal_mode = WAL;`);
@@ -108,8 +109,9 @@ async function initDB() {
 }
 
 async function fetchAllRecipes() {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync("SELECT * FROM recipes;");
     return rows;
   } catch (error) {
@@ -121,8 +123,9 @@ async function fetchAllRecipes() {
 }
 
 async function fetchRecipeById(id) {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     const row = await db.getFirstAsync(
       `
       SELECT r.*, GROUP_CONCAT(c.name) AS categoryNames 
@@ -134,6 +137,7 @@ async function fetchRecipeById(id) {
     `,
       [id]
     );
+    console.log("row ", row);
     return row;
   } catch (error) {
     if (db) {
@@ -146,8 +150,9 @@ async function fetchRecipeById(id) {
 //update recipe
 
 async function deleteRecipeById(id) {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync("DELETE FROM recipes WHERE id = ?;", [id]);
     console.log("Recipe deleted successfully");
   } catch (error) {
@@ -159,8 +164,9 @@ async function deleteRecipeById(id) {
 }
 
 async function fetchAllCategories() {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync(
       "SELECT id, name, image FROM categories;"
     );
@@ -174,8 +180,9 @@ async function fetchAllCategories() {
 }
 
 async function insertCategory(name, image = DEFAULT_CATEGORY_IMAGE) {
-  const db = await SQLite.openDatabaseAsync("recipes.db");
+  let db;
   try {
+    db = await SQLite.openDatabaseAsync("recipes.db");
     const existingCategory = await db.getFirstAsync(
       "SELECT id FROM categories WHERE name = ?",
       [name]
@@ -211,8 +218,9 @@ async function insertCategory(name, image = DEFAULT_CATEGORY_IMAGE) {
 }
 
 const deleteCategoryById = async (categoryId) => {
-  const db = await SQLite.openDatabaseAsync("recipes.db");
+  let db;
   try {
+    db = await SQLite.openDatabaseAsync("recipes.db");
     const result = await db.runAsync("DELETE FROM categories WHERE id = ?;", [
       categoryId,
     ]);
@@ -230,10 +238,9 @@ const deleteCategoryById = async (categoryId) => {
 };
 
 const insertRecipeWithCategories = async (recipe) => {
-  const db = await SQLite.openDatabaseAsync("recipes.db");
+  let db;
   try {
-    console.log("Inserting recipe:", recipe);
-
+    db = await SQLite.openDatabaseAsync("recipes.db");
     let ingredientsWithUnits;
 
     // Check if ingredients are already in array format
@@ -241,6 +248,7 @@ const insertRecipeWithCategories = async (recipe) => {
       ingredientsWithUnits = recipe.ingredients.map((ingredient) => ({
         ...ingredient,
         unit: ingredient.unit || "",
+        // department: ingredient.department || "אחר", // Default department
       }));
     } else {
       // If ingredients are in string format, parse them
@@ -257,18 +265,17 @@ const insertRecipeWithCategories = async (recipe) => {
       }
     }
 
-    const ingredientsJson = JSON.stringify(ingredientsWithUnits);
+    // const ingredientsJson = JSON.stringify(ingredientsWithUnits);
     // Set default image if not provided
     const image = recipe.image || require("../images/recipe_placeholder.jpg");
 
     data = {
       title: recipe.title,
-      ingredients: recipe.ingredients,
-      instructions: recipe.instructions,
+      ingredients: JSON.stringify(recipe.ingredients),
+      instructions: JSON.stringify(recipe.instructions),
       image: image,
       totalTime: recipe.totalTime,
     };
-    console.log(data);
 
     // Insert recipe into recipes table
     const result = await db.runAsync(
@@ -276,7 +283,7 @@ const insertRecipeWithCategories = async (recipe) => {
       [
         recipe.title,
         JSON.stringify(recipe.ingredients),
-        recipe.instructions,
+        JSON.stringify(recipe.instructions),
         image,
         recipe.totalTime,
       ]
@@ -310,8 +317,9 @@ const insertRecipeWithCategories = async (recipe) => {
 };
 
 async function fetchAllRecipesWithCategories() {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync(`
       SELECT r.id, r.title, r.ingredients, r.instructions, r.image, r.totalTime, GROUP_CONCAT(c.name) AS categoryNames
       FROM recipes r
@@ -330,8 +338,9 @@ async function fetchAllRecipesWithCategories() {
 }
 
 async function updateRecipeWithCategories(id, recipe, categoryIds) {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync(
       `
       UPDATE recipes SET title = ?, ingredients = ?, instructions = ?, image = ?, totalTime = ? WHERE id = ?;`,
@@ -365,8 +374,9 @@ async function updateRecipeWithCategories(id, recipe, categoryIds) {
 }
 
 const fetchRecipesByCategory = async (categoryId) => {
-  const db = await SQLite.openDatabaseAsync("recipes.db");
+  let db;
   try {
+    db = await SQLite.openDatabaseAsync("recipes.db");
     const recipes = await db.getAllAsync(
       "SELECT r.* FROM recipes r JOIN recipe_categories rc ON r.id = rc.recipeId WHERE rc.categoryId = ?;",
       [categoryId]
@@ -382,8 +392,9 @@ const fetchRecipesByCategory = async (categoryId) => {
 };
 
 const deleteRecipeFromCategory = async (recipeId, categoryId, callback) => {
-  const db = await SQLite.openDatabaseAsync("recipes.db");
+  let db;
   try {
+    db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync(
       "DELETE FROM recipe_categories WHERE recipeId = ? AND categoryId = ?;",
       [recipeId, categoryId]
@@ -401,8 +412,9 @@ const deleteRecipeFromCategory = async (recipeId, categoryId, callback) => {
 };
 
 async function resetDatabase() {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     await db.execAsync(`
       DROP TABLE IF EXISTS recipes;
       DROP TABLE IF EXISTS categories;
@@ -419,8 +431,9 @@ async function resetDatabase() {
 }
 
 const addRecipeToCategory = async (categoryId, recipeId) => {
-  const db = await SQLite.openDatabaseAsync("recipes.db");
+  let db;
   try {
+    db = await SQLite.openDatabaseAsync("recipes.db");
     // Check if the association already exists to prevent duplicates
     const existingLink = await db.getFirstAsync(
       "SELECT * FROM recipe_categories WHERE recipeId = ? AND categoryId = ?;",
@@ -453,8 +466,9 @@ const addRecipeToCategory = async (categoryId, recipeId) => {
 };
 
 async function fetchShoppingList() {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync("SELECT * FROM shopping_list;");
     return rows;
   } catch (error) {
@@ -467,8 +481,9 @@ async function fetchShoppingList() {
 }
 
 async function saveShoppingList(list) {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync("DELETE FROM shopping_list;");
     for (const item of list) {
       await db.runAsync(
@@ -485,8 +500,9 @@ async function saveShoppingList(list) {
 }
 
 async function clearShoppingList() {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync("DELETE FROM shopping_list;");
   } catch (error) {
     if (db) {
@@ -497,8 +513,9 @@ async function clearShoppingList() {
 }
 
 async function deleteShoppingListItems(ids) {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     for (const id of ids) {
       await db.runAsync("DELETE FROM shopping_list WHERE id = ?;", [id]);
     }
@@ -511,8 +528,9 @@ async function deleteShoppingListItems(ids) {
 }
 
 async function fetchMealPlan() {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync("SELECT * FROM meal_plan;");
     return rows;
   } catch (error) {
@@ -524,8 +542,9 @@ async function fetchMealPlan() {
 }
 
 async function insertMealPlan(day, mealType, recipeId) {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync(
       "INSERT INTO meal_plan (day, meal_type, recipe_id) VALUES (?, ?, ?);",
       [day, mealType, recipeId]
@@ -539,8 +558,9 @@ async function insertMealPlan(day, mealType, recipeId) {
 }
 
 async function deleteMealPlan() {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync("DELETE FROM meal_plan;");
     console.log("Meal plan deleted successfully");
   } catch (error) {
@@ -552,8 +572,9 @@ async function deleteMealPlan() {
 }
 
 async function deleteSpecificMeal(day, mealType) {
+  let db;
   try {
-    const db = await SQLite.openDatabaseAsync("recipes.db");
+    db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync(
       "DELETE FROM meal_plan WHERE day = ? AND meal_type = ?;",
       [day, mealType]
