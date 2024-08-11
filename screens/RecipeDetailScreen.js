@@ -47,7 +47,7 @@ function RecipeDeatailScreen({ navigation, route }) {
       if (recipeId) {
         try {
           const data = await fetchRecipeById(recipeId);
-          console.log("hellooooooo   ", data);
+
           if (data) {
             const ingredientsArray = JSON.parse(data.ingredients || []);
             const categoryNames = data.categoryNames

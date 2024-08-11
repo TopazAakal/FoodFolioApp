@@ -137,7 +137,6 @@ async function fetchRecipeById(id) {
     `,
       [id]
     );
-    console.log("row ", row);
     return row;
   } catch (error) {
     if (db) {

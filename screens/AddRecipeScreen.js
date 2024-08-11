@@ -176,7 +176,13 @@ function AddRecipeScreen() {
       );
       if (success) {
         console.log(`Recipe updated successfully with ID: ${recipeId}`);
-        navigation.replace("RecipeDisplay", { recipeId: recipeId });
+        navigation.reset({
+          index: 0,
+          routes: [
+            { name: "Home" },
+            { name: "RecipeDisplay", params: { recipeId: recipeId } },
+          ],
+        });
       } else {
         console.error("Failed to update recipe");
       }

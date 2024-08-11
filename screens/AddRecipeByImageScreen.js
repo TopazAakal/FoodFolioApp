@@ -92,8 +92,16 @@ function AddRecipeByImageScreen({ navigation }) {
         try {
           const newRecipeId = await insertRecipeWithCategories(recipeData);
           console.log(`Recipe added successfully with ID: ${newRecipeId}`);
-
-          navigation.navigate("Home", {});
+          navigation.reset({
+            index: 0,
+            routes: [
+              { name: "Home" },
+              {
+                name: "RecipeDisplay",
+                params: { recipeId: newRecipeId },
+              },
+            ],
+          });
         } catch (error) {
           console.error("Error inserting recipe:", error);
           // Handle database insertion error
