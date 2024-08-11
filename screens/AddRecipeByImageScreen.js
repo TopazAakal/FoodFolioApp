@@ -32,6 +32,15 @@ function AddRecipeByImageScreen({ navigation }) {
       );
 
       try {
+        if (response.data.statusCode !== 200) {
+          alert("שגיאה בהעלאת התמונה, נסה שוב מאוחר יותר");
+          setLoading(false);
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Home" }],
+          });
+          return;
+        }
         const data = JSON.parse(response.data.body);
         const resultString = data.result
           .replace(/\\n/g, "")
@@ -49,7 +58,6 @@ function AddRecipeByImageScreen({ navigation }) {
         return;
       }
     } catch (error) {
-      console.error(error);
       setLoading(false);
     }
   };
