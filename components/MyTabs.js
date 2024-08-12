@@ -5,64 +5,121 @@ import ShoppingListScreen from "../screens/ShoppingListScreen";
 import MealPlanningScreen from "../screens/MealPlanningScreen";
 import AllCategoriesScreen from "../screens/AllCategoriesScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Tab = createBottomTabNavigator();
 
 function MyTabs() {
   return (
-    <Tab.Navigator
-      initialRouteName="Home Screen"
-      screenOptions={({ route, navigation }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <Tab.Navigator
+        initialRouteName="Home Screen"
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+            let iconSize = 26;
+            let customStyle = {};
+            let isHomeScreen = route.name === "Home Screen";
 
-          if (route.name === "Meal Plan") {
-            iconName = focused ? "calendar" : "calendar-outline";
-          } else if (route.name === "Shopping List") {
-            iconName = focused ? "cart" : "cart-outline";
-          } else if (route.name === "All Recipes") {
-            iconName = focused ? "book" : "book-outline";
-          } else if (route.name === "Home Screen") {
-            iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "All Categories") {
-            iconName = focused ? "grid" : "grid-outline";
-          }
+            if (route.name === "Meal Plan") {
+              iconName = focused ? "calendar" : "calendar-outline";
+            } else if (route.name === "Shopping List") {
+              iconName = focused ? "cart" : "cart-outline";
+            } else if (route.name === "All Recipes") {
+              iconName = focused ? "book" : "book-outline";
+            } else if (route.name === "Home Screen") {
+              iconName = focused ? "home" : "home-outline";
+              iconSize = focused ? 34 : 30;
+              customStyle = {
+                backgroundColor: "white",
+                padding: 6,
+                borderRadius: 35, // Fully rounded circle
+                position: "absolute",
+                bottom: -28, // Adjusted to reduce space below the icon
+                zIndex: 10, // Ensure it's on top
+                shadowColor: "#000", // Add shadow for a floating effect
+                shadowOffset: { width: 0, height: -2 }, // Negative height to focus shadow upwards
+                shadowOpacity: 0.2,
+                shadowRadius: 1,
+                width: 60,
+                height: 60,
+                alignItems: "center",
+                justifyContent: "center",
+              };
+            } else if (route.name === "All Categories") {
+              iconName = focused ? "grid" : "grid-outline";
+            }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: "#4CAF50", // Active icon color
-        tabBarInactiveTintColor: "gray", // Inactive icon color
-      })}
-    >
-      <Tab.Screen
-        name="All Categories"
-        component={AllCategoriesScreen}
-        options={{ title: "קטגוריות" }}
-      />
-      <Tab.Screen
-        name="All Recipes"
-        component={AllRecipesScreen}
-        options={{ title: "מתכונים" }}
-      />
-      <Tab.Screen
-        name="Home Screen"
-        component={HomeScreen}
-        options={{
-          title: "ראשי",
-          headerShown: false,
-        }}
-      />
-      <Tab.Screen
-        name="Shopping List"
-        component={ShoppingListScreen}
-        options={{ title: "רשימת קניות" }}
-      />
-      <Tab.Screen
-        name="Meal Plan"
-        component={MealPlanningScreen}
-        options={{ title: "לוח ארוחות" }}
-      />
-    </Tab.Navigator>
+            return (
+              <View style={{ alignItems: "center", justifyContent: "center" }}>
+                {isHomeScreen && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      backgroundColor: "transparent", // Background color of the tab bar
+                      height: 30, // Adjust this value to cover the bottom half of the circle
+                      width: 60,
+                      zIndex: 5, // Below the circle but above the tab bar
+                      borderBottomLeftRadius: 35,
+                      borderBottomRightRadius: 35,
+                    }}
+                  />
+                )}
+                <View style={customStyle}>
+                  <Ionicons name={iconName} size={iconSize} color={color} />
+                </View>
+              </View>
+            );
+          },
+          tabBarActiveTintColor: "#4CAF50", // Active icon color
+          tabBarInactiveTintColor: "gray", // Inactive icon color
+          tabBarStyle: {
+            height: 70, // Set the height to 60
+            paddingBottom: 15, // Adjust padding below text
+            paddingTop: 3, // Adjust padding above icons
+            paddingHorizontal: 15, // Add horizontal padding
+          },
+          tabBarLabelStyle: {
+            marginBottom: 0, // Bring text closer to the icons
+            fontSize: 13,
+          },
+          tabBarIconStyle: {
+            marginBottom: -5,
+          },
+        })}
+      >
+        <Tab.Screen
+          name="All Categories"
+          component={AllCategoriesScreen}
+          options={{ title: "קטגוריות" }}
+        />
+        <Tab.Screen
+          name="All Recipes"
+          component={AllRecipesScreen}
+          options={{ title: "מתכונים" }}
+        />
+        <Tab.Screen
+          name="Home Screen"
+          component={HomeScreen}
+          options={{
+            title: "ראשי",
+            headerShown: false,
+          }}
+        />
+        <Tab.Screen
+          name="Shopping List"
+          component={ShoppingListScreen}
+          options={{ title: "רשימת קניות" }}
+        />
+        <Tab.Screen
+          name="Meal Plan"
+          component={MealPlanningScreen}
+          options={{ title: "לוח ארוחות" }}
+        />
+      </Tab.Navigator>
+    </SafeAreaView>
   );
 }
 

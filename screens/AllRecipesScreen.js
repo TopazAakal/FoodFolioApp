@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontWeight: "bold",
-    fontSize: 20,
+    fontSize: 16,
     color: "#000",
     paddingTop: 7,
     textAlign: "center",
