@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   mealContainer: {
     alignItems: "flex-start",
     marginHorizontal: 10,
-    marginBottom: 10,
+    marginBottom: 5,
   },
   mealCard: {
     width: 190,
@@ -526,6 +526,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "left",
     marginBottom: 15,
+    paddingTop: 5,
   },
 
   // ==== Categories styles =====
@@ -548,7 +549,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     width: "100%",
-    marginVertical: 5,
+    marginBottom: 5,
   },
 
   mealsHeader: {
@@ -567,12 +568,15 @@ const styles = StyleSheet.create({
     borderColor: "#ebeeec",
     marginHorizontal: 5,
     padding: 5,
+    paddingHorizontal: 12,
+    height: 35,
+    justifyContent: "center",
   },
   categoryText: {
     color: "#acacac",
     fontSize: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    textAlign: "center",
+    lineHeight: 20,
   },
   selectedCategoryItem: {
     backgroundColor: "#4CAF50",

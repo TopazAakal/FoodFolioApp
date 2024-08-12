@@ -23,8 +23,7 @@ import {
   fetchRecipeById,
 } from "../util/database";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import axios from "axios";
-import { formatUnit, singularUnits, pluralUnits } from "../util/unitConversion";
+import { formatUnit } from "../util/unitConversion";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -47,7 +46,6 @@ function AddRecipeScreen() {
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showCategories, setShowCategories] = useState(false);
-  const [detectedText, setDetectedText] = useState("");
   const [loading, setLoading] = useState(false);
 
   const unitOptions = [
@@ -62,6 +60,26 @@ function AddRecipeScreen() {
     { label: "יחידה", value: "יחידה" },
     { label: "קורט", value: "קורט" },
   ];
+
+  const departments = [
+    { name: "פירות וירקות", image: require("../images/fruits.png") },
+    { name: "בשר ועוף", image: require("../images/chicken.png") },
+    { name: "דגים", image: require("../images/fish.png") },
+    { name: "תבלינים", image: require("../images/spices.png") },
+    { name: "מוצרי חלב וביצים", image: require("../images/milk-eggs.png") },
+    { name: "ממרחים", image: require("../images/sauces.png") },
+    { name: "קפה ותה", image: require("../images/coffee.png") },
+    { name: "ממתקים", image: require("../images/sweets.png") },
+    { name: "אלכוהול", image: require("../images/alcohol.png") },
+    { name: "שימורים", image: require("../images/cans.png") },
+    { name: "לחם", image: require("../images/bread.png") },
+    { name: "אחר", image: require("../images/other.png") },
+  ];
+
+  const departmentLabels = departments.map((department) => department.name);
+  const [selectedDepartment, setSelectedDepartment] = useState(
+    departments[0].name
+  );
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -195,70 +213,6 @@ function AddRecipeScreen() {
     }
   };
 
-  // useEffect(() => {
-  //   if (detectedText) {
-  //     const getCategoryIds = async () => {
-  //       let categoryIds = [...selectedCategories];
-  //       if (category.trim() !== "") {
-  //         const existingCategory = categories.find(
-  //           (cat) => cat.name === category
-  //         );
-  //         if (!existingCategory) {
-  //           try {
-  //             const newCategoryId = await insertNewCategory(category);
-  //             console.log(`New category inserted with ID: ${newCategoryId}`);
-  //             categoryIds = [...categoryIds, newCategoryId.toString()];
-  //           } catch (error) {
-  //             console.error("Failed to insert new category", error);
-  //             return categoryIds; // Return existing categories on error
-  //           }
-  //         } else {
-  //           categoryIds = [...categoryIds, existingCategory.id.toString()];
-  //         }
-  //       }
-  //       return categoryIds;
-  //     };
-
-  //     const saveRecipe = async (categoryIds) => {
-  //       const imageUri = recipeImage || defaultImage;
-  //       const recipeData = {
-  //         title,
-  //         ingredients: detectedText.ingredients,
-  //         instructions: instructions,
-  //         totalTime,
-  //         image: imageUri,
-  //         categoryIds: categoryIds.map((id) => id.toString()),
-  //       };
-
-  //       if (recipeId) {
-  //         const success = await updateRecipeWithCategories(
-  //           recipeId,
-  //           recipeData,
-  //           categoryIds
-  //         );
-  //         if (success) {
-  //           console.log(`Recipe updated successfully with ID: ${recipeId}`);
-  //           navigation.replace("RecipeDisplay", { recipeId: recipeId });
-  //         } else {
-  //           console.error("Failed to update recipe");
-  //         }
-  //       } else {
-  //         // Adding new recipe
-  //         console.log("Adding new recipe with data:", recipeData);
-  //         const newRecipeId = await insertRecipeWithCategories(recipeData);
-  //         console.log(`Recipe added successfully with ID: ${newRecipeId}`);
-  //         navigation.replace("AllCategories");
-  //       }
-  //     };
-
-  //     // Execute the async function to get category IDs and save the recipe
-  //     (async () => {
-  //       const categoryIds = await getCategoryIds();
-  //       await saveRecipe(categoryIds);
-  //     })();
-  //   }
-  // }, [detectedText, recipeImage, title, totalTime, instructions, recipeId]);
-
   const insertNewCategory = async (categoryName) => {
     const result = await insertCategory(categoryName, "");
     if (result.success) {
@@ -307,6 +261,7 @@ function AddRecipeScreen() {
             ? updatedQuantity.toString()
             : updatedQuantity.toFixed(2),
         unit: updatedUnit,
+        department: selectedDepartment,
       };
 
       setIngredients((currentIngredients) => [
@@ -316,6 +271,7 @@ function AddRecipeScreen() {
       setIngredientName("");
       setQuantity("");
       setSelectedUnit(unitOptions[0].value);
+      setSelectedDepartment(departments[0].name);
     }
   };
 
@@ -411,18 +367,34 @@ function AddRecipeScreen() {
               onChangeText={(text) => setQuantity(text.replace(/[^0-9]/g, ""))}
               keyboardType="numeric"
             />
-            <View style={styles.unitPicker}>
+            <View style={styles.unitPickerContainer}>
               <Picker
                 selectedValue={selectedUnit}
                 onValueChange={(itemValue) => setSelectedUnit(itemValue)}
                 style={styles.unitPicker}
-                itemStyle={styles.unitPicker.itemStyle}
+                itemStyle={styles.pickerItemStyle}
               >
                 {unitOptions.map((option) => (
                   <Picker.Item
                     key={option.value}
                     label={option.label}
                     value={option.value}
+                  />
+                ))}
+              </Picker>
+            </View>
+            <View style={styles.departmentPickerContainer}>
+              <Picker
+                selectedValue={selectedDepartment}
+                onValueChange={(itemValue) => setSelectedDepartment(itemValue)}
+                style={styles.departmentPicker}
+                itemStyle={styles.pickerItemStyle}
+              >
+                {departments.map((department) => (
+                  <Picker.Item
+                    key={department.name}
+                    label={department.name}
+                    value={department.name}
                   />
                 ))}
               </Picker>
@@ -514,16 +486,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ingredientInput: {
+    flex: 1.5,
     borderWidth: 1,
     borderRadius: 10,
     borderColor: "#ccc",
     paddingVertical: 10,
     fontSize: 16,
-    flex: 2,
     textAlign: "center",
     marginRight: 10,
   },
   quantityInput: {
+    flex: 0.8,
     borderWidth: 1,
     borderRadius: 10,
     borderColor: "#ccc",
@@ -533,20 +506,30 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginRight: 10,
   },
-  input: {
-    borderWidth: 1,
+  unitPickerContainer: {
+    flex: 2,
+    borderRadius: 10,
     borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 5,
-    fontSize: 16,
-    width: "100%",
+    overflow: "hidden",
+  },
+  departmentPickerContainer: {
+    flex: 2.8,
+    borderRadius: 10,
+    borderColor: "#ccc",
+    overflow: "hidden",
   },
   unitPicker: {
-    paddingVertical: 6,
-    flex: 1,
-    itemStyle: { height: 120, fontSize: 16 },
+    height: 45,
+    justifyContent: "center",
   },
-
+  departmentPicker: {
+    height: 45,
+    justifyContent: "center",
+  },
+  pickerItemStyle: {
+    fontSize: 16,
+    color: "#4f4d4d",
+  },
   addButton: {
     justifyContent: "center",
     alignItems: "center",
@@ -560,6 +543,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: "auto",
     minWidth: 160,
+    marginTop: 15,
   },
 
   addButtonText: {
