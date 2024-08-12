@@ -6,6 +6,7 @@ import CustomButton from "../components/UI/CustomButton";
 import { readAsStringAsync, EncodingType } from "expo-file-system";
 import { insertRecipeWithCategories } from "../util/database";
 import axios from "axios";
+import { Alert } from "react-native";
 
 function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
@@ -33,12 +34,23 @@ function AddRecipeByImageScreen({ navigation }) {
 
       try {
         if (response.data.statusCode !== 200) {
-          alert("שגיאה בהעלאת התמונה, נסה שוב מאוחר יותר");
-          setLoading(false);
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Home" }],
-          });
+          Alert.alert(
+            "שגיאה",
+            "התמונה לא זוהתה כתמונת מתכון. נסה שנית או הכנס את המתכון באופן ידני.",
+            [
+              {
+                text: "אוקיי",
+                onPress: () => {
+                  setLoading(false);
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: "Home" }],
+                  });
+                },
+              },
+            ],
+            { cancelable: false }
+          );
           return;
         }
         const data = JSON.parse(response.data.body);
