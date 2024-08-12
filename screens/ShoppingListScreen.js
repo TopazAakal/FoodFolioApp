@@ -405,31 +405,6 @@ function ShoppingListScreen({ navigation, route }) {
     setShowShoppingList(true);
   };
 
-  const getRecipeIdsFromMealPlan = (mealPlan) => {
-    const recipeIds = new Set();
-    for (const day in mealPlan) {
-      for (const mealType in mealPlan[day]) {
-        const recipeId = mealPlan[day][mealType];
-        if (recipeId) {
-          recipeIds.add(recipeId);
-        }
-      }
-    }
-    return Array.from(recipeIds);
-  };
-
-  const fetchIngredientsForMealPlan = async (mealPlan) => {
-    const recipeIds = getRecipeIdsFromMealPlan(mealPlan);
-    const ingredients = [];
-    for (const recipeId of recipeIds) {
-      const recipeData = await fetchRecipeById(recipeId);
-      if (recipeData && recipeData.ingredients) {
-        ingredients.push(...JSON.parse(recipeData.ingredients));
-      }
-    }
-    return ingredients;
-  };
-
   const renderItem = ({ item }) => {
     const quantity = item.quantity ? parseFloat(item.quantity) : 1;
     const unit = formatUnit(quantity, item.unit || "");
