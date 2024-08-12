@@ -395,7 +395,8 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 24,
-    marginBottom: 10,
+    marginBottom: 20,
+    marginTop: 30,
     fontWeight: "bold",
   },
 
@@ -423,7 +424,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginBottom: 15,
+    marginBottom: 25,
   },
   searchContainer: {
     flex: 1,
@@ -451,7 +452,7 @@ const styles = StyleSheet.create({
   mealContainer: {
     alignItems: "flex-start",
     marginHorizontal: 10,
-    marginBottom: 25,
+    marginBottom: 10,
   },
   mealCard: {
     width: 190,
@@ -486,6 +487,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     textAlign: "left",
     fontWeight: "bold",
+    paddingVertical: 3,
   },
 
   mealInfoContainer: {
@@ -538,7 +540,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: -10,
     marginTop: 10,
   },
   interestHeader: {
@@ -547,7 +548,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     width: "100%",
-    // marginTop: 10,
+    marginVertical: 5,
   },
 
   mealsHeader: {
@@ -555,7 +556,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: 5,
+    marginBottom: 10,
   },
 
   // ==== Categories styles =====
@@ -565,10 +566,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ebeeec",
     marginHorizontal: 5,
+    padding: 5,
   },
   categoryText: {
     color: "#acacac",
-    fontSize: 12,
+    fontSize: 14,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
@@ -579,6 +581,15 @@ const styles = StyleSheet.create({
   selectedCategoryText: {
     color: "white",
     fontWeight: "bold",
+  },
+  categoriesList: {
+    backgroundColor: "transparent",
+    height: 35,
+    paddingVertical: 0,
+  },
+  categoryRecipesList: {
+    backgroundColor: "transparent",
+    height: 150,
   },
 
   // === Menu styles ===
@@ -596,7 +607,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "absolute",
     right: 16,
-    bottom: 16,
+    bottom: 25,
     zIndex: 1000,
   },
 

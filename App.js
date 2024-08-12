@@ -15,9 +15,6 @@ import CategoryRecipesScreen from "./screens/CategoryRecipesScreen";
 import AddCategoryScreen from "./screens/AddCategoryScreen";
 import AddRecipeByUrlScreen from "./screens/AddRecipeByUrlScreen";
 import AddRecipeByImageScreen from "./screens/AddRecipeByImageScreen";
-import HomeScreen from "./screens/HomeScreen";
-import { Entypo } from "@expo/vector-icons";
-import { Ionicons } from "@expo/vector-icons";
 import ShoppingListScreen from "./screens/ShoppingListScreen";
 import MealPlanningScreen from "./screens/MealPlanningScreen";
 import MyTabs from "./components/MyTabs";
@@ -46,7 +43,7 @@ export default function App() {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <ActivityIndicator size="large" color="#4db384" />
-        <Text>Loading database...</Text>
+        <Text>טוען...</Text>
       </View>
     );
   } else {
