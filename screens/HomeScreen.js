@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 15,
     paddingTop: screenHeight < 900 ? 15 : 50,
-    paddingBottom: screenHeight < 900 ? 10 : 20,
+    paddingBottom: screenHeight < 900 ? 0 : 20,
     alignItems: "flex-start",
   },
   contentContainer: {
@@ -461,6 +461,7 @@ const styles = StyleSheet.create({
     width: 190,
     borderRadius: 10,
     overflow: "hidden",
+    marginRight: 10,
   },
   mealCardEmpty: {
     width: 190,
@@ -471,6 +472,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderColor: "#ccc",
     borderWidth: 1,
+    marginRight: 10,
   },
   mealImage: {
     width: "90%",

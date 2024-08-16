@@ -5,7 +5,7 @@ import ShoppingListScreen from "../screens/ShoppingListScreen";
 import MealPlanningScreen from "../screens/MealPlanningScreen";
 import AllCategoriesScreen from "../screens/AllCategoriesScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { View } from "react-native";
+import { View, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Tab = createBottomTabNavigator();
@@ -32,20 +32,24 @@ function MyTabs() {
               iconName = focused ? "home" : "home-outline";
               iconSize = focused ? 34 : 30;
               customStyle = {
+                ...Platform.select({
+                  ios: {
+                    padding: 6,
+                    bottom: -28, // Adjusted to reduce space below the icon
+                    zIndex: 10, // Ensure it's on top
+                    shadowOffset: { width: 0, height: -2 }, // Negative height to focus shadow upwards
+                    shadowOpacity: 0.2,
+                    shadowRadius: 1,
+                    width: 60,
+                    height: 60,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    shadowColor: "#000", // Add shadow for a floating effect
+                  },
+                }),
                 backgroundColor: "white",
-                padding: 6,
                 borderRadius: 35, // Fully rounded circle
                 position: "absolute",
-                bottom: -28, // Adjusted to reduce space below the icon
-                zIndex: 10, // Ensure it's on top
-                shadowColor: "#000", // Add shadow for a floating effect
-                shadowOffset: { width: 0, height: -2 }, // Negative height to focus shadow upwards
-                shadowOpacity: 0.2,
-                shadowRadius: 1,
-                width: 60,
-                height: 60,
-                alignItems: "center",
-                justifyContent: "center",
               };
             } else if (route.name === "All Categories") {
               iconName = focused ? "grid" : "grid-outline";
@@ -57,13 +61,13 @@ function MyTabs() {
                   <View
                     style={{
                       position: "absolute",
-                      bottom: 0,
+                      // bottom: 0,
                       backgroundColor: "transparent", // Background color of the tab bar
-                      height: 30, // Adjust this value to cover the bottom half of the circle
-                      width: 60,
-                      zIndex: 5, // Below the circle but above the tab bar
-                      borderBottomLeftRadius: 35,
-                      borderBottomRightRadius: 35,
+                      // height: 30, // Adjust this value to cover the bottom half of the circle
+                      // width: 60,
+                      // zIndex: 5, // Below the circle but above the tab bar
+                      // borderBottomLeftRadius: 35,
+                      // borderBottomRightRadius: 35,
                     }}
                   />
                 )}
@@ -79,14 +83,14 @@ function MyTabs() {
             height: 70, // Set the height to 60
             paddingBottom: 15, // Adjust padding below text
             paddingTop: 3, // Adjust padding above icons
-            paddingHorizontal: 15, // Add horizontal padding
+            paddingHorizontal: 10, // Add horizontal padding
           },
           tabBarLabelStyle: {
             marginBottom: 0, // Bring text closer to the icons
-            fontSize: 13,
+            fontSize: 11,
           },
           tabBarIconStyle: {
-            marginBottom: -5,
+            marginTop: 5,
           },
         })}
       >
