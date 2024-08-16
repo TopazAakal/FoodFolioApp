@@ -6,15 +6,20 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
-import { I18nManager } from "react-native";
 import LabeledInput from "../components/UI/LabeledInput";
-import CustomButton from "../components/UI/CustomButton";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import ImagePicker from "../components/UI/ImagePicker";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import CustomCheckbox from "../components/UI/CustomCheckbox";
 import { Picker } from "@react-native-picker/picker";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { formatUnit } from "../util/unitConversion";
+import PrimaryButton from "../components/UI/PrimaryButton";
+import SecondaryButton from "../components/UI/SecondaryButton";
+import colors from "../constants/colors";
+import { unitOptions, departments } from "../constants/recipeConstants";
 import {
   fetchAllCategories,
   insertCategory,
@@ -22,11 +27,6 @@ import {
   insertRecipeWithCategories,
   fetchRecipeById,
 } from "../util/database";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { formatUnit } from "../util/unitConversion";
-
-I18nManager.allowRTL(true);
-I18nManager.forceRTL(true);
 
 const defaultImage = "../images/recipe_placeholder.jpg";
 
@@ -47,57 +47,39 @@ function AddRecipeScreen() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showCategories, setShowCategories] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const unitOptions = [
-    { label: 'מ"ל', value: 'מ"ל' },
-    { label: "ליטר", value: "ליטר" },
-    { label: 'מ"ג', value: 'מ"ג' },
-    { label: "גרם", value: "גרם" },
-    { label: 'ק"ג', value: "קילוגרם" },
-    { label: "כוס", value: "כוס" },
-    { label: "כף", value: "כף" },
-    { label: "כפית", value: "כפית" },
-    { label: "יחידה", value: "יחידה" },
-    { label: "קורט", value: "קורט" },
-  ];
-
-  const departments = [
-    { name: "פירות וירקות", image: require("../images/fruits.png") },
-    { name: "בשר ועוף", image: require("../images/chicken.png") },
-    { name: "דגים", image: require("../images/fish.png") },
-    { name: "תבלינים", image: require("../images/spices.png") },
-    { name: "מוצרי חלב וביצים", image: require("../images/milk-eggs.png") },
-    { name: "ממרחים", image: require("../images/sauces.png") },
-    { name: "קפה ותה", image: require("../images/coffee.png") },
-    { name: "ממתקים", image: require("../images/sweets.png") },
-    { name: "אלכוהול", image: require("../images/alcohol.png") },
-    { name: "שימורים", image: require("../images/cans.png") },
-    { name: "לחם", image: require("../images/bread.png") },
-    { name: "אחר", image: require("../images/other.png") },
-  ];
-
-  const departmentLabels = departments.map((department) => department.name);
   const [selectedDepartment, setSelectedDepartment] = useState(
     departments[0].name
   );
 
-  useEffect(() => {
-    const loadCategories = async () => {
-      const data = await fetchAllCategories();
-      if (data) {
-        setCategories(data);
-      } else {
-        console.log("Failed to fetch categories");
-      }
-    };
-    loadCategories();
-  }, []);
-
-  useEffect(() => {
-    if (recipeId) {
-      fetchRecipeDetails(recipeId);
+  // Category Functions
+  const loadCategories = async () => {
+    const data = await fetchAllCategories();
+    if (data) {
+      setCategories(data);
+    } else {
+      console.log("Failed to fetch categories");
     }
-  }, [categories, recipeId]);
+  };
+
+  const insertNewCategory = async (categoryName) => {
+    const result = await insertCategory(categoryName, "");
+    if (result.success) {
+      console.log("New category inserted with ID:", result.id);
+      return result.id;
+    } else {
+      throw new Error("Failed to insert new category");
+    }
+  };
+
+  const toggleCategorySelection = (categoryId) => {
+    if (selectedCategories.includes(categoryId)) {
+      setSelectedCategories(
+        selectedCategories.filter((id) => id !== categoryId)
+      );
+    } else {
+      setSelectedCategories([...selectedCategories, categoryId]);
+    }
+  };
 
   const getCategoryIdsFromNames = (namesString, categories) => {
     if (!namesString) return [];
@@ -109,6 +91,16 @@ function AddRecipeScreen() {
 
     return catIds;
   };
+
+  const handleToggleCategories = () => {
+    setShowCategories((prevShowCategories) => !prevShowCategories);
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  // Recipe Functions
 
   const fetchRecipeDetails = async (recipeId) => {
     const data = await fetchRecipeById(recipeId);
@@ -133,7 +125,29 @@ function AddRecipeScreen() {
     }
   };
 
+  useEffect(() => {
+    if (recipeId) {
+      fetchRecipeDetails(recipeId);
+    }
+  }, [categories, recipeId]);
+
   const handleSaveRecipe = async () => {
+    // Check if all fields are empty
+    if (
+      !title.trim() &&
+      ingredients.length === 0 &&
+      !instructions.trim() &&
+      !totalTime.trim() &&
+      !recipeImage &&
+      !category.trim() &&
+      selectedCategories.length === 0
+    ) {
+      Alert.alert("", "לא ניתן לשמור מתכון ריק. נא למלא את השדות ולנסות שוב.", [
+        { text: "אישור" },
+      ]);
+      return;
+    }
+
     let categoryIds = [...selectedCategories];
     if (category.trim() !== "") {
       const existingCategory = categories.find((cat) => cat.name === category);
@@ -213,29 +227,11 @@ function AddRecipeScreen() {
     }
   };
 
-  const insertNewCategory = async (categoryName) => {
-    const result = await insertCategory(categoryName, "");
-    if (result.success) {
-      console.log("New category inserted with ID:", result.id);
-      return result.id;
-    } else {
-      throw new Error("Failed to insert new category");
-    }
-  };
-
-  const toggleCategorySelection = (categoryId) => {
-    if (selectedCategories.includes(categoryId)) {
-      setSelectedCategories(
-        selectedCategories.filter((id) => id !== categoryId)
-      );
-    } else {
-      setSelectedCategories([...selectedCategories, categoryId]);
-    }
-  };
-
   function takeImageHandler(imageUri) {
     setRecipeImage(imageUri);
   }
+
+  // Ingredient Functions
 
   const addIngredientHandler = () => {
     if (ingredientName && quantity && selectedUnit) {
@@ -268,10 +264,7 @@ function AddRecipeScreen() {
         ...(Array.isArray(currentIngredients) ? currentIngredients : []),
         newIngredient,
       ]);
-      setIngredientName("");
-      setQuantity("");
-      setSelectedUnit(unitOptions[0].value);
-      setSelectedDepartment(departments[0].name);
+      resetIngredientInputs();
     }
   };
 
@@ -289,10 +282,6 @@ function AddRecipeScreen() {
         ? currentIngredients.filter((_, i) => i !== index)
         : []
     );
-  };
-
-  const handleToggleCategories = () => {
-    setShowCategories((prevShowCategories) => !prevShowCategories);
   };
 
   const formatIngredients = (ingredientsInput) => {
@@ -329,6 +318,13 @@ function AddRecipeScreen() {
     });
   };
 
+  const resetIngredientInputs = () => {
+    setIngredientName("");
+    setQuantity("");
+    setSelectedUnit(unitOptions[0].value);
+    setSelectedDepartment(departments[0].name);
+  };
+
   return (
     <KeyboardAwareScrollView style={styles.rootContainer}>
       <View style={styles.form}>
@@ -351,6 +347,7 @@ function AddRecipeScreen() {
         <View>{formatIngredients(ingredients)}</View>
 
         <View style={styles.ingredientSection}>
+          <Text style={styles.title}>מרכיבים</Text>
           <View style={styles.ingredientInputContainer}>
             <TextInput
               style={styles.ingredientInput}
@@ -401,13 +398,13 @@ function AddRecipeScreen() {
             </View>
           </View>
 
-          <TouchableOpacity
-            style={styles.addButton}
+          <SecondaryButton
+            title="הוסף עוד"
             onPress={addIngredientHandler}
+            style={styles.addButton}
           >
             <Ionicons name="add" size={30} style={styles.addButtonIcon} />
-            <Text style={styles.addButtonText}>הוסף עוד</Text>
-          </TouchableOpacity>
+          </SecondaryButton>
         </View>
         <View style={{ flexDirection: "row", marginBottom: 10 }}>
           <Text style={styles.title}>הוראות הכנה</Text>
@@ -443,7 +440,7 @@ function AddRecipeScreen() {
           placeholder="קטגוריה חדשה"
         />
 
-        <CustomButton title="שמור מתכון" onPress={handleSaveRecipe} />
+        <PrimaryButton title="שמור מתכון" onPress={handleSaveRecipe} />
       </View>
       {loading && (
         <View style={styles.loadingContainer}>
@@ -460,7 +457,7 @@ export default AddRecipeScreen;
 const styles = StyleSheet.create({
   rootContainer: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
   },
   form: {
     margin: 20,
@@ -468,28 +465,27 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "black",
-    textAlign: "right",
-  },
-  recipeImage: {
+    color: colors.dark,
+    textAlign: "left",
+    marginBottom: 5,
+    alignSelf: "flex-end",
     width: "100%",
-    height: 200,
-    borderRadius: 10,
-    marginBottom: 10,
   },
   ingredientSection: {
     marginBottom: 20,
+    justifyContent: "flex-end",
   },
   ingredientInputContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: 10,
   },
   ingredientInput: {
     flex: 1.5,
     borderWidth: 1,
     borderRadius: 10,
-    borderColor: "#ccc",
+    borderColor: colors.light,
     paddingVertical: 10,
     fontSize: 16,
     textAlign: "center",
@@ -499,7 +495,7 @@ const styles = StyleSheet.create({
     flex: 0.8,
     borderWidth: 1,
     borderRadius: 10,
-    borderColor: "#ccc",
+    borderColor: colors.light,
     paddingVertical: 10,
     fontSize: 16,
     width: 50,
@@ -509,13 +505,13 @@ const styles = StyleSheet.create({
   unitPickerContainer: {
     flex: 2,
     borderRadius: 10,
-    borderColor: "#ccc",
+    borderColor: colors.light,
     overflow: "hidden",
   },
   departmentPickerContainer: {
     flex: 2.8,
     borderRadius: 10,
-    borderColor: "#ccc",
+    borderColor: colors.light,
     overflow: "hidden",
   },
   unitPicker: {
@@ -531,39 +527,21 @@ const styles = StyleSheet.create({
     color: "#4f4d4d",
   },
   addButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderWidth: 2,
-    borderColor: "#4db384",
-    borderRadius: 15,
-    backgroundColor: "#FFFFFF",
     flexDirection: "row-reverse",
     alignSelf: "center",
     width: "auto",
-    minWidth: 160,
     marginTop: 15,
   },
-
-  addButtonText: {
-    color: "#4db384",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginRight: 5,
-  },
-
   addButtonIcon: {
-    color: "#4db384",
+    color: colors.secondaryGreen,
     fontSize: 22,
     paddingRight: 5,
-    fontWeight: "bold",
   },
   ingredientListItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#f7f7f7",
+    backgroundColor: colors.lightGray,
     paddingVertical: 7,
     paddingHorizontal: 10,
     marginVertical: 5,
@@ -571,7 +549,7 @@ const styles = StyleSheet.create({
   },
   ingredientText: {
     fontSize: 16,
-    color: "#333",
+    color: colors.customGray,
     textAlign: "right",
     paddingRight: 10,
   },
@@ -587,10 +565,10 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     marginBottom: 10,
-    borderColor: "#ccc",
+    borderColor: colors.light,
     borderWidth: 1,
     elevation: 1,
-    shadowColor: "#ccc",
+    shadowColor: colors.light,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -614,7 +592,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   loadingText: {
-    color: "#fff",
+    color: colors.white,
     fontSize: 16,
     fontWeight: "bold",
     marginTop: 10,
