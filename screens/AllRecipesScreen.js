@@ -9,12 +9,10 @@ import {
   Dimensions,
   TextInput,
 } from "react-native";
-import {
-  fetchAllRecipes,
-  deleteRecipeById,
-  addRecipeToCategory,
-} from "../util/database";
+import { fetchAllRecipes, addRecipeToCategory } from "../util/database";
 import { Ionicons } from "react-native-vector-icons";
+import SecondaryButton from "../components/UI/SecondaryButton";
+import colors from "../constants/colors";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -93,10 +91,6 @@ function AllRecipesScreen({ navigation, route }) {
 
   const handleFinishSelection = () => {
     const selectedRecipesArray = Array.from(selectedRecipes);
-    // navigation.navigate("ShoppingList", {
-    //   selectedRecipes: selectedRecipesArray,
-    // });
-    //
     navigation.reset({
       index: 0,
       routes: [
@@ -167,23 +161,22 @@ function AllRecipesScreen({ navigation, route }) {
         contentContainerStyle={styles.listContent}
       />
       {(fromCategoryScreen || fromShoppingCart) && (
-        <View style={styles.bottomButtonContainer}>
-          <TouchableOpacity
-            style={styles.okButton}
+        <View style={styles.buttonsContainer}>
+          <SecondaryButton
+            title="אישור"
             onPress={
               fromShoppingCart
                 ? handleFinishSelection
                 : addSelectedRecipesToCategory
             }
-          >
-            <Text style={styles.okButtonText}>אישור</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.selectAllButton}
+            style={styles.okButton}
+            textStyle={styles.okButtonText}
+          />
+          <SecondaryButton
+            title="בחר הכל"
             onPress={selectAllRecipes}
-          >
-            <Text style={styles.selectAllButtonText}>בחר הכל</Text>
-          </TouchableOpacity>
+            style={styles.selectAllButton}
+          />
         </View>
       )}
     </View>
@@ -195,12 +188,12 @@ export default AllRecipesScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
   },
   searchBar: {
     height: 45,
     borderWidth: 2,
-    borderColor: "#ccc",
+    borderColor: colors.light,
     borderRadius: 15,
     width: "90%",
     paddingHorizontal: 10,
@@ -217,9 +210,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     margin: 10,
     width: windowWidth / 2 - 30,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     elevation: 5,
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -253,50 +246,26 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontWeight: "bold",
     fontSize: 16,
-    color: "#000",
+    color: colors.black,
     paddingTop: 7,
     textAlign: "center",
   },
-  okButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    marginHorizontal: 10,
-    borderWidth: 2,
-    borderColor: "#4db384",
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#4db384",
-  },
-  okButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
-  },
-  bottomButtonContainer: {
-    position: "absolute",
-    bottom: 20,
-    left: 0,
-    right: 0,
+  buttonsContainer: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    paddingHorizontal: 120,
+    paddingHorizontal: 100,
+    alignSelf: "center",
+  },
+  okButton: {
+    width: "50%",
+    marginHorizontal: 5,
+    backgroundColor: colors.secondaryGreen,
+  },
+  okButtonText: {
+    color: "white",
   },
   selectAllButton: {
-    paddingHorizontal: 10,
-    marginHorizontal: 10,
-    paddingVertical: 10,
-    borderWidth: 2,
-    borderColor: "#4db384",
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  selectAllButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#4db384",
+    width: "60%",
+    marginHorizontal: 5,
   },
 });

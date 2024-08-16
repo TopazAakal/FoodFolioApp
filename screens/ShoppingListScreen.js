@@ -12,7 +12,6 @@ import {
   Keyboard,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { AntDesign } from "@expo/vector-icons";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
@@ -20,6 +19,8 @@ import { formatUnit } from "../util/unitConversion";
 import Feather from "@expo/vector-icons/Feather";
 import CustomModalDropdown from "../components/UI/CustomModalDropdown";
 import { unitOptions, departments } from "../constants/recipeConstants";
+import MenuButton from "../components/UI/MenuButton";
+import PrimaryButton from "../components/UI/PrimaryButton";
 
 import {
   fetchRecipeById,
@@ -34,7 +35,6 @@ const departmentOrder = departments.map((department) => department.name);
 function ShoppingListScreen({ navigation, route }) {
   const [groupedIngredients, setGroupedIngredients] = useState([]);
   const selectedRecipes = route.params?.selectedRecipes || [];
-  const [menuVisible, setMenuVisible] = useState(false);
   const [showManualInput, setShowManualInput] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(true);
   const [ingredientName, setIngredientName] = useState("");
@@ -51,6 +51,22 @@ function ShoppingListScreen({ navigation, route }) {
 
   const unitLabels = unitOptions.map((option) => option.label);
   const departmentLabels = departments.map((department) => department.name);
+  const menuOptions = [
+    {
+      title: "הוספת מוצרים ממתכון",
+      onPress: () => {
+        console.log("Adding products from recipe");
+        handleAddProductsFromRecipe();
+      },
+    },
+    {
+      title: "הוספת מוצרים ידנית",
+      onPress: () => {
+        console.log("Adding products manually");
+        handleAddProductsManually();
+      },
+    },
+  ];
 
   useEffect(() => {
     loadShoppingList();
@@ -310,18 +326,12 @@ function ShoppingListScreen({ navigation, route }) {
     });
   }, [navigation, groupedIngredients, showManualInput]);
 
-  const toggleMenu = () => {
-    setMenuVisible(!menuVisible);
-  };
-
   const handleAddProductsFromRecipe = () => {
     handleSaveList();
-    setMenuVisible(false);
     navigation.navigate("AllRecipes", { fromShoppingCart: true });
   };
 
   const handleAddProductsManually = () => {
-    setMenuVisible(false);
     setShowManualInput(true);
     setShowShoppingList(false);
   };
@@ -353,6 +363,18 @@ function ShoppingListScreen({ navigation, route }) {
   };
 
   const addManualIngredient = () => {
+    if (
+      !ingredientName.trim() ||
+      !quantity.trim() ||
+      !selectedUnit ||
+      !selectedDepartment
+    ) {
+      Alert.alert("שגיאה", "נא למלא את כל השדות לפני הוספת המוצר", [
+        { text: "אישור" },
+      ]);
+      return;
+    }
+
     const newIngredient = {
       id: new Date().getTime(),
       name: ingredientName,
@@ -518,12 +540,11 @@ function ShoppingListScreen({ navigation, route }) {
                 />
               )}
             </View>
-            <TouchableOpacity
+            <PrimaryButton
+              title="הוסף מוצר"
               onPress={addManualIngredient}
-              style={styles.addButton}
-            >
-              <Text style={styles.addButtonText}>הוסף מוצר</Text>
-            </TouchableOpacity>
+              style={{ marginTop: 20 }}
+            />
           </View>
         )}
         {showShoppingList && (
@@ -545,6 +566,7 @@ function ShoppingListScreen({ navigation, route }) {
                   item.department + Math.random().toString(36).substring(7)
                 }
                 ItemSeparatorComponent={() => <View style={styles.separator} />}
+                contentContainerStyle={{ paddingBottom: 20 }}
               />
             ) : (
               <Text
@@ -561,28 +583,13 @@ function ShoppingListScreen({ navigation, route }) {
             )}
           </>
         )}
-        {menuVisible && (
-          <View style={styles.menu}>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleAddProductsFromRecipe}
-            >
-              <Text style={styles.menuText}>הוספת מוצרים ממתכון</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleAddProductsManually}
-            >
-              <Text style={styles.menuText}>הוספת מוצרים ידנית</Text>
-            </TouchableOpacity>
-          </View>
-        )}
         {!showManualInput && (
-          <View style={styles.ButtonContainer}>
-            <TouchableOpacity onPress={toggleMenu} style={styles.fab}>
-              <Ionicons name="add" size={26} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          <MenuButton
+            menuOptions={menuOptions}
+            style={{ right: 16, bottom: 25 }}
+            fabStyle={{ top: 15 }}
+            menuStyle={{ width: 190, bottom: 20, right: 35, zIndex: 1001 }}
+          />
         )}
       </View>
     </TouchableWithoutFeedback>
@@ -621,57 +628,6 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: "#e0e0e0",
-  },
-  ButtonContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 15,
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    padding: 20,
-    zIndex: 1,
-  },
-  fab: {
-    width: 60,
-    height: 60,
-    borderRadius: 29,
-    backgroundColor: "#4CAF50",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    right: 15,
-    bottom: 30,
-    zIndex: 1000,
-  },
-  menu: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    width: 200,
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-    position: "absolute",
-    bottom: 65,
-    right: 50,
-    zIndex: 1001,
-  },
-  menuItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 5,
-    alignItems: "flex-start",
-  },
-  menuText: {
-    fontSize: 16,
-    paddingHorizontal: 5,
-    fontWeight: "bold",
   },
 
   departmentHeader: {
@@ -802,20 +758,5 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     itemStyle: { height: 120, fontSize: 16 },
     marginBottom: 10,
-  },
-  addButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderWidth: 2,
-    borderColor: "#19A160",
-    borderRadius: 15,
-    backgroundColor: "#19A160",
-    alignSelf: "center",
-    marginTop: 20,
-  },
-  addButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

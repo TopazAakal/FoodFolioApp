@@ -20,46 +20,28 @@ import {
 import { AntDesign } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import getImageSource from "../util/image";
-
-const daysOfWeek = [
-  "יום א'",
-  "יום ב'",
-  "יום ג'",
-  "יום ד'",
-  "יום ה'",
-  "יום ו'",
-  "יום ש'",
-];
-
-const mealTypes = ["בוקר", "ביניים 1", "צהריים", "ביניים 2", "ערב"];
-
-const originalDaysOfWeek = [
-  "יום ראשון",
-  "יום שני",
-  "יום שלישי",
-  "יום רביעי",
-  "יום חמישי",
-  "יום שישי",
-  "יום שבת",
-];
-
-const mealTypeMap = {
-  "ארוחת בוקר": "בוקר",
-  "ארוחת ביניים 1": "ביניים 1",
-  "ארוחת צהריים": "צהריים",
-  "ארוחת ביניים 2": "ביניים 2",
-  "ארוחת ערב": "ערב",
-};
+import MenuButton from "../components/UI/MenuButton";
+import colors from "../constants/colors";
+import {
+  daysOfWeek,
+  mealTypes,
+  originalDaysOfWeek,
+  mealTypeMap,
+} from "../constants/recipeConstants";
 
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [menuVisible, setMenuVisible] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [recipes, setRecipes] = useState([]);
   const [latestRecipes, setLatestRecipes] = useState([]);
   const [mealPlan, setMealPlan] = useState({});
   const [allMealPlanRecipes, setAllMealPlanRecipes] = useState([]);
+  const menuOptions = [
+    { title: "הוספת מתכון ידנית", navigateTo: "AddRecipe" },
+    { title: "הוספת מתכון מקישור", navigateTo: "AddRecipeByUrl" },
+    { title: "הוספת מתכון מתמונה", navigateTo: "AddRecipeByImage" },
+  ];
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -189,23 +171,6 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
-  const toggleMenu = () => {
-    setMenuVisible(!menuVisible);
-  };
-
-  const handleTouchOutside = () => {
-    if (menuVisible) {
-      setMenuVisible(false);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      // Hide the menu when the screen is unfocused
-      return () => setMenuVisible(false);
-    }, [])
-  );
-
   const getGreeting = () => {
     const date = new Date(); // Gets the current date and time
     date.setHours(date.getHours() + date.getTimezoneOffset() / 60 + 3); // Convert to Israel Time (GMT+3)
@@ -239,7 +204,6 @@ const HomeScreen = ({ navigation }) => {
     >
       <View style={{ position: "relative" }}>
         <Image source={getImageSource(item.image)} style={styles.recipeImage} />
-        {menuVisible}
       </View>
       <Text style={styles.recipeTitle}>{item.title}</Text>
     </TouchableOpacity>
@@ -260,124 +224,104 @@ const HomeScreen = ({ navigation }) => {
   );
 
   return (
-    <TouchableWithoutFeedback onPress={handleTouchOutside}>
-      <View style={styles.container}>
-        <Text style={styles.greeting}>{getGreeting()}</Text>
-        <View style={styles.searchRow}>
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="חיפוש"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor="#999"
-            />
-            <Ionicons
-              name="search"
-              size={20}
-              color="black"
-              style={styles.iconStyle}
-            />
-          </View>
-          <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
-            <AntDesign name="leftsquare" size={40} color="#4CAF50" />
-          </TouchableOpacity>
+    <View style={styles.container}>
+      <Text style={styles.greeting}>{getGreeting()}</Text>
+      <View style={styles.searchRow}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="חיפוש"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#999"
+          />
+          <Ionicons
+            name="search"
+            size={20}
+            color="black"
+            style={styles.searchIcon}
+          />
         </View>
-        <View style={styles.mealsHeader}>
-          <Text style={styles.subTitle}>הארוחות שלי</Text>
-          <TouchableOpacity
-            style={styles.moreButton}
-            onPress={() => navigation.navigate("MealPlan")}
-          >
-            <Text style={styles.moreButtonText}>הצג עוד</Text>
-            <AntDesign name="arrowleft" size={24} color="#4CAF50" />
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          data={mealTypes}
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item}
-          renderItem={({ item }) => renderMeal(item)}
-          style={styles.mealsList}
-        />
-        <View style={styles.latestRecipesHeader}>
-          <Text style={styles.subTitle}>נוספו לאחרונה🔥</Text>
-          <TouchableOpacity
-            style={styles.moreButton}
-            onPress={() => navigation.navigate("AllRecipes")}
-          >
-            <Text style={styles.moreButtonText}>לכל המתכונים</Text>
-            <AntDesign name="arrowleft" size={24} color="#4CAF50" />
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          data={latestRecipes}
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderRecipe}
-          style={styles.latestList}
-        />
-
-        <View style={styles.ButtonContainer}>
-          {menuVisible && (
-            <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-              <View style={styles.menu}>
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => navigation.navigate("AddRecipe")}
-                >
-                  <Text style={styles.menuText}>הוספת מתכון ידנית</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => navigation.navigate("AddRecipeByUrl")}
-                >
-                  <Text style={styles.menuText}>הוספת מתכון מקישור</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => navigation.navigate("AddRecipeByImage")}
-                >
-                  <Text style={styles.menuText}>הוספת מתכון מתמונה</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableWithoutFeedback>
-          )}
-          <TouchableOpacity onPress={toggleMenu} style={styles.fab}>
-            <Ionicons name="add" size={26} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.interestHeader}>
-          <Text style={styles.subTitle}>אולי יעניין אותך</Text>
-          <TouchableOpacity
-            style={styles.moreButton}
-            onPress={() => navigation.navigate("AllCategories")}
-          >
-            <Text style={styles.moreButtonText}> לכל הקטגוריות</Text>
-            <AntDesign name="arrowleft" size={24} color="#4CAF50" />
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          horizontal
-          data={categories}
-          renderItem={renderCategory}
-          keyExtractor={(item) => item.id.toString()}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesList}
-        />
-        <FlatList
-          horizontal
-          data={recipes}
-          renderItem={renderRecipeByCategory}
-          keyExtractor={(item) => item.id.toString()}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryRecipesList}
-        />
+        <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
+          <AntDesign
+            name="leftsquare"
+            size={40}
+            color={colors.secondaryGreen}
+          />
+        </TouchableOpacity>
       </View>
-    </TouchableWithoutFeedback>
+      <View style={styles.mealsHeader}>
+        <Text style={styles.subTitle}>הארוחות שלי</Text>
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={() => navigation.navigate("MealPlan")}
+        >
+          <Text style={styles.moreButtonText}>הצג עוד</Text>
+          <AntDesign name="arrowleft" size={24} color={colors.secondaryGreen} />
+        </TouchableOpacity>
+      </View>
+      <FlatList
+        data={mealTypes}
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item) => item}
+        renderItem={({ item }) => renderMeal(item)}
+        style={styles.mealsList}
+      />
+      <View style={styles.latestRecipesHeader}>
+        <Text style={styles.subTitle}>נוספו לאחרונה🔥</Text>
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={() => navigation.navigate("AllRecipes")}
+        >
+          <Text style={styles.moreButtonText}>לכל המתכונים</Text>
+          <AntDesign name="arrowleft" size={24} color={colors.secondaryGreen} />
+        </TouchableOpacity>
+      </View>
+      <FlatList
+        data={latestRecipes}
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderRecipe}
+        style={styles.latestList}
+      />
+
+      <MenuButton
+        navigation={navigation}
+        menuOptions={menuOptions}
+        style={{ right: 16, bottom: 25 }}
+        fabStyle={{ top: 15 }}
+        menuStyle={{ bottom: 20, right: 35, zIndex: 1001 }}
+      />
+
+      <View style={styles.interestHeader}>
+        <Text style={styles.subTitle}>אולי יעניין אותך</Text>
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={() => navigation.navigate("AllCategories")}
+        >
+          <Text style={styles.moreButtonText}> לכל הקטגוריות</Text>
+          <AntDesign name="arrowleft" size={24} color={colors.secondaryGreen} />
+        </TouchableOpacity>
+      </View>
+      <FlatList
+        horizontal
+        data={categories}
+        renderItem={renderCategory}
+        keyExtractor={(item) => item.id.toString()}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoriesList}
+      />
+      <FlatList
+        horizontal
+        data={recipes}
+        renderItem={renderRecipeByCategory}
+        keyExtractor={(item) => item.id.toString()}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoryRecipesList}
+      />
+    </View>
   );
 };
 const screenWidth = Dimensions.get("window").width;
@@ -387,7 +331,7 @@ const styles = StyleSheet.create({
   // ==== General styles =====
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     padding: 15,
     paddingTop: screenHeight < 900 ? 15 : 50,
     paddingBottom: screenHeight < 900 ? 0 : 20,
@@ -411,7 +355,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   moreButtonText: {
-    color: "#4CAF50",
+    color: colors.secondaryGreen,
     fontSize: 14,
     fontWeight: "bold",
     marginRight: 5,
@@ -435,7 +379,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     height: 40,
-    borderColor: "#ccc",
+    borderColor: colors.light,
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 12,
@@ -476,18 +420,14 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 10,
   },
-  mealTypeText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
+
   mealTitle: {
     width: "75%",
     fontSize: 14,
     textAlign: "left",
     fontWeight: "bold",
     marginLeft: 3,
-    marginTop: 3,
+    marginTop: 5,
   },
 
   mealInfoContainer: {
@@ -501,11 +441,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginLeft: 3,
     textAlign: "left",
-    color: "#727272",
+    color: colors.mouseGray,
   },
   mealEmptyText: {
     fontSize: 14,
-    color: "#727272",
+    color: colors.mouseGray,
   },
 
   // ==== Recipes styles =====
@@ -578,8 +518,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   selectedCategoryItem: {
-    backgroundColor: "#4CAF50",
-    borderColor: "#4CAF50",
+    backgroundColor: colors.secondaryGreen,
+    borderColor: colors.secondaryGreen,
   },
   selectedCategoryText: {
     color: "white",
@@ -588,70 +528,15 @@ const styles = StyleSheet.create({
   categoriesList: {
     backgroundColor: "transparent",
     height: 35,
+    marginBottom: screenHeight < 900 ? 0 : 15,
   },
   categoryRecipesList: {
     backgroundColor: "transparent",
   },
 
-  // === Menu styles ===
-  iconStyle: {
+  searchIcon: {
     marginRight: 10,
-    color: "#ccc",
-  },
-
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#4CAF50",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    right: 16,
-    bottom: 25,
-    zIndex: 1000,
-  },
-
-  ButtonContainer: {
-    position: "absolute",
-    left: 0,
-    right: -5,
-    bottom: -14.5, // to bottom corner -14.5
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    padding: 20,
-    zIndex: 1,
-  },
-
-  menu: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-    width: 180,
-    position: "absolute",
-    bottom: 65,
-    right: 50,
-    zIndex: 1001,
-  },
-
-  menuItem: {
-    fontWeight: "bold",
-    paddingVertical: 8,
-    paddingHorizontal: 5,
-    alignItems: "flex-start",
-  },
-  menuText: {
-    fontSize: 16,
-    paddingHorizontal: 5,
+    color: colors.light,
   },
 });
 
