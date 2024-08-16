@@ -14,7 +14,19 @@ const DeleteRecipeButton = ({ navigation, recipeId, onPress }) => {
             if (recipeId) {
               await deleteRecipeById(recipeId);
               Alert.alert("המתכון נמחק בהצלחה", "", [
-                { text: "אישור", onPress: () => navigation.goBack() },
+                {
+                  text: "אישור",
+                  onPress: () =>
+                    setTimeout(() => {
+                      navigation.reset(
+                        {
+                          index: 0,
+                          routes: [{ name: "Home" }],
+                        },
+                        1000
+                      );
+                    }),
+                },
               ]);
             } else {
               Alert.alert("שגיאה", "המתכון לא נמחק בהצלחה");

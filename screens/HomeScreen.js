@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   FlatList,
   Image,
+  Dimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -379,6 +380,8 @@ const HomeScreen = ({ navigation }) => {
     </TouchableWithoutFeedback>
   );
 };
+const screenWidth = Dimensions.get("window").width;
+const screenHeight = Dimensions.get("window").height;
 
 const styles = StyleSheet.create({
   // ==== General styles =====
@@ -386,22 +389,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     padding: 15,
-    paddingTop: 50,
-    paddingBottom: 20,
+    paddingTop: screenHeight < 900 ? 15 : 50,
+    paddingBottom: screenHeight < 900 ? 10 : 20,
     alignItems: "flex-start",
   },
   contentContainer: {
     alignItems: "flex-start",
   },
   greeting: {
-    fontSize: 24,
-    marginBottom: 20,
-    marginTop: 30,
+    fontSize: 22,
+    marginBottom: screenHeight < 900 ? 10 : 20,
+    marginTop: screenHeight < 900 ? 0 : 30,
     fontWeight: "bold",
   },
 
   moreButton: {
-    paddingVertical: 5,
+    paddingTop: 5,
     backgroundColor: "transparent",
     flexDirection: "row",
     alignItems: "center",
@@ -424,7 +427,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginBottom: 25,
+    marginBottom: screenHeight < 900 ? 10 : 25,
   },
   searchContainer: {
     flex: 1,
@@ -451,19 +454,17 @@ const styles = StyleSheet.create({
   },
   mealContainer: {
     alignItems: "flex-start",
-    marginHorizontal: 10,
+    marginRight: 1,
     marginBottom: 5,
   },
   mealCard: {
     width: 190,
-    marginRight: 10,
     borderRadius: 10,
     overflow: "hidden",
   },
   mealCardEmpty: {
     width: 190,
-    height: 100,
-    marginRight: 10,
+    height: 120,
     borderRadius: 10,
     overflow: "hidden",
     alignItems: "center",
@@ -472,29 +473,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   mealImage: {
-    width: "100%",
-    height: 100,
+    width: "90%",
+    height: 120,
     borderRadius: 10,
   },
   mealTypeText: {
     fontSize: 14,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 5,
   },
   mealTitle: {
+    width: "75%",
     fontSize: 14,
-    marginLeft: 5,
     textAlign: "left",
     fontWeight: "bold",
-    paddingVertical: 3,
+    marginLeft: 5,
+    marginTop: 3,
   },
 
   mealInfoContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginLeft: 3,
-    marginBottom: 10,
+    marginBottom: 5,
   },
 
   mealInfo: {
@@ -514,19 +515,19 @@ const styles = StyleSheet.create({
     marginRight: 15,
     borderRadius: 10,
     overflow: "hidden",
-    marginTop: 10,
   },
   recipeImage: {
     width: "100%",
-    height: 120,
+    height: 100,
     borderRadius: 10,
   },
   recipeTitle: {
     fontSize: 14,
+    width: "85%",
     fontWeight: "bold",
     textAlign: "left",
-    marginBottom: 15,
-    paddingTop: 5,
+    marginLeft: 5,
+    marginBottom: 3,
   },
 
   // ==== Categories styles =====
@@ -541,7 +542,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginTop: 10,
+    marginBottom: 5,
   },
   interestHeader: {
     flexDirection: "row",
@@ -557,7 +558,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: 10,
+    marginBottom: 5,
   },
 
   // ==== Categories styles =====
@@ -566,15 +567,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#ebeeec",
-    marginHorizontal: 5,
-    padding: 5,
+    marginHorizontal: 3,
     paddingHorizontal: 12,
-    height: 35,
     justifyContent: "center",
   },
   categoryText: {
     color: "#acacac",
-    fontSize: 14,
+    fontSize: screenWidth < 400 ? 12 : 14,
     textAlign: "center",
     lineHeight: 20,
   },
@@ -589,11 +588,9 @@ const styles = StyleSheet.create({
   categoriesList: {
     backgroundColor: "transparent",
     height: 35,
-    paddingVertical: 0,
   },
   categoryRecipesList: {
     backgroundColor: "transparent",
-    height: 150,
   },
 
   // === Menu styles ===
