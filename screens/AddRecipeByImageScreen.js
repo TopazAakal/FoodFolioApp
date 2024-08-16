@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import ImagePicker from "../components/UI/ImagePicker";
-import CustomButton from "../components/UI/CustomButton";
 import { readAsStringAsync, EncodingType } from "expo-file-system";
 import { insertRecipeWithCategories } from "../util/database";
 import axios from "axios";
 import { Alert } from "react-native";
+import PrimaryButton from "../components/UI/PrimaryButton";
 
 function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
@@ -14,15 +14,16 @@ function AddRecipeByImageScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleSaveImage = async () => {
+    if (!imageUri) {
+      Alert.alert("שגיאה", "אנא בחר תמונה להעלאה", [{ text: "אישור" }]);
+      return;
+    }
+
     const base64Image = await readAsStringAsync(imageUri, {
       encoding: EncodingType.Base64,
     });
-    try {
-      if (!imageUri) {
-        alert("בחר תמונה להעלאה");
-        return;
-      }
 
+    try {
       setLoading(true);
 
       const response = await axios.post(
@@ -39,7 +40,7 @@ function AddRecipeByImageScreen({ navigation }) {
             "התמונה לא זוהתה כתמונת מתכון. נסה שנית או הכנס את המתכון באופן ידני.",
             [
               {
-                text: "אוקיי",
+                text: "אישור",
                 onPress: () => {
                   setLoading(false);
                   navigation.reset({
@@ -140,10 +141,10 @@ function AddRecipeByImageScreen({ navigation }) {
         <ImagePicker
           image={imageUri}
           onTakeImage={setImageUri}
-          style={{ height: 600 }}
+          style={{ width: 370, height: 600, marginTop: 30 }}
         />
       </View>
-      <CustomButton
+      <PrimaryButton
         title="שמור מתכון"
         onPress={handleSaveImage}
         style={styles.button}
@@ -168,6 +169,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     justifyContent: "flex-start",
+    paddingHorizontal: 20,
   },
   form: {
     margin: 20,
@@ -181,11 +183,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   button: {
-    alignSelf: "center",
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
-  imagePickerStyle: {
-    height: 400,
-  },
+
   loadingContainer: {
     position: "absolute",
     top: 0,

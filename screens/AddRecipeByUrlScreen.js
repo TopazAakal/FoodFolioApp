@@ -8,10 +8,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import CustomButton from "../components/UI/CustomButton";
 import { insertRecipeWithCategories } from "../util/database";
 import { MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
+import PrimaryButton from "../components/UI/PrimaryButton";
 
 function AddRecipeByUrlScreen({ navigation }) {
   const [recipeUrl, setRecipeUrl] = useState("");
@@ -22,7 +22,7 @@ function AddRecipeByUrlScreen({ navigation }) {
     console.log("URL submitted:", recipeUrl);
     try {
       if (!recipeUrl) {
-        alert("Please insert an URL first.");
+        Alert.alert("שגיאה", "אנא הזן קישור למתכון", [{ text: "אישור" }]);
         return;
       }
       setLoading(true);
@@ -114,8 +114,8 @@ function AddRecipeByUrlScreen({ navigation }) {
 
   const showSupportedSites = () => {
     Alert.alert(
-      "אתרים נתמכים",
-      "רשימת האתרים הנתמכים:\n- 10 דקות\n- אליטה אופק\n- עדיקוש\n- ענת אלישע\n- דניאל עמית\n- השולחן\n- לייזה פאנלים\n- רחלי קרוט\n- שירי עמית  ",
+      "רשימת אתרים נתמכים",
+      "\n- 10 דקות\n- אליטה אופק\n- עדיקוש\n- ענת אלישע\n- דניאל עמית\n- השולחן\n- לייזה פאנלים\n- רחלי Krutit\n- שירי עמית  ",
       [{ text: "סגור", style: "cancel" }]
     );
   };
@@ -139,18 +139,19 @@ function AddRecipeByUrlScreen({ navigation }) {
         <MaterialIcons
           styles={styles.infoIcon}
           name="info-outline"
-          size={28}
+          size={30}
           padding={10}
           color="black"
           onPress={showSupportedSites}
           style={styles.infoIcon}
         />
       </View>
-      <CustomButton
+      <PrimaryButton
         title="שמור מתכון"
         onPress={handleSaveRecipe}
         style={styles.button}
       />
+
       {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4db384" />
@@ -170,10 +171,11 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexGrow: 1,
-    justifyContent: "flex-end",
+    padding: 10,
   },
   elementContainer: {
     flexDirection: "row",
+    marginBottom: 20,
   },
   form: {
     flex: 1,
@@ -183,7 +185,7 @@ const styles = StyleSheet.create({
   },
   infoIcon: {
     flex: 0.1,
-    marginTop: 10,
+    marginTop: 5,
   },
   input: {
     borderWidth: 1,
@@ -197,7 +199,10 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   button: {
-    alignSelf: "center",
+    position: "absolute",
+    bottom: 20,
+    left: 10,
+    right: 20,
   },
   loadingContainer: {
     position: "absolute",
