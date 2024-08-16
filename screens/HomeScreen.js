@@ -451,20 +451,17 @@ const styles = StyleSheet.create({
   mealsList: {
     flexGrow: 0,
     backgroundColor: "transparent",
+    marginBottom: screenHeight < 900 ? 10 : 20,
   },
   mealContainer: {
     alignItems: "flex-start",
-    marginRight: 1,
+    marginRight: screenHeight < 900 ? 1 : 10,
     marginBottom: 5,
-  },
-  mealCard: {
-    width: 190,
-    borderRadius: 10,
-    overflow: "hidden",
-    marginRight: 10,
+    width: 170,
+    height: 120,
   },
   mealCardEmpty: {
-    width: 190,
+    width: 170,
     height: 120,
     borderRadius: 10,
     overflow: "hidden",
@@ -475,7 +472,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   mealImage: {
-    width: "90%",
+    width: screenHeight < 900 ? "90%" : "100%",
     height: 120,
     borderRadius: 10,
   },
@@ -489,15 +486,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "left",
     fontWeight: "bold",
-    marginLeft: 5,
+    marginLeft: 3,
     marginTop: 3,
   },
 
   mealInfoContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: 3,
     marginBottom: 5,
+    marginRight: screenHeight < 900 ? 0 : 15,
   },
 
   mealInfo: {
@@ -520,7 +517,7 @@ const styles = StyleSheet.create({
   },
   recipeImage: {
     width: "100%",
-    height: 100,
+    height: screenHeight < 900 ? 100 : 120,
     borderRadius: 10,
   },
   recipeTitle: {
@@ -536,6 +533,7 @@ const styles = StyleSheet.create({
   latestList: {
     flexGrow: 0,
     backgroundColor: "transparent",
+    marginBottom: screenHeight < 900 ? 10 : 20,
   },
 
   // ==== Headers styles =====
@@ -544,7 +542,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: 5,
+    marginBottom: screenHeight < 900 ? 5 : 10,
   },
   interestHeader: {
     flexDirection: "row",
@@ -552,7 +550,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     width: "100%",
-    marginBottom: 5,
+    marginBottom: screenHeight < 900 ? 5 : 10,
   },
 
   mealsHeader: {
@@ -560,7 +558,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: 5,
+    marginBottom: screenHeight < 900 ? 5 : 10,
   },
 
   // ==== Categories styles =====

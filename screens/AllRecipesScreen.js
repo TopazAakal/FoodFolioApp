@@ -93,8 +93,19 @@ function AllRecipesScreen({ navigation, route }) {
 
   const handleFinishSelection = () => {
     const selectedRecipesArray = Array.from(selectedRecipes);
-    navigation.navigate("ShoppingList", {
-      selectedRecipes: selectedRecipesArray,
+    // navigation.navigate("ShoppingList", {
+    //   selectedRecipes: selectedRecipesArray,
+    // });
+    //
+    navigation.reset({
+      index: 0,
+      routes: [
+        { name: "Home" },
+        {
+          name: "ShoppingList",
+          params: { selectedRecipes: selectedRecipesArray },
+        },
+      ],
     });
   };
 
