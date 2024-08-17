@@ -145,7 +145,7 @@ function AddRecipeByImageScreen({ navigation }) {
         onPress={handleSaveImage}
         style={styles.button}
       />
-      {loading && <LoadingOverlay message="מעלה את התמונה..." />}
+      {loading && <LoadingOverlay message="מייצר מתכון..." />}
     </KeyboardAwareScrollView>
   );
 }

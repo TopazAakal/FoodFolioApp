@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   FlatList,
   Image,
   Dimensions,
@@ -38,7 +37,7 @@ const HomeScreen = ({ navigation }) => {
   const [mealPlan, setMealPlan] = useState({});
   const [allMealPlanRecipes, setAllMealPlanRecipes] = useState([]);
   const menuOptions = [
-    { title: "הוספת מתכון ידנית", navigateTo: "AddRecipe" },
+    { title: "הוספת מתכון ידנית", navigateTo: "AddRecipeManually" },
     { title: "הוספת מתכון מקישור", navigateTo: "AddRecipeByUrl" },
     { title: "הוספת מתכון מתמונה", navigateTo: "AddRecipeByImage" },
   ];
@@ -343,10 +342,8 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 22,
     marginBottom: screenHeight < 900 ? 10 : 20,
-    marginTop: screenHeight < 900 ? 0 : 30,
     fontWeight: "bold",
   },
-
   moreButton: {
     paddingTop: 5,
     backgroundColor: "transparent",

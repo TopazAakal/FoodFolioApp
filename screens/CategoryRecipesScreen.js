@@ -171,7 +171,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.black,
   },
-
   timeCircle: {
     width: 7,
     height: 7,

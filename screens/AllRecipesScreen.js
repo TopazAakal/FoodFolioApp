@@ -17,7 +17,7 @@ import colors from "../constants/colors";
 const windowWidth = Dimensions.get("window").width;
 
 function AllRecipesScreen({ navigation, route }) {
-  const { fromCategoryScreen, fromShoppingCart, categoryId, addingToCategory } =
+  const { fromCategoryScreen, fromShoppingCart, categoryId } =
     route.params || {};
   const { searchQuery: externalSearchQuery } = route.params || {};
   const [recipes, setRecipes] = useState([]);

@@ -20,11 +20,10 @@ import DeleteRecipeButton from "../components/DeleteRecipeButton";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
-import { FontAwesome5 } from "@expo/vector-icons";
 import getImageSource from "../util/image";
 import { formatUnit, singularUnits, pluralUnits } from "../util/unitConversion";
-import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import colors from "../constants/colors";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -55,11 +54,6 @@ function RecipeDeatailScreen({ navigation, route }) {
               : [];
             const categoryToShow =
               selectedCategory || categoryNames[0] || "ללא קטגוריה";
-
-            const instructionsObject =
-              typeof data.instructions === "string"
-                ? JSON.parse(data.instructions || "{}")
-                : data.instructions;
 
             setRecipe({
               ...data,
@@ -107,6 +101,7 @@ function RecipeDeatailScreen({ navigation, route }) {
 
   const formatIngredients = (ingredients) => {
     let ingredientsArray;
+
     try {
       ingredientsArray =
         typeof ingredients === "string" ? JSON.parse(ingredients) : ingredients;
@@ -431,7 +426,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   convertUnitsBtn: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: colors.secondaryGreen,
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 15,

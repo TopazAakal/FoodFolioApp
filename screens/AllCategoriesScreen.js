@@ -41,14 +41,9 @@ const AllCategoriesScreen = ({ navigation }) => {
         console.log(`Deleted ${result.rowsAffected} rows.`);
         const updatedCategories = await fetchAllCategories();
         setCategories(updatedCategories);
-        console.log("Category deleted successfully");
-      } else {
-        console.log(
-          "No rows affected. Category might not exist or is protected."
-        );
       }
     } catch (error) {
-      console.log("Failed to delete category", error);
+      console.error("Failed to delete category", error);
     }
   };
 
@@ -93,13 +88,6 @@ const AllCategoriesScreen = ({ navigation }) => {
         numColumns={2}
         contentContainerStyle={styles.listContentContainer}
       />
-      {/* <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => navigation.navigate("AddCategory")}
-      >
-        <Ionicons name="add" size={30} style={styles.addButtonIcon} />
-        <Text style={styles.addButtonText}>הוסף קטגוריה</Text>
-      </TouchableOpacity> */}
       <SecondaryButton
         title="הוסף קטגוריה"
         onPress={() => navigation.navigate("AddCategory")}
@@ -114,7 +102,7 @@ const AllCategoriesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -127,7 +115,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     margin: 5,
     elevation: 3,
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -143,7 +131,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 10,
     bottom: 10,
-    color: "white",
+    color: colors.white,
     fontSize: 20,
     fontWeight: "bold",
   },
@@ -156,7 +144,6 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     width: "40%",
   },
-
   addButtonIcon: {
     color: colors.secondaryGreen,
     fontSize: 22,
