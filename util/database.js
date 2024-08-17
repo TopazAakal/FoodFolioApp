@@ -2,9 +2,9 @@ import * as SQLite from "expo-sqlite";
 
 const DEFAULT_CATEGORY_IMAGE = "../images/category_placeholder.jpg";
 const DEFAULT_RECIPE_IMAGE = "../images/recipe_placeholder.jpg";
+let db;
 
 async function initDB() {
-  let db;
   try {
     //await resetDatabase(); // Ensure this completes before proceeding
     db = await SQLite.openDatabaseAsync("recipes.db");
@@ -59,7 +59,7 @@ async function initDB() {
       console.error("Error creating recipe_categories table:", error);
     }
 
-    //await db.runAsync(`DROP TABLE IF EXISTS shopping_list;`);
+    // await db.runAsync(`DROP TABLE IF EXISTS shopping_list;`);c
 
     // Create the shopping_list table
     try {
@@ -101,29 +101,21 @@ async function initDB() {
       console.error("Error inserting default category:", error);
     }
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error initializing database:", error);
   }
 }
 
 async function fetchAllRecipes() {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync("SELECT * FROM recipes;");
     return rows;
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error fetching recipes:", error);
   }
 }
 
 async function fetchRecipeById(id) {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     const row = await db.getFirstAsync(
@@ -139,9 +131,6 @@ async function fetchRecipeById(id) {
     );
     return row;
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error fetching recipe with ID:", id, error);
   }
 }
@@ -149,21 +138,16 @@ async function fetchRecipeById(id) {
 //update recipe
 
 async function deleteRecipeById(id) {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync("DELETE FROM recipes WHERE id = ?;", [id]);
     console.log("Recipe deleted successfully");
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Failed to delete recipe:", error);
   }
 }
 
 async function fetchAllCategories() {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync(
@@ -171,15 +155,11 @@ async function fetchAllCategories() {
     );
     return rows;
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Failed to fetch categories", error);
   }
 }
 
 async function insertCategory(name, image = DEFAULT_CATEGORY_IMAGE) {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     const existingCategory = await db.getFirstAsync(
@@ -208,16 +188,12 @@ async function insertCategory(name, image = DEFAULT_CATEGORY_IMAGE) {
       return { success: false, id: null };
     }
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error inserting new category:", error);
     return { success: false, id: null };
   }
 }
 
 const deleteCategoryById = async (categoryId) => {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     const result = await db.runAsync("DELETE FROM categories WHERE id = ?;", [
@@ -228,16 +204,12 @@ const deleteCategoryById = async (categoryId) => {
     }
     return { success: true, rowsAffected: result.rowsAffected };
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error deleting category:", error);
     throw new Error("Failed to delete category");
   }
 };
 
 const insertRecipeWithCategories = async (recipe) => {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     let ingredientsWithUnits;
@@ -307,16 +279,12 @@ const insertRecipeWithCategories = async (recipe) => {
     }
     return recipeId; // Return the new recipe ID after successful insertions
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Failed to insert associate categories:", error);
     throw error; // Rethrow to handle errors in the calling function
   }
 };
 
 async function fetchAllRecipesWithCategories() {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync(`
@@ -328,16 +296,12 @@ async function fetchAllRecipesWithCategories() {
     `);
     return rows;
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error fetching recipes with categories", error);
     throw error;
   }
 }
 
 async function updateRecipeWithCategories(id, recipe, categoryIds) {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync(
@@ -364,16 +328,12 @@ async function updateRecipeWithCategories(id, recipe, categoryIds) {
     console.log("Recipe updated successfully with new category associations");
     return true; // Indicate success
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Failed to update recipe:", error);
     return false; // Indicate failure
   }
 }
 
 const fetchRecipesByCategory = async (categoryId) => {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     const recipes = await db.getAllAsync(
@@ -382,16 +342,12 @@ const fetchRecipesByCategory = async (categoryId) => {
     );
     return recipes;
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error fetching recipes by category:", error);
     return null;
   }
 };
 
 const deleteRecipeFromCategory = async (recipeId, categoryId, callback) => {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync(
@@ -403,15 +359,11 @@ const deleteRecipeFromCategory = async (recipeId, categoryId, callback) => {
       callback();
     }
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Failed to delete recipe from category:", error);
   }
 };
 
 async function resetDatabase() {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     await db.execAsync(`
@@ -421,16 +373,12 @@ async function resetDatabase() {
     `);
     console.log("All specified tables were dropped successfully");
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error dropping tables: ", error);
     throw error;
   }
 }
 
 const addRecipeToCategory = async (categoryId, recipeId) => {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     // Check if the association already exists to prevent duplicates
@@ -456,31 +404,23 @@ const addRecipeToCategory = async (categoryId, recipeId) => {
       };
     }
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Failed to add recipe to category:", error);
     return { success: false, message: "Failed to add recipe to category" };
   }
 };
 
 async function fetchShoppingList() {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync("SELECT * FROM shopping_list;");
     return rows;
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error fetching shopping list:", error);
     return [];
   }
 }
 
 async function saveShoppingList(list) {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync("DELETE FROM shopping_list;");
@@ -491,57 +431,41 @@ async function saveShoppingList(list) {
       );
     }
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error saving shopping list:", error);
   }
 }
 
 async function clearShoppingList() {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync("DELETE FROM shopping_list;");
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error clearing shopping list:", error);
   }
 }
 
 async function deleteShoppingListItems(ids) {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     for (const id of ids) {
       await db.runAsync("DELETE FROM shopping_list WHERE id = ?;", [id]);
     }
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error deleting shopping list items:", error);
   }
 }
 
 async function fetchMealPlan() {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     const rows = await db.getAllAsync("SELECT * FROM meal_plan;");
     return rows;
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error fetching meal plan:", error);
   }
 }
 
 async function insertMealPlan(day, mealType, recipeId) {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync(
@@ -549,29 +473,21 @@ async function insertMealPlan(day, mealType, recipeId) {
       [day, mealType, recipeId]
     );
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error inserting meal plan:", error);
   }
 }
 
 async function deleteMealPlan() {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync("DELETE FROM meal_plan;");
     console.log("Meal plan deleted successfully");
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error deleting meal plan:", error);
   }
 }
 
 async function deleteSpecificMeal(day, mealType) {
-  let db;
   try {
     db = await SQLite.openDatabaseAsync("recipes.db");
     await db.runAsync(
@@ -580,9 +496,6 @@ async function deleteSpecificMeal(day, mealType) {
     );
     console.log("Specific meal deleted successfully");
   } catch (error) {
-    if (db) {
-      db.closeSync();
-    }
     console.error("Error deleting specific meal:", error);
   }
 }

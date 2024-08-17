@@ -8,8 +8,6 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
-  TouchableWithoutFeedback,
-  Keyboard,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -28,6 +26,7 @@ import {
   clearShoppingList,
   deleteShoppingListItems,
 } from "../util/database";
+import { Pressable } from "react-native";
 
 const departmentOrder = departments.map((department) => department.name);
 
@@ -317,7 +316,19 @@ function ShoppingListScreen({ navigation, route }) {
   const handleAddProductsFromRecipe = () => {
     handleSaveList();
     setMenuVisible(false);
-    navigation.navigate("AllRecipes", { fromShoppingCart: true });
+    navigation.reset({
+      index: 2,
+      routes: [
+        { name: "Home" },
+        {
+          name: "ShoppingList",
+        },
+        {
+          name: "AllRecipes",
+          params: { fromShoppingCart: true },
+        },
+      ],
+    });
   };
 
   const handleAddProductsManually = () => {
@@ -427,126 +438,122 @@ function ShoppingListScreen({ navigation, route }) {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        {showManualInput && (
-          <View style={styles.addIngredientSection}>
-            <View style={styles.titleRow}>
-              <Text style={styles.title}>הוספת מוצר לרשימת קניות</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowManualInput(false);
-                  setShowShoppingList(true);
-                }}
-              >
-                <Feather name="x" size={28} color="black" />
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              style={styles.ingredientInput}
-              placeholder="שם המוצר"
-              placeholderTextColor="#666"
-              value={ingredientName}
-              onChangeText={setIngredientName}
-              returnKeyType="done"
-            />
-            <View style={styles.quantityUnitContainer}>
-              <TextInput
-                style={styles.quantityInput}
-                placeholder="0"
-                placeholderTextColor="#666"
-                value={quantity}
-                onChangeText={(text) =>
-                  setQuantity(text.replace(/[^0-9]/g, ""))
-                }
-                keyboardType="numeric"
-              />
-              <View
-                style={styles.pickerContainer}
-                onLayout={(event) => {
-                  const { x, y } = event.nativeEvent.layout;
-                  setDropdownLeft(x);
-                  setDropdownTop(y);
-                }}
-              >
-                {unitOptions.length > 0 && (
-                  <CustomModalDropdown
-                    options={unitLabels}
-                    defaultValue={unitOptions[0].label}
-                    style={styles.dropdown}
-                    textStyle={styles.dropdownText}
-                    dropdownStyle={[styles.dropdownStyle, { width: "45%" }]}
-                    dropdownTextStyle={styles.dropdownOptionText}
-                    dropdownTextHighlightStyle={styles.dropdownOptionText}
-                    onSelect={(index, value) =>
-                      setSelectedUnit(unitOptions[index].value)
-                    }
-                    adjustFrame={(style) => {
-                      style.left = dropdownLeft + 225;
-                      style.top = dropdownTop + 295;
-                      return style;
-                    }}
-                  />
-                )}
-              </View>
-            </View>
-            <View
-              style={styles.pickerContainerFull}
-              onLayout={(event) => {
-                const { x, y } = event.nativeEvent.layout;
-                setDepartmentDropdownLeft(x);
-                setDepartmentDropdownTop(y);
+    <View style={styles.container}>
+      {showManualInput && (
+        <View style={styles.addIngredientSection}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>הוספת מוצר לרשימת קניות</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setShowManualInput(false);
+                setShowShoppingList(true);
               }}
             >
-              {departments.length > 0 && (
+              <Feather name="x" size={28} color="black" />
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={styles.ingredientInput}
+            placeholder="שם המוצר"
+            placeholderTextColor="#666"
+            value={ingredientName}
+            onChangeText={setIngredientName}
+            returnKeyType="done"
+          />
+          <View style={styles.quantityUnitContainer}>
+            <TextInput
+              style={styles.quantityInput}
+              placeholder="0"
+              placeholderTextColor="#666"
+              value={quantity}
+              onChangeText={(text) => setQuantity(text.replace(/[^0-9]/g, ""))}
+              keyboardType="numeric"
+            />
+            <View
+              style={styles.pickerContainer}
+              onLayout={(event) => {
+                const { x, y } = event.nativeEvent.layout;
+                setDropdownLeft(x);
+                setDropdownTop(y);
+              }}
+            >
+              {unitOptions.length > 0 && (
                 <CustomModalDropdown
-                  options={departmentLabels}
-                  defaultValue={departments[0].name}
+                  options={unitLabels}
+                  defaultValue={unitOptions[0].label}
                   style={styles.dropdown}
                   textStyle={styles.dropdownText}
-                  dropdownStyle={[styles.dropdownStyle, { width: "95%" }]}
+                  dropdownStyle={[styles.dropdownStyle, { width: "45%" }]}
                   dropdownTextStyle={styles.dropdownOptionText}
                   dropdownTextHighlightStyle={styles.dropdownOptionText}
                   onSelect={(index, value) =>
-                    setSelectedDepartment(departments[index].name)
+                    setSelectedUnit(unitOptions[index].value)
                   }
                   adjustFrame={(style) => {
-                    style.left = departmentDropdownLeft + 10;
-                    style.top = departmentDropdownTop + 165;
+                    style.left = dropdownLeft + 225;
+                    style.top = dropdownTop + 295;
                     return style;
                   }}
                 />
               )}
             </View>
-            <TouchableOpacity
-              onPress={addManualIngredient}
-              style={styles.addButton}
-            >
-              <Text style={styles.addButtonText}>הוסף מוצר</Text>
-            </TouchableOpacity>
           </View>
-        )}
-        {showShoppingList && (
-          <>
-            {groupedIngredients.length > 0 ? (
-              <FlatList
-                data={groupedIngredients.filter(
-                  (group) => group.ingredients.length > 0
-                )}
-                renderItem={({ item }) => (
-                  <View key={item.department}>
-                    {renderDepartmentHeader(item.department)}
-                    {item.ingredients.map((ingredient, index) =>
-                      renderItem({ item: ingredient, index })
-                    )}
-                  </View>
-                )}
-                keyExtractor={(item) =>
-                  item.department + Math.random().toString(36).substring(7)
+          <View
+            style={styles.pickerContainerFull}
+            onLayout={(event) => {
+              const { x, y } = event.nativeEvent.layout;
+              setDepartmentDropdownLeft(x);
+              setDepartmentDropdownTop(y);
+            }}
+          >
+            {departments.length > 0 && (
+              <CustomModalDropdown
+                options={departmentLabels}
+                defaultValue={departments[0].name}
+                style={styles.dropdown}
+                textStyle={styles.dropdownText}
+                dropdownStyle={[styles.dropdownStyle, { width: "95%" }]}
+                dropdownTextStyle={styles.dropdownOptionText}
+                dropdownTextHighlightStyle={styles.dropdownOptionText}
+                onSelect={(index, value) =>
+                  setSelectedDepartment(departments[index].name)
                 }
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                adjustFrame={(style) => {
+                  style.left = departmentDropdownLeft + 10;
+                  style.top = departmentDropdownTop + 165;
+                  return style;
+                }}
               />
-            ) : (
+            )}
+          </View>
+          <TouchableOpacity
+            onPress={addManualIngredient}
+            style={styles.addButton}
+          >
+            <Text style={styles.addButtonText}>הוסף מוצר</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {showShoppingList && (
+        <View style={{ flex: 1 }}>
+          <FlatList
+            contentContainerStyle={{
+              flexGrow: 1,
+            }}
+            data={groupedIngredients.filter(
+              (group) => group.ingredients.length > 0
+            )}
+            renderItem={({ item }) => (
+              <View key={item.department}>
+                {renderDepartmentHeader(item.department)}
+                {item.ingredients.map((ingredient, index) =>
+                  renderItem({ item: ingredient, index })
+                )}
+              </View>
+            )}
+            keyExtractor={(item, index) => item.department + index.toString()}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListEmptyComponent={() => (
               <Text
                 style={{
                   textAlign: "center",
@@ -559,9 +566,16 @@ function ShoppingListScreen({ navigation, route }) {
                 אין מוצרים ברשימה.
               </Text>
             )}
-          </>
-        )}
-        {menuVisible && (
+          />
+        </View>
+      )}
+
+      {menuVisible && (
+        <>
+          <Pressable
+            style={styles.overlay}
+            onPress={() => setMenuVisible(false)}
+          />
           <View style={styles.menu}>
             <TouchableOpacity
               style={styles.menuItem}
@@ -576,22 +590,30 @@ function ShoppingListScreen({ navigation, route }) {
               <Text style={styles.menuText}>הוספת מוצרים ידנית</Text>
             </TouchableOpacity>
           </View>
-        )}
-        {!showManualInput && (
-          <View style={styles.ButtonContainer}>
-            <TouchableOpacity onPress={toggleMenu} style={styles.fab}>
-              <Ionicons name="add" size={26} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-    </TouchableWithoutFeedback>
+        </>
+      )}
+      {!showManualInput && (
+        <View style={styles.ButtonContainer}>
+          <TouchableOpacity onPress={toggleMenu} style={styles.fab}>
+            <Ionicons name="add" size={26} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
   );
 }
 
 export default ShoppingListScreen;
 
 const styles = StyleSheet.create({
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "transparent",
+  },
   container: {
     flex: 1,
     backgroundColor: "#fff",

@@ -16,6 +16,18 @@ function MyTabs() {
       <Tab.Navigator
         initialRouteName="Home Screen"
         screenOptions={({ route }) => ({
+          headerStyle: {
+            backgroundColor: "#fff",
+            height: 80,
+          },
+          headerTintColor: "black",
+          headerTitleStyle: {
+            fontWeight: "bold",
+            fontSize: 22,
+          },
+          headerTitleAlign: "right",
+          headerBackTitleVisible: false,
+
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
             let iconSize = 26;
