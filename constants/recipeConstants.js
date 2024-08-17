@@ -25,3 +25,33 @@ export const departments = [
   { name: "לחם", image: require("../images/bread.png") },
   { name: "אחר", image: require("../images/other.png") },
 ];
+
+export const daysOfWeek = [
+  "יום א'",
+  "יום ב'",
+  "יום ג'",
+  "יום ד'",
+  "יום ה'",
+  "יום ו'",
+  "יום ש'",
+];
+
+export const mealTypes = ["בוקר", "ביניים 1", "צהריים", "ביניים 2", "ערב"];
+
+export const originalDaysOfWeek = [
+  "יום ראשון",
+  "יום שני",
+  "יום שלישי",
+  "יום רביעי",
+  "יום חמישי",
+  "יום שישי",
+  "יום שבת",
+];
+
+export const mealTypeMap = {
+  "ארוחת בוקר": "בוקר",
+  "ארוחת ביניים 1": "ביניים 1",
+  "ארוחת צהריים": "צהריים",
+  "ארוחת ביניים 2": "ביניים 2",
+  "ארוחת ערב": "ערב",
+};

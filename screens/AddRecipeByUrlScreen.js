@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  TextInput,
-  Text,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import { View, TextInput, StyleSheet, Alert } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import CustomButton from "../components/UI/CustomButton";
 import { insertRecipeWithCategories } from "../util/database";
 import { MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
+import PrimaryButton from "../components/UI/PrimaryButton";
+import LoadingOverlay from "../components/UI/LoadingOverlay";
 
 function AddRecipeByUrlScreen({ navigation }) {
   const [recipeUrl, setRecipeUrl] = useState("");
@@ -22,7 +16,7 @@ function AddRecipeByUrlScreen({ navigation }) {
     console.log("URL submitted:", recipeUrl);
     try {
       if (!recipeUrl) {
-        alert("Please insert an URL first.");
+        Alert.alert("שגיאה", "אנא הזן קישור למתכון", [{ text: "אישור" }]);
         return;
       }
       setLoading(true);
@@ -64,7 +58,7 @@ function AddRecipeByUrlScreen({ navigation }) {
       // Check for required fields
       if (!detectedText.title) {
         console.error("Recipe title is missing");
-        alert("Failed to save recipe: title is missing.");
+        alert("שגיאה בהוספת המתכון: כותרת המתכון חסרה");
         return;
       }
       // Validate ingredients format
@@ -73,9 +67,7 @@ function AddRecipeByUrlScreen({ navigation }) {
         detectedText.ingredients.length === 0
       ) {
         console.error("Invalid ingredients format or no ingredients found");
-        alert(
-          "Failed to save recipe: invalid ingredients format or no ingredients found."
-        );
+        alert("שגיאה בהוספת המתכון: נתוני המתכון לא תקינים");
         return;
       }
 
@@ -105,7 +97,6 @@ function AddRecipeByUrlScreen({ navigation }) {
           });
         } catch (error) {
           console.error("Error inserting recipe:", error);
-          // Handle database insertion error
         }
       };
       insertRecipe();
@@ -114,8 +105,8 @@ function AddRecipeByUrlScreen({ navigation }) {
 
   const showSupportedSites = () => {
     Alert.alert(
-      "אתרים נתמכים",
-      "רשימת האתרים הנתמכים:\n- 10 דקות\n- אליטה אופק\n- עדיקוש\n- ענת אלישע\n- דניאל עמית\n- השולחן\n- לייזה פאנלים\n- רחלי קרוט\n- שירי עמית  ",
+      "רשימת אתרים נתמכים",
+      "\n- 10 דקות\n- אליטה אופק\n- עדיקוש\n- ענת אלישע\n- דניאל עמית\n- השולחן\n- לייזה פאנלים\n- רחלי Krutit\n- שירי עמית  ",
       [{ text: "סגור", style: "cancel" }]
     );
   };
@@ -139,24 +130,20 @@ function AddRecipeByUrlScreen({ navigation }) {
         <MaterialIcons
           styles={styles.infoIcon}
           name="info-outline"
-          size={28}
+          size={30}
           padding={10}
           color="black"
           onPress={showSupportedSites}
           style={styles.infoIcon}
         />
       </View>
-      <CustomButton
+      <PrimaryButton
         title="שמור מתכון"
         onPress={handleSaveRecipe}
         style={styles.button}
       />
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4db384" />
-          <Text style={styles.loadingText}>מביא את המתכון...</Text>
-        </View>
-      )}
+
+      {loading && <LoadingOverlay message="מייבא מתכון..." />}
     </KeyboardAwareScrollView>
   );
 }
@@ -170,10 +157,11 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexGrow: 1,
-    justifyContent: "flex-end",
+    padding: 10,
   },
   elementContainer: {
     flexDirection: "row",
+    marginBottom: 20,
   },
   form: {
     flex: 1,
@@ -183,7 +171,7 @@ const styles = StyleSheet.create({
   },
   infoIcon: {
     flex: 0.1,
-    marginTop: 10,
+    marginTop: 5,
   },
   input: {
     borderWidth: 1,
@@ -197,22 +185,9 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   button: {
-    alignSelf: "center",
-  },
-  loadingContainer: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  loadingText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 10,
+    bottom: 20,
+    left: 10,
+    right: 20,
   },
 });

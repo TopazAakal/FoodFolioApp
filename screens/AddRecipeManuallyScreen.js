@@ -5,7 +5,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
 } from "react-native";
 import LabeledInput from "../components/UI/LabeledInput";
@@ -30,7 +29,7 @@ import {
 
 const defaultImage = "../images/recipe_placeholder.jpg";
 
-function AddRecipeScreen() {
+function AddRecipeManuallyScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const recipeId = route.params?.recipeId || null;
@@ -46,7 +45,6 @@ function AddRecipeScreen() {
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showCategories, setShowCategories] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(
     departments[0].name
   );
@@ -96,6 +94,28 @@ function AddRecipeScreen() {
     setShowCategories((prevShowCategories) => !prevShowCategories);
   };
 
+  const handleCategorySelection = async () => {
+    let categoryIds = [...selectedCategories];
+
+    if (category.trim() !== "") {
+      const existingCategory = categories.find((cat) => cat.name === category);
+
+      if (!existingCategory) {
+        try {
+          const newCategoryId = await insertNewCategory(category);
+          console.log(`New category inserted with ID: ${newCategoryId}`);
+          categoryIds.push(newCategoryId.toString());
+        } catch (error) {
+          console.error("Failed to insert new category", error);
+          return;
+        }
+      } else {
+        categoryIds.push(existingCategory.id.toString());
+      }
+    }
+    return categoryIds;
+  };
+
   useEffect(() => {
     loadCategories();
   }, []);
@@ -131,9 +151,8 @@ function AddRecipeScreen() {
     }
   }, [categories, recipeId]);
 
-  const handleSaveRecipe = async () => {
-    // Check if all fields are empty
-    if (
+  const isRecipeEmpty = () => {
+    return (
       !title.trim() &&
       ingredients.length === 0 &&
       !instructions.trim() &&
@@ -141,30 +160,23 @@ function AddRecipeScreen() {
       !recipeImage &&
       !category.trim() &&
       selectedCategories.length === 0
-    ) {
-      Alert.alert("", "לא ניתן לשמור מתכון ריק. נא למלא את השדות ולנסות שוב.", [
-        { text: "אישור" },
-      ]);
-      return;
-    }
+    );
+  };
 
-    let categoryIds = [...selectedCategories];
-    if (category.trim() !== "") {
-      const existingCategory = categories.find((cat) => cat.name === category);
-      if (!existingCategory) {
-        try {
-          const newCategoryId = await insertNewCategory(category);
-          console.log(`New category inserted with ID: ${newCategoryId}`);
-          categoryIds = [...categoryIds, newCategoryId.toString()];
-        } catch (error) {
-          console.error("Failed to insert new category", error);
-          return;
-        }
-      } else {
-        categoryIds = [...categoryIds, existingCategory.id.toString()];
-      }
-    }
+  const showEmptyRecipeAlert = () => {
+    Alert.alert("", "לא ניתן לשמור מתכון ריק. נא למלא את השדות ולנסות שוב.", [
+      { text: "אישור" },
+    ]);
+  };
 
+  const formatRecipeData = (
+    title,
+    ingredients,
+    instructions,
+    totalTime,
+    imageUri,
+    categoryIds
+  ) => {
     // Ensure instructions are in the correct format
     let parsedInstructions;
     try {
@@ -190,9 +202,7 @@ function AddRecipeScreen() {
       return;
     }
 
-    const imageUri = recipeImage || defaultImage;
-
-    const recipeData = {
+    return {
       title,
       ingredients: JSON.stringify(parsedIngredients),
       instructions: JSON.stringify(parsedInstructions),
@@ -200,30 +210,67 @@ function AddRecipeScreen() {
       image: imageUri,
       categoryIds: categoryIds.map((id) => id.toString()),
     };
-    if (recipeId) {
-      const success = await updateRecipeWithCategories(
-        recipeId,
-        recipeData,
+  };
+
+  const updateExistingRecipe = async (recipeId, recipeData, categoryIds) => {
+    const success = await updateRecipeWithCategories(
+      recipeId,
+      recipeData,
+      categoryIds
+    );
+
+    if (success) {
+      console.log(`Recipe updated successfully with ID: ${recipeId}`);
+      navigation.reset({
+        index: 0,
+        routes: [
+          { name: "Home" },
+          { name: "RecipeDisplay", params: { recipeId: recipeId } },
+        ],
+      });
+    } else {
+      console.error("Failed to update recipe");
+      throw new Error("Recipe update failed");
+    }
+  };
+
+  const addNewRecipe = async (recipeData) => {
+    console.log("Adding new recipe with data:", recipeData);
+    const newRecipeId = await insertRecipeWithCategories(recipeData);
+    console.log(`Recipe added successfully with ID: ${newRecipeId}`);
+    navigation.reset({
+      index: 0,
+      routes: [
+        { name: "Home" },
+        { name: "RecipeDisplay", params: { recipeId: newRecipeId } },
+      ],
+    });
+  };
+
+  const handleSaveRecipe = async () => {
+    if (isRecipeEmpty()) {
+      showEmptyRecipeAlert();
+      return;
+    }
+
+    try {
+      const categoryIds = await handleCategorySelection();
+      const formattedRecipeData = formatRecipeData(
+        title,
+        ingredients,
+        instructions,
+        totalTime,
+        recipeImage || defaultImage,
         categoryIds
       );
-      if (success) {
-        console.log(`Recipe updated successfully with ID: ${recipeId}`);
-        navigation.reset({
-          index: 0,
-          routes: [
-            { name: "Home" },
-            { name: "RecipeDisplay", params: { recipeId: recipeId } },
-          ],
-        });
+
+      if (recipeId) {
+        await updateExistingRecipe(recipeId, formattedRecipeData, categoryIds);
       } else {
-        console.error("Failed to update recipe");
+        await addNewRecipe(formattedRecipeData);
       }
-    } else {
-      // Adding new recipe
-      console.log("Adding new recipe with data:", recipeData);
-      const newRecipeId = await insertRecipeWithCategories(recipeData);
-      console.log(`Recipe added successfully with ID: ${newRecipeId}`);
-      navigation.replace("AllCategories");
+    } catch (error) {
+      console.error("An error occurred while saving the recipe:", error);
     }
   };
 
@@ -291,9 +338,6 @@ function AddRecipeScreen() {
         : ingredientsInput;
 
     return ingredientsArray.map((ingredient, index) => {
-      const quantity = parseFloat(ingredient.quantity);
-      const unit = formatUnit(quantity, ingredient.unit);
-
       return (
         <View key={index} style={styles.ingredientListItem}>
           <Text style={styles.ingredientText}>
@@ -442,17 +486,11 @@ function AddRecipeScreen() {
 
         <PrimaryButton title="שמור מתכון" onPress={handleSaveRecipe} />
       </View>
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4db384" />
-          <Text style={styles.loadingText}>מביא את המתכון...</Text>
-        </View>
-      )}
     </KeyboardAwareScrollView>
   );
 }
 
-export default AddRecipeScreen;
+export default AddRecipeManuallyScreen;
 
 const styles = StyleSheet.create({
   rootContainer: {
@@ -580,21 +618,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#838181a8",
     textAlign: "right",
-  },
-  loadingContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  loadingText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 10,
   },
 });

@@ -7,7 +7,7 @@ import { initDB } from "./util/database";
 import { I18nManager } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
-import AddRecipeScreen from "./screens/AddRecipeScreen";
+import AddRecipeManuallyScreen from "./screens/AddRecipeManuallyScreen";
 import RecipeDeatailScreen from "./screens/RecipeDetailScreen";
 import AllRecipesScreen from "./screens/AllRecipesScreen";
 import AllCategoriesScreen from "./screens/AllCategoriesScreen";
@@ -74,8 +74,8 @@ export default function App() {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
-                name="AddRecipe"
-                component={AddRecipeScreen}
+                name="AddRecipeManually"
+                component={AddRecipeManuallyScreen}
                 options={{ title: "הוספת מתכון ידנית " }}
               />
               <Stack.Screen

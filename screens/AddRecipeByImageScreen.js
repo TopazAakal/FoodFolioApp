@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import ImagePicker from "../components/UI/ImagePicker";
-import CustomButton from "../components/UI/CustomButton";
 import { readAsStringAsync, EncodingType } from "expo-file-system";
-import { insertRecipeWithCategories } from "../util/database";
 import axios from "axios";
-import { Alert } from "react-native";
+import { insertRecipeWithCategories } from "../util/database";
+import ImagePicker from "../components/UI/ImagePicker";
+import PrimaryButton from "../components/UI/PrimaryButton";
+import LoadingOverlay from "../components/UI/LoadingOverlay";
 
 function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
@@ -14,17 +14,17 @@ function AddRecipeByImageScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleSaveImage = async () => {
+    if (!imageUri) {
+      Alert.alert("שגיאה", "אנא בחר תמונה להעלאה", [{ text: "אישור" }]);
+      return;
+    }
+
     const base64Image = await readAsStringAsync(imageUri, {
       encoding: EncodingType.Base64,
     });
+
     try {
-      if (!imageUri) {
-        alert("בחר תמונה להעלאה");
-        return;
-      }
-
       setLoading(true);
-
       const response = await axios.post(
         "https://ilwcjy1wk4.execute-api.us-east-1.amazonaws.com/dev/",
         {
@@ -39,7 +39,7 @@ function AddRecipeByImageScreen({ navigation }) {
             "התמונה לא זוהתה כתמונת מתכון. נסה שנית או הכנס את המתכון באופן ידני.",
             [
               {
-                text: "אוקיי",
+                text: "אישור",
                 onPress: () => {
                   setLoading(false);
                   navigation.reset({
@@ -81,7 +81,7 @@ function AddRecipeByImageScreen({ navigation }) {
       // Check for required fields
       if (!detectedText.title) {
         console.error("Recipe title is missing");
-        alert("Failed to save recipe: title is missing.");
+        alert("שגיאה בזיהוי המתכון: כותרת המתכון חסרה");
         return;
       }
 
@@ -91,9 +91,7 @@ function AddRecipeByImageScreen({ navigation }) {
         detectedText.ingredients.length === 0
       ) {
         console.error("Invalid ingredients format or no ingredients found");
-        alert(
-          "Failed to save recipe: invalid ingredients format or no ingredients found."
-        );
+        alert("שגיאה בזיהוי המתכון: נתוני המתכון לא נמצאו או בפורמט לא תקין");
         return;
       }
 
@@ -124,7 +122,6 @@ function AddRecipeByImageScreen({ navigation }) {
           });
         } catch (error) {
           console.error("Error inserting recipe:", error);
-          // Handle database insertion error
         }
       };
       insertRecipe();
@@ -140,20 +137,15 @@ function AddRecipeByImageScreen({ navigation }) {
         <ImagePicker
           image={imageUri}
           onTakeImage={setImageUri}
-          style={{ height: 600 }}
+          style={{ width: 370, height: 600, marginTop: 30 }}
         />
       </View>
-      <CustomButton
+      <PrimaryButton
         title="שמור מתכון"
         onPress={handleSaveImage}
         style={styles.button}
       />
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4db384" />
-          <Text style={styles.loadingText}>מעלה את התמונה...</Text>
-        </View>
-      )}
+      {loading && <LoadingOverlay message="מייצר מתכון..." />}
     </KeyboardAwareScrollView>
   );
 }
@@ -168,38 +160,17 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     justifyContent: "flex-start",
+    paddingHorizontal: 20,
   },
   form: {
     margin: 20,
     flex: 1,
     paddingHorizontal: 5,
   },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
-  },
   button: {
-    alignSelf: "center",
-  },
-  imagePickerStyle: {
-    height: 400,
-  },
-  loadingContainer: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  loadingText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 10,
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
 });

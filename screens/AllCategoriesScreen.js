@@ -11,6 +11,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { fetchAllCategories, deleteCategoryById } from "../util/database";
+import SecondaryButton from "../components/UI/SecondaryButton";
+import colors from "../constants/colors";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -39,14 +41,9 @@ const AllCategoriesScreen = ({ navigation }) => {
         console.log(`Deleted ${result.rowsAffected} rows.`);
         const updatedCategories = await fetchAllCategories();
         setCategories(updatedCategories);
-        console.log("Category deleted successfully");
-      } else {
-        console.log(
-          "No rows affected. Category might not exist or is protected."
-        );
       }
     } catch (error) {
-      console.log("Failed to delete category", error);
+      console.error("Failed to delete category", error);
     }
   };
 
@@ -91,13 +88,13 @@ const AllCategoriesScreen = ({ navigation }) => {
         numColumns={2}
         contentContainerStyle={styles.listContentContainer}
       />
-      <TouchableOpacity
-        style={styles.addButton}
+      <SecondaryButton
+        title="הוסף קטגוריה"
         onPress={() => navigation.navigate("AddCategory")}
+        style={styles.addButton}
       >
         <Ionicons name="add" size={30} style={styles.addButtonIcon} />
-        <Text style={styles.addButtonText}>הוסף קטגוריה</Text>
-      </TouchableOpacity>
+      </SecondaryButton>
     </View>
   );
 };
@@ -105,7 +102,7 @@ const AllCategoriesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -118,7 +115,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     margin: 5,
     elevation: 3,
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -134,7 +131,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 10,
     bottom: 10,
-    color: "white",
+    color: colors.white,
     fontSize: 20,
     fontWeight: "bold",
   },
@@ -144,30 +141,11 @@ const styles = StyleSheet.create({
     right: 5,
   },
   addButton: {
-    position: "absolute",
-    bottom: 20,
-    alignSelf: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderWidth: 2,
-    borderColor: "#4db384",
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
     flexDirection: "row-reverse",
-    marginBottom: 20,
+    width: "40%",
   },
-
-  addButtonText: {
-    color: "#4db384",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginRight: 5,
-  },
-
   addButtonIcon: {
-    color: "#4db384",
+    color: colors.secondaryGreen,
     fontSize: 22,
     paddingRight: 5,
     fontWeight: "bold",

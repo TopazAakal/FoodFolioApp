@@ -29,24 +29,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import getImageSource from "../util/image";
-
-const daysOfWeek = [
-  "יום ראשון",
-  "יום שני",
-  "יום שלישי",
-  "יום רביעי",
-  "יום חמישי",
-  "יום שישי",
-  "יום שבת",
-];
-
-const mealTypes = [
-  "ארוחת בוקר",
-  "ארוחת ביניים 1",
-  "ארוחת צהריים",
-  "ארוחת ביניים 2",
-  "ארוחת ערב",
-];
+import { daysOfWeek, mealTypes } from "../constants/recipeConstants";
+import colors from "../constants/colors";
 
 function MealPlanningScreen({ navigation }) {
   const [recipes, setRecipes] = useState([]);
@@ -506,7 +490,7 @@ const styles = StyleSheet.create({
   },
   addMealText: {
     marginTop: 5,
-    color: "#4CAF50",
+    color: colors.secondaryGreen,
   },
   recipeItem: {
     padding: 15,
@@ -566,8 +550,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   selectedCategoryItem: {
-    backgroundColor: "#4CAF50",
-    borderColor: "#4CAF50",
+    backgroundColor: colors.secondaryGreen,
+    borderColor: colors.secondaryGreen,
   },
   selectedCategoryText: {
     color: "white",

@@ -1,9 +1,5 @@
-import React, { useState, useCallback, useEffect } from "react";
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
+import React, { useState, useEffect } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -19,6 +15,8 @@ import {
 } from "../util/database";
 import { Ionicons } from "@expo/vector-icons";
 import getImageSource from "../util/image";
+import SecondaryButton from "../components/UI/SecondaryButton";
+import colors from "../constants/colors";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -63,7 +61,7 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     if (refreshing) {
-      fetchRecipes();
+      fetchRecipesByCategory();
       setRefreshing(false);
     }
   }, [refreshing]);
@@ -93,7 +91,7 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
           deleteRecipeFromCategory(item.id, categoryId, refreshRecipes)
         }
       >
-        <Ionicons name="trash-outline" size={24} color="#df3119" />
+        <Ionicons name="trash-outline" size={24} color="colors.red" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -107,10 +105,13 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
         numColumns={2}
         contentContainerStyle={styles.listContentContainer}
       />
-      <TouchableOpacity style={styles.addButton} onPress={addRecipeHandler}>
+      <SecondaryButton
+        title="הוסף מתכון"
+        onPress={addRecipeHandler}
+        style={styles.addButton}
+      >
         <Ionicons name="add" size={30} style={styles.addButtonIcon} />
-        <Text style={styles.addButtonText}>הוסף מתכון</Text>
-      </TouchableOpacity>
+      </SecondaryButton>
     </View>
   );
 };
@@ -118,7 +119,7 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     justifyContent: "center",
   },
   listContentContainer: {
@@ -129,9 +130,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     margin: 10,
     width: windowWidth / 2 - 20,
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     elevation: 5,
-    shadowColor: "#000",
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -144,36 +145,18 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontWeight: "bold",
     fontSize: 18,
-    color: "#000",
+    color: colors.black,
     paddingVertical: 10,
     textAlign: "left",
   },
 
   addButton: {
-    position: "absolute",
-    bottom: 20,
-    alignSelf: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderWidth: 2,
-    borderColor: "#4db384",
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
     flexDirection: "row-reverse",
-    marginBottom: 20,
+    width: "40%",
+    marginHorizontal: "30%",
   },
-
-  addButtonText: {
-    color: "#4db384",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginRight: 5,
-  },
-
   addButtonIcon: {
-    color: "#4db384",
+    color: colors.secondaryGreen,
     fontSize: 22,
     paddingRight: 5,
   },
@@ -186,9 +169,8 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 15,
-    color: "#0000008c",
+    color: colors.black,
   },
-
   timeCircle: {
     width: 7,
     height: 7,
