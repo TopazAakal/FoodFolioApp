@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  TextInput,
-  Text,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import { View, TextInput, StyleSheet, Alert } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { insertRecipeWithCategories } from "../util/database";
 import { MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import PrimaryButton from "../components/UI/PrimaryButton";
+import LoadingOverlay from "../components/UI/LoadingOverlay";
 
 function AddRecipeByUrlScreen({ navigation }) {
   const [recipeUrl, setRecipeUrl] = useState("");
@@ -64,7 +58,7 @@ function AddRecipeByUrlScreen({ navigation }) {
       // Check for required fields
       if (!detectedText.title) {
         console.error("Recipe title is missing");
-        alert("Failed to save recipe: title is missing.");
+        alert("שגיאה בהוספת המתכון: כותרת המתכון חסרה");
         return;
       }
       // Validate ingredients format
@@ -73,9 +67,7 @@ function AddRecipeByUrlScreen({ navigation }) {
         detectedText.ingredients.length === 0
       ) {
         console.error("Invalid ingredients format or no ingredients found");
-        alert(
-          "Failed to save recipe: invalid ingredients format or no ingredients found."
-        );
+        alert("שגיאה בהוספת המתכון: נתוני המתכון לא תקינים");
         return;
       }
 
@@ -105,7 +97,6 @@ function AddRecipeByUrlScreen({ navigation }) {
           });
         } catch (error) {
           console.error("Error inserting recipe:", error);
-          // Handle database insertion error
         }
       };
       insertRecipe();
@@ -152,12 +143,7 @@ function AddRecipeByUrlScreen({ navigation }) {
         style={styles.button}
       />
 
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4db384" />
-          <Text style={styles.loadingText}>מביא את המתכון...</Text>
-        </View>
-      )}
+      {loading && <LoadingOverlay message="מייבא מתכון..." />}
     </KeyboardAwareScrollView>
   );
 }
@@ -203,21 +189,5 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 10,
     right: 20,
-  },
-  loadingContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  loadingText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 10,
   },
 });
