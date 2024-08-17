@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import ImagePicker from "../components/UI/ImagePicker";
 import { readAsStringAsync, EncodingType } from "expo-file-system";
-import { insertRecipeWithCategories } from "../util/database";
 import axios from "axios";
-import { Alert } from "react-native";
+import { insertRecipeWithCategories } from "../util/database";
+import ImagePicker from "../components/UI/ImagePicker";
 import PrimaryButton from "../components/UI/PrimaryButton";
+import LoadingOverlay from "../components/UI/LoadingOverlay";
 
 function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
@@ -25,7 +25,6 @@ function AddRecipeByImageScreen({ navigation }) {
 
     try {
       setLoading(true);
-
       const response = await axios.post(
         "https://ilwcjy1wk4.execute-api.us-east-1.amazonaws.com/dev/",
         {
@@ -82,7 +81,7 @@ function AddRecipeByImageScreen({ navigation }) {
       // Check for required fields
       if (!detectedText.title) {
         console.error("Recipe title is missing");
-        alert("Failed to save recipe: title is missing.");
+        alert("שגיאה בזיהוי המתכון: כותרת המתכון חסרה");
         return;
       }
 
@@ -92,9 +91,7 @@ function AddRecipeByImageScreen({ navigation }) {
         detectedText.ingredients.length === 0
       ) {
         console.error("Invalid ingredients format or no ingredients found");
-        alert(
-          "Failed to save recipe: invalid ingredients format or no ingredients found."
-        );
+        alert("שגיאה בזיהוי המתכון: נתוני המתכון לא נמצאו או בפורמט לא תקין");
         return;
       }
 
@@ -125,7 +122,6 @@ function AddRecipeByImageScreen({ navigation }) {
           });
         } catch (error) {
           console.error("Error inserting recipe:", error);
-          // Handle database insertion error
         }
       };
       insertRecipe();
@@ -149,12 +145,7 @@ function AddRecipeByImageScreen({ navigation }) {
         onPress={handleSaveImage}
         style={styles.button}
       />
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4db384" />
-          <Text style={styles.loadingText}>מעלה את התמונה...</Text>
-        </View>
-      )}
+      {loading && <LoadingOverlay message="מעלה את התמונה..." />}
     </KeyboardAwareScrollView>
   );
 }
@@ -176,33 +167,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 5,
   },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
-  },
   button: {
     position: "absolute",
     bottom: 20,
     left: 20,
     right: 20,
-  },
-
-  loadingContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  loadingText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 10,
   },
 });
