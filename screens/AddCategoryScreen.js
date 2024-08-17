@@ -63,17 +63,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "right",
   },
-  label: {
-    marginBottom: 5,
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "right",
-  },
-  buttonContainer: {
-    marginTop: 20,
-    width: "100%",
-    borderRadius: 10,
-  },
   addButton: {
     width: "90%",
   },
