@@ -27,7 +27,6 @@ import {
   clearShoppingList,
   deleteShoppingListItems,
 } from "../util/database";
-import { Pressable } from "react-native";
 
 const departmentOrder = departments.map((department) => department.name);
 
@@ -592,18 +591,12 @@ function ShoppingListScreen({ navigation, route }) {
         </View>
       )}
       {!showManualInput && (
-        <>
-          {/* <Pressable
-            style={styles.overlay}
-            onPress={() => setMenuVisible(false)}
-          /> */}
-          <MenuButton
-            menuOptions={menuOptions}
-            style={{ right: 16, bottom: 25 }}
-            fabStyle={{ top: 15 }}
-            menuStyle={{ width: 190, bottom: 20, right: 35, zIndex: 1001 }}
-          />
-        </>
+        <MenuButton
+          menuOptions={menuOptions}
+          style={{ right: 16, bottom: 25 }}
+          fabStyle={{ top: 15 }}
+          menuStyle={{ width: 190, bottom: 20, right: 35, zIndex: 1001 }}
+        />
       )}
     </View>
   );

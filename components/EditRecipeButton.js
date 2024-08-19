@@ -4,7 +4,7 @@ import { TouchableOpacity, Text, StyleSheet } from "react-native";
 const EditRecipeButton = ({ navigation, recipeId, onPress }) => {
   const handleEdit = () => {
     if (onPress) onPress();
-    navigation.navigate("AddRecipe", { recipeId });
+    navigation.navigate("AddRecipeManually", { recipeId });
   };
 
   return (

@@ -270,7 +270,10 @@ function MealPlanningScreen({ navigation }) {
         >
           {recipe ? (
             <View style={styles.meal}>
-              <Image source={{ uri: recipe.image }} style={styles.mealImage} />
+              <Image
+                source={getImageSource(recipe.image)}
+                style={styles.mealImage}
+              />
               <Text style={styles.mealTitle}>{recipe.title}</Text>
               {isSelected && (
                 <TouchableOpacity
@@ -457,13 +460,15 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderWidth: 1,
     borderColor: "#ccc",
+    alignContent: "center",
     borderRadius: 10,
-    height: 140,
+    height: 160,
   },
   mealContainerHovered: {
     backgroundColor: "rgba(0, 0, 0, 0.2)",
   },
   mealImage: {
+    aspectRatio: 1,
     width: 140,
     height: 100,
     borderRadius: 10,
@@ -479,18 +484,21 @@ const styles = StyleSheet.create({
   mealType: {
     color: "#4d4c4c",
     fontSize: 16,
-    textAlign: "left",
+    textAlign: "center",
     paddingBottom: 3,
     paddingLeft: 5,
     fontWeight: "bold",
   },
   addMealButton: {
+    position: "absolute",
+    top: "38%",
+    left: "38%",
     alignItems: "center",
-    padding: 20,
   },
   addMealText: {
     marginTop: 5,
     color: colors.secondaryGreen,
+    alignContent: "center",
   },
   recipeItem: {
     padding: 15,

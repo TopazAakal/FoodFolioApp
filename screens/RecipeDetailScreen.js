@@ -28,7 +28,7 @@ import colors from "../constants/colors";
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
 
-function RecipeDeatailScreen({ navigation, route }) {
+function RecipeDetailScreen({ navigation, route }) {
   const [recipe, setRecipe] = useState({
     title: "",
     instructions: {},
@@ -329,7 +329,7 @@ function RecipeDeatailScreen({ navigation, route }) {
   );
 }
 
-export default RecipeDeatailScreen;
+export default RecipeDetailScreen;
 
 const styles = StyleSheet.create({
   screen: {
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   recipeTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center",
+    textAlign: "left",
     flex: 1,
     marginBottom: 10,
   },

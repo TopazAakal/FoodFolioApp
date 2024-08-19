@@ -8,7 +8,7 @@ import { I18nManager } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
 import AddRecipeManuallyScreen from "./screens/AddRecipeManuallyScreen";
-import RecipeDeatailScreen from "./screens/RecipeDetailScreen";
+import RecipeDetailScreen from "./screens/RecipeDetailScreen";
 import AllRecipesScreen from "./screens/AllRecipesScreen";
 import AllCategoriesScreen from "./screens/AllCategoriesScreen";
 import CategoryRecipesScreen from "./screens/CategoryRecipesScreen";
@@ -90,7 +90,7 @@ export default function App() {
               />
               <Stack.Screen
                 name="RecipeDisplay"
-                component={RecipeDeatailScreen}
+                component={RecipeDetailScreen}
                 options={{ title: "", headerTransparent: true }}
               />
               <Stack.Screen
@@ -105,7 +105,7 @@ export default function App() {
                   title: "קטגוריות",
                   headerRight: () => (
                     <TouchableOpacity
-                      onPress={() => navigation.navigate("AddRecipe")}
+                      onPress={() => navigation.navigate("AddRecipeManually")}
                       style={{ marginRight: 15 }}
                     >
                       <AntDesign name="pluscircle" size={28} color="black" />

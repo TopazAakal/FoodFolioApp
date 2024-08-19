@@ -119,13 +119,8 @@ const HomeScreen = ({ navigation }) => {
 
   const renderMeal = (mealType) => {
     const currentDayIndex = new Date().getDay();
-    const currentDay = originalDaysOfWeek[currentDayIndex];
     const currentDayShort = daysOfWeek[currentDayIndex];
-    const originalMealType = Object.keys(mealTypeMap).find(
-      (key) => mealTypeMap[key] === mealType
-    );
-
-    const recipeId = mealPlan[currentDay]?.[originalMealType];
+    const recipeId = mealPlan[currentDayShort]?.[mealType];
     const recipe = allMealPlanRecipes.find((r) => r.id === recipeId);
 
     if (!recipe) {

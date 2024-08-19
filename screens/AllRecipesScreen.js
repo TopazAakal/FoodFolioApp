@@ -15,6 +15,7 @@ import {
   addRecipeToCategory,
 } from "../util/database";
 import { Ionicons } from "react-native-vector-icons";
+import getImageSource from "../util/image";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -112,7 +113,7 @@ function AllRecipesScreen({ navigation, route }) {
       onPress={() => handleRecipePress(item.id)}
     >
       <View style={styles.imageContainer}>
-        <Image style={styles.cardImage} source={{ uri: item.image }} />
+        <Image style={styles.cardImage} source={getImageSource(item.image)} />
         {(fromCategoryScreen || fromShoppingCart) && (
           <View style={styles.imageOverlay} />
         )}
