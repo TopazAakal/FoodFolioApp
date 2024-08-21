@@ -27,6 +27,10 @@ import {
   originalDaysOfWeek,
   mealTypeMap,
 } from "../constants/recipeConstants";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -239,7 +243,7 @@ const HomeScreen = ({ navigation }) => {
         <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
           <AntDesign
             name="leftsquare"
-            size={40}
+            size={hp("5%")}
             color={colors.secondaryGreen}
           />
         </TouchableOpacity>
@@ -251,7 +255,11 @@ const HomeScreen = ({ navigation }) => {
           onPress={() => navigation.navigate("MealPlan")}
         >
           <Text style={styles.moreButtonText}>הצג עוד</Text>
-          <AntDesign name="arrowleft" size={24} color={colors.secondaryGreen} />
+          <AntDesign
+            name="arrowleft"
+            size={wp("6%")}
+            color={colors.secondaryGreen}
+          />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -269,7 +277,11 @@ const HomeScreen = ({ navigation }) => {
           onPress={() => navigation.navigate("AllRecipes")}
         >
           <Text style={styles.moreButtonText}>לכל המתכונים</Text>
-          <AntDesign name="arrowleft" size={24} color={colors.secondaryGreen} />
+          <AntDesign
+            name="arrowleft"
+            size={wp("6%")}
+            color={colors.secondaryGreen}
+          />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -296,7 +308,11 @@ const HomeScreen = ({ navigation }) => {
           onPress={() => navigation.navigate("AllCategories")}
         >
           <Text style={styles.moreButtonText}> לכל הקטגוריות</Text>
-          <AntDesign name="arrowleft" size={24} color={colors.secondaryGreen} />
+          <AntDesign
+            name="arrowleft"
+            size={wp("6%")}
+            color={colors.secondaryGreen}
+          />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -318,29 +334,31 @@ const HomeScreen = ({ navigation }) => {
     </View>
   );
 };
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+
+const isSmallScreenWidth = screenWidth < 350;
+const isSmallScreenHeight = screenHeight < 880;
 
 const styles = StyleSheet.create({
   // ==== General styles =====
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    padding: 15,
-    paddingTop: screenHeight < 900 ? 15 : 50,
-    paddingBottom: screenHeight < 900 ? 0 : 20,
+    padding: wp("4%"), // 4% of screen width
+    paddingTop: hp("2%"), // 2% or 6% of screen height
+    paddingBottom: hp("0%"), // 0% or 2% of screen height
     alignItems: "flex-start",
   },
   contentContainer: {
     alignItems: "flex-start",
   },
   greeting: {
-    fontSize: 22,
-    marginBottom: screenHeight < 900 ? 10 : 20,
+    fontSize: wp("5.5%"), // Adjusted font size
+    marginBottom: hp("1%"),
     fontWeight: "bold",
   },
   moreButton: {
-    paddingTop: 5,
+    paddingTop: hp("0.5%"),
     backgroundColor: "transparent",
     flexDirection: "row",
     alignItems: "center",
@@ -348,13 +366,13 @@ const styles = StyleSheet.create({
   },
   moreButtonText: {
     color: colors.secondaryGreen,
-    fontSize: 14,
+    fontSize: wp("3.6%"),
     fontWeight: "bold",
-    marginRight: 5,
+    marginRight: wp("1%"),
   },
 
   subTitle: {
-    fontSize: 18,
+    fontSize: wp("4.6%"),
     fontWeight: "bold",
     alignContent: "center",
   },
@@ -363,109 +381,110 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginBottom: screenHeight < 900 ? 10 : 25,
+    marginBottom: isSmallScreenHeight ? hp("1.5%") : hp("2.5%"),
   },
   searchContainer: {
     flex: 1,
     flexDirection: "row-reverse",
     alignItems: "center",
     width: "100%",
-    height: 40,
+    height: hp("5%"),
     borderColor: colors.light,
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    marginRight: 5,
+    borderRadius: wp("2.5%"), // Border radius adjusted
+    paddingHorizontal: wp("3%"), // Adjusted padding
+    marginRight: wp("1.5%"), // Adjusted margin
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: wp("4%"),
     textAlign: "right",
-    marginRight: 5,
+    marginRight: wp("1.5%"),
   },
   // ==== Meals styles =====
   mealsList: {
     flexGrow: 0,
     backgroundColor: "transparent",
-    marginBottom: screenHeight < 900 ? 10 : 20,
+    marginBottom: hp("1%"),
   },
   mealContainer: {
     alignItems: "flex-start",
-    marginRight: screenHeight < 900 ? 1 : 10,
-    marginBottom: 5,
-    width: 170,
-    height: 120,
+    marginRight: wp("2.5%"),
+    marginBottom: hp("0.5%"), // Adjusted margin
+    width: wp("42%"), // Width set as a percentage
+    height: hp("15%"), // Height set as a percentages
   },
   mealCardEmpty: {
-    width: 170,
-    height: 120,
-    borderRadius: 10,
+    width: wp("42%"), // Width set as a percentage
+    height: hp("15%"), // Height set as a percentage
+    borderRadius: wp("2.5%"), // Border radius adjusted
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
     borderColor: "#ccc",
     borderWidth: 1,
-    marginRight: 10,
+    marginRight: wp("2.5%"),
   },
   mealImage: {
-    width: screenHeight < 900 ? "90%" : "100%",
-    height: 120,
-    borderRadius: 10,
+    width: wp("42%"),
+    height: hp("15%"), // Height set as a percentage
+    borderRadius: wp("2.5%"), // Border radius adjusted
+    marginRight: wp("2.5%"),
   },
 
   mealTitle: {
     width: "75%",
-    fontSize: 14,
+    fontSize: wp("3.5%"),
     textAlign: "left",
     fontWeight: "bold",
-    marginLeft: 3,
-    marginTop: 5,
+    marginLeft: wp("1%"), // Adjusted margin
+    marginTop: hp("0.5%"),
   },
 
   mealInfoContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 5,
-    marginRight: screenHeight < 900 ? 0 : 15,
+    marginBottom: hp("2.5%"),
+    marginRight: wp("0%"),
   },
 
   mealInfo: {
-    fontSize: 13,
-    marginLeft: 3,
+    fontSize: wp("3.25%"),
+    marginLeft: wp("1%"),
     textAlign: "left",
     color: colors.mouseGray,
   },
   mealEmptyText: {
-    fontSize: 14,
+    fontSize: wp("3.5%"),
     color: colors.mouseGray,
   },
 
   // ==== Recipes styles =====
   recipeCard: {
-    width: 170,
-    marginRight: 15,
-    borderRadius: 10,
+    width: wp("42%"), // Width set as a percentage
+    height: hp("17%"), // Height set as a percentage
+    marginRight: wp("3.75%"), // Adjusted margin
+    borderRadius: wp("2.5%"), // Border radius adjusted
     overflow: "hidden",
   },
   recipeImage: {
     width: "100%",
-    height: screenHeight < 900 ? 100 : 120,
-    borderRadius: 10,
+    height: hp("12.5%"),
+    borderRadius: wp("2.5%"),
   },
   recipeTitle: {
-    fontSize: 14,
+    fontSize: wp("3.5%"),
     width: "85%",
     fontWeight: "bold",
     textAlign: "left",
-    marginLeft: 5,
-    marginBottom: 3,
+    marginLeft: wp("1.25%"),
   },
 
   // ==== Categories styles =====
   latestList: {
     flexGrow: 0,
     backgroundColor: "transparent",
-    marginBottom: screenHeight < 900 ? 10 : 20,
+    marginBottom: hp("1%"),
   },
 
   // ==== Headers styles =====
@@ -474,7 +493,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: screenHeight < 900 ? 5 : 10,
+    marginBottom: hp("0.75%"),
   },
   interestHeader: {
     flexDirection: "row",
@@ -482,7 +501,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     width: "100%",
-    marginBottom: screenHeight < 900 ? 5 : 10,
+    marginBottom: hp("0.75%"),
   },
 
   mealsHeader: {
@@ -490,24 +509,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: screenHeight < 900 ? 5 : 10,
+    marginBottom: hp("0.75%"),
   },
 
   // ==== Categories styles =====
   categoryItem: {
     backgroundColor: "white",
-    borderRadius: 10,
+    borderRadius: wp("2.5%"),
     borderWidth: 1,
     borderColor: "#ebeeec",
-    marginHorizontal: 3,
-    paddingHorizontal: 12,
+    marginHorizontal: wp("0.75%"),
+    paddingHorizontal: wp("3%"),
     justifyContent: "center",
   },
   categoryText: {
     color: "#acacac",
-    fontSize: screenWidth < 400 ? 12 : 14,
+    fontSize: wp("3%"),
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: wp("5%"),
   },
   selectedCategoryItem: {
     backgroundColor: colors.secondaryGreen,
@@ -519,15 +538,15 @@ const styles = StyleSheet.create({
   },
   categoriesList: {
     backgroundColor: "transparent",
-    height: 35,
-    marginBottom: screenHeight < 900 ? 0 : 15,
+    height: hp("4.5%"),
+    marginBottom: hp("1%"),
   },
   categoryRecipesList: {
     backgroundColor: "transparent",
   },
 
   searchIcon: {
-    marginRight: 10,
+    marginRight: wp("2.5%"),
     color: colors.light,
   },
 });
