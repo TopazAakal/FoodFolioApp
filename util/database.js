@@ -229,7 +229,6 @@ const insertRecipeWithCategories = async (recipe) => {
           ...ingredient,
           unit: ingredient.unit || "",
         }));
-        console.log("-------after Parsing-------: ", ingredients);
       } catch (error) {
         console.error("Failed to parse ingredients:", error);
         throw new Error("Invalid ingredients format");

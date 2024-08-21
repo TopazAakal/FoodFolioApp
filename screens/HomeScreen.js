@@ -336,7 +336,7 @@ const HomeScreen = ({ navigation }) => {
 };
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-const isSmallScreenWidth = screenWidth < 350;
+const isSmallScreenWidth = screenWidth < 360;
 const isSmallScreenHeight = screenHeight < 880;
 
 const styles = StyleSheet.create({
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   greeting: {
-    fontSize: wp("5.5%"), // Adjusted font size
+    fontSize: wp("5.2%"), // Adjusted font size
     marginBottom: hp("1%"),
     fontWeight: "bold",
   },
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   },
 
   subTitle: {
-    fontSize: wp("4.6%"),
+    fontSize: wp("4.2%"),
     fontWeight: "bold",
     alignContent: "center",
   },
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   },
   mealCardEmpty: {
     width: wp("42%"), // Width set as a percentage
-    height: hp("15%"), // Height set as a percentage
+    height: hp("12%"), // Height set as a percentage
     borderRadius: wp("2.5%"), // Border radius adjusted
     overflow: "hidden",
     alignItems: "center",
@@ -427,14 +427,14 @@ const styles = StyleSheet.create({
   },
   mealImage: {
     width: wp("42%"),
-    height: hp("15%"), // Height set as a percentage
+    height: hp("12%"), // Height set as a percentage
     borderRadius: wp("2.5%"), // Border radius adjusted
     marginRight: wp("2.5%"),
   },
 
   mealTitle: {
     width: "75%",
-    fontSize: wp("3.5%"),
+    fontSize: wp("3%"),
     textAlign: "left",
     fontWeight: "bold",
     marginLeft: wp("1%"), // Adjusted margin
@@ -468,8 +468,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   recipeImage: {
-    width: "100%",
-    height: hp("12.5%"),
+    width: isSmallScreenWidth ? wp("38") : wp("42%"), // Width set as a percentage
+    height: hp("12%"),
     borderRadius: wp("2.5%"),
   },
   recipeTitle: {

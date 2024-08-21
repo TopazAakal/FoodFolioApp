@@ -7,6 +7,10 @@ import AllCategoriesScreen from "../screens/AllCategoriesScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { View, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const Tab = createBottomTabNavigator();
 
@@ -19,19 +23,19 @@ function MyTabs() {
         screenOptions={({ route }) => ({
           headerStyle: {
             backgroundColor: "#fff",
-            height: 80,
+            height: hp("8%"),
           },
           headerTintColor: "black",
           headerTitleStyle: {
             fontWeight: "bold",
-            fontSize: 22,
+            fontSize: wp("5.8%"),
           },
           headerTitleAlign: "right",
           headerBackTitleVisible: false,
 
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
-            let iconSize = 26;
+            let iconSize = wp("6.8%");
             let customStyle = {};
             let isHomeScreen = route.name === "Home Screen";
 
@@ -43,25 +47,25 @@ function MyTabs() {
               iconName = focused ? "book" : "book-outline";
             } else if (route.name === "Home Screen") {
               iconName = focused ? "home" : "home-outline";
-              iconSize = focused ? 34 : 30;
+              iconSize = focused ? wp("8.5%") : wp("7.5%");
               customStyle = {
                 ...Platform.select({
                   ios: {
-                    padding: 6,
-                    bottom: -28, // Adjusted to reduce space below the icon
-                    zIndex: 10, // Ensure it's on top
-                    shadowOffset: { width: 0, height: -2 }, // Negative height to focus shadow upwards
+                    padding: hp("0.75%"), // 6px converted to percentage based on height
+                    bottom: hp("-3.1%"), // -28px converted to percentage based on height
+                    zIndex: 10,
+                    shadowOffset: { width: 0, height: hp("-0.25%") }, // -2px converted to percentage based on height
                     shadowOpacity: 0.2,
                     shadowRadius: 1,
-                    width: 60,
-                    height: 60,
+                    width: wp("15%"), // 60px converted to percentage based on width
+                    height: wp("15%"), // 60px converted to percentage based on width
                     alignItems: "center",
                     justifyContent: "center",
-                    shadowColor: "#000", // Add shadow for a floating effect
+                    shadowColor: "#000",
                   },
                 }),
                 backgroundColor: "white",
-                borderRadius: 35, // Fully rounded circle
+                borderRadius: wp("17.5%") / 2, // Fully rounded circle
                 position: "absolute",
               };
             } else if (route.name === "All Categories") {
@@ -74,13 +78,13 @@ function MyTabs() {
                   <View
                     style={{
                       position: "absolute",
-                      // bottom: 0,
-                      backgroundColor: "transparent", // Background color of the tab bar
-                      // height: 30, // Adjust this value to cover the bottom half of the circle
-                      // width: 60,
-                      // zIndex: 5, // Below the circle but above the tab bar
-                      // borderBottomLeftRadius: 35,
-                      // borderBottomRightRadius: 35,
+                      bottom: 0,
+                      backgroundColor: "transparent",
+                      height: hp("3.75%"), // 30px converted to percentage based on height
+                      width: wp("15%"), // 60px converted to percentage based on width
+                      zIndex: 5,
+                      borderBottomLeftRadius: wp("17.5%") / 2, // 35px converted to percentage based on width
+                      borderBottomRightRadius: wp("17.5%") / 2, // 35px converted to percentage based on width
                     }}
                   />
                 )}
@@ -93,17 +97,16 @@ function MyTabs() {
           tabBarActiveTintColor: "#4CAF50", // Active icon color
           tabBarInactiveTintColor: "gray", // Inactive icon color
           tabBarStyle: {
-            height: 70, // Set the height to 60
-            paddingBottom: 15, // Adjust padding below text
-            paddingTop: 3, // Adjust padding above icons
-            paddingHorizontal: 10, // Add horizontal padding
+            height: hp("8.2%"), // Set the height to 60
+            paddingBottom: hp("0.8%"), // Adjust padding below text
+            paddingTop: hp("0.5%"), // Adjust padding above icons
+            paddingHorizontal: wp("2.2%"), // Add horizontal padding
           },
           tabBarLabelStyle: {
-            marginBottom: 0, // Bring text closer to the icons
-            fontSize: 11,
+            fontSize: wp("2.75%"),
           },
           tabBarIconStyle: {
-            marginTop: 5,
+            marginTop: hp("0.5%"), // Add margin above icons
           },
         })}
       >

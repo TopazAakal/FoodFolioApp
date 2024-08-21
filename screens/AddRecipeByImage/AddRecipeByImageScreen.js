@@ -7,6 +7,10 @@ import { insertRecipeWithCategories } from "../../util/database";
 import ImagePicker from "../../components/UI/ImagePicker";
 import PrimaryButton from "../../components/UI/PrimaryButton";
 import LoadingOverlay from "../../components/UI/LoadingOverlay";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
@@ -138,7 +142,11 @@ function AddRecipeByImageScreen({ navigation }) {
         <ImagePicker
           image={imageUri}
           onTakeImage={setImageUri}
-          style={{ width: 370, height: 600, marginTop: 30 }}
+          style={{
+            width: wp("92.5%"), // 370px converted to percentage based on width
+            height: hp("65%"), // 600px converted to percentage based on height
+            marginTop: hp("1.75%"),
+          }}
         />
       </View>
       <PrimaryButton
@@ -161,17 +169,17 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     justifyContent: "flex-start",
-    paddingHorizontal: 20,
+    paddingHorizontal: wp("5%"), // 20px converted to percentage based on width
   },
   form: {
-    margin: 20,
+    margin: wp("5%"), // 20px converted to percentage based on width
     flex: 1,
-    paddingHorizontal: 5,
+    paddingHorizontal: wp("1.25%"), // 5px converted to percentage based on width
   },
   button: {
     position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
+    bottom: hp("2.5%"), // 20px converted to percentage based on height
+    left: wp("5%"), // 20px converted to percentage based on width
+    right: wp("5%"), // 20px converted to percentage based on width
   },
 });

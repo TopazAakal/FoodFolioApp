@@ -18,6 +18,10 @@ import AddRecipeByImageScreen from "./screens/AddRecipeByImage/AddRecipeByImageS
 import ShoppingListScreen from "./screens/ShoppingListScreen";
 import MealPlanningScreen from "./screens/MealPlanningScreen";
 import MyTabs from "./components/MyTabs";
+import {
+  heightPercentageToDP,
+  widthPercentageToDP,
+} from "react-native-responsive-screen";
 
 I18nManager.forceRTL(true);
 
@@ -58,12 +62,12 @@ export default function App() {
               screenOptions={{
                 headerStyle: {
                   backgroundColor: "#fff",
-                  height: headerHeight,
+                  height: heightPercentageToDP("12%"),
                 },
                 headerTintColor: "black",
                 headerTitleStyle: {
                   fontWeight: "bold",
-                  fontSize: 20,
+                  fontSize: widthPercentageToDP("5.2%"),
                 },
                 headerTitleAlign: "right",
                 headerBackTitleVisible: false,
@@ -122,7 +126,9 @@ export default function App() {
               <Stack.Screen
                 name="AddCategory"
                 component={AddCategoryScreen}
-                options={{ title: "קטגוריה חדשה" }}
+                options={{
+                  title: "קטגוריה חדשה",
+                }}
               />
               <Stack.Screen
                 name="ShoppingList"
