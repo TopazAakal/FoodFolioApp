@@ -24,6 +24,7 @@ import {
 } from "react-native-responsive-screen";
 
 I18nManager.forceRTL(true);
+I18nManager.allowRTL(true);
 
 const Stack = createStackNavigator();
 

@@ -6,7 +6,6 @@ import MealPlanningScreen from "../screens/MealPlanningScreen";
 import AllCategoriesScreen from "../screens/AllCategoriesScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { View, Platform } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -16,19 +15,19 @@ const Tab = createBottomTabNavigator();
 
 function MyTabs() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <Tab.Navigator
         backBehavior="initialRoute"
         initialRouteName="Home Screen"
         screenOptions={({ route }) => ({
           headerStyle: {
             backgroundColor: "#fff",
-            height: hp("8%"),
+            height: hp("10%"),
           },
           headerTintColor: "black",
           headerTitleStyle: {
             fontWeight: "bold",
-            fontSize: wp("5.8%"),
+            fontSize: wp("5%"),
           },
           headerTitleAlign: "right",
           headerBackTitleVisible: false,
@@ -125,7 +124,9 @@ function MyTabs() {
           component={HomeScreen}
           options={{
             title: "ראשי",
-            headerShown: false,
+            headerStyle: {
+              height: hp("3.5%"),
+            },
           }}
         />
         <Tab.Screen
@@ -139,7 +140,7 @@ function MyTabs() {
           options={{ title: "לוח ארוחות" }}
         />
       </Tab.Navigator>
-    </SafeAreaView>
+    </View>
   );
 }
 
