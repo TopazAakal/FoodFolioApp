@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, Platform } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -12,9 +12,9 @@ import RecipeDeatailScreen from "./screens/RecipeDetailScreen";
 import AllRecipesScreen from "./screens/AllRecipesScreen";
 import AllCategoriesScreen from "./screens/AllCategoriesScreen";
 import CategoryRecipesScreen from "./screens/CategoryRecipesScreen";
-import AddCategoryScreen from "./screens/AddCategoryScreen";
 import AddRecipeByUrlScreen from "./screens/AddRecipeByUrlScreen";
-import AddRecipeByImageScreen from "./screens/AddRecipeByImageScreen";
+import AddCategoryScreen from "./screens/AddCategory/AddCategoryScreen";
+import AddRecipeByImageScreen from "./screens/AddRecipeByImage/AddRecipeByImageScreen";
 import ShoppingListScreen from "./screens/ShoppingListScreen";
 import MealPlanningScreen from "./screens/MealPlanningScreen";
 import MyTabs from "./components/MyTabs";
@@ -25,6 +25,7 @@ const Stack = createStackNavigator();
 
 export default function App() {
   const [dbInitialized, setDbInitialized] = useState(false);
+  const headerHeight = Platform.OS === "ios" ? 50 : 56;
 
   useEffect(() => {
     async function loadResourcesAndDataAsync() {
@@ -57,12 +58,12 @@ export default function App() {
               screenOptions={{
                 headerStyle: {
                   backgroundColor: "#fff",
-                  height: 110,
+                  height: headerHeight,
                 },
                 headerTintColor: "black",
                 headerTitleStyle: {
                   fontWeight: "bold",
-                  fontSize: 22,
+                  fontSize: 20,
                 },
                 headerTitleAlign: "right",
                 headerBackTitleVisible: false,

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { View, TextInput, StyleSheet, Alert } from "react-native";
-import { insertCategory } from "../util/database";
-import ImagePicker from "../components/UI/ImagePicker";
-import PrimaryButton from "../components/UI/PrimaryButton";
-import colors from "../constants/colors";
+import { insertCategory } from "../../util/database";
+import ImagePicker from "../../components/UI/ImagePicker";
+import PrimaryButton from "../../components/UI/PrimaryButton";
+import colors from "../../constants/colors";
 
 const AddCategoryScreen = ({ navigation }) => {
   const [categoryName, setCategoryName] = useState("");

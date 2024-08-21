@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { readAsStringAsync, EncodingType } from "expo-file-system";
 import axios from "axios";
-import { insertRecipeWithCategories } from "../util/database";
-import ImagePicker from "../components/UI/ImagePicker";
-import PrimaryButton from "../components/UI/PrimaryButton";
-import LoadingOverlay from "../components/UI/LoadingOverlay";
+import { insertRecipeWithCategories } from "../../util/database";
+import ImagePicker from "../../components/UI/ImagePicker";
+import PrimaryButton from "../../components/UI/PrimaryButton";
+import LoadingOverlay from "../../components/UI/LoadingOverlay";
 
 function AddRecipeByImageScreen({ navigation }) {
   const [imageUri, setImageUri] = useState(null);
@@ -19,12 +19,15 @@ function AddRecipeByImageScreen({ navigation }) {
       return;
     }
 
+    console.log("Setting loading to true");
+    setLoading(true);
+    console.log("Loading State:", loading);
+
     const base64Image = await readAsStringAsync(imageUri, {
       encoding: EncodingType.Base64,
     });
 
     try {
-      setLoading(true);
       const response = await axios.post(
         "https://ilwcjy1wk4.execute-api.us-east-1.amazonaws.com/dev/",
         {
@@ -41,7 +44,6 @@ function AddRecipeByImageScreen({ navigation }) {
               {
                 text: "אישור",
                 onPress: () => {
-                  setLoading(false);
                   navigation.reset({
                     index: 0,
                     routes: [{ name: "Home" }],
@@ -66,11 +68,10 @@ function AddRecipeByImageScreen({ navigation }) {
         setDetectedText(detectedJson);
       } catch (error) {
         console.error("Error parsing JSON:", error);
-        setLoading(false);
         return;
       }
     } catch (error) {
-      setLoading(false);
+      console.error("Error calling API:", error);
     }
   };
 
