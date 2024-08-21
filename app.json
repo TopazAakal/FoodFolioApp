@@ -25,11 +25,9 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "android.permission.SCHEDULE_EXACT_ALARM",
         "android.permission.CAMERA",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO"
       ],
       "package": "com.afikdanan.FoodfolioProject"
     },
