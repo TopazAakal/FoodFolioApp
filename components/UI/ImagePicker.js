@@ -81,8 +81,10 @@ function ImagePicker({ onTakeImage, initialImage, style }) {
 
     const image = await launchCameraAsync({
       allowsEditing: false,
+      maxWidth: 1024,
+      maxHeight: 1024,
       // aspect: [3, 4],
-      quality: 1,
+      quality: 0.9,
     });
 
     if (!image.canceled) {

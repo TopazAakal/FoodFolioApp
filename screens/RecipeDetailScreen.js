@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   recipeTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "left",
+    textAlign: "center",
     flex: 1,
     marginBottom: 10,
   },
