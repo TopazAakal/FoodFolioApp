@@ -23,9 +23,7 @@ function AddRecipeByImageScreen({ navigation }) {
       return;
     }
 
-    console.log("Setting loading to true");
     setLoading(true);
-    console.log("Loading State:", loading);
 
     const base64Image = await readAsStringAsync(imageUri, {
       encoding: EncodingType.Base64,
