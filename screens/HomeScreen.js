@@ -359,7 +359,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   moreButton: {
-    paddingTop: hp("0.5%"),
     backgroundColor: "transparent",
     flexDirection: "row",
     alignItems: "center",
@@ -383,6 +382,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     marginBottom: isSmallScreenHeight ? hp("1.5%") : hp("2.5%"),
+    marginTop: hp("1%"),
   },
   searchContainer: {
     flex: 1,
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
 
   mealTitle: {
     width: "75%",
-    fontSize: wp("3%"),
+    fontSize: wp("3.3%"),
     textAlign: "left",
     fontWeight: "bold",
     marginLeft: wp("1%"), // Adjusted margin
@@ -447,6 +447,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: hp("2.5%"),
     marginRight: wp("0%"),
+    marginTop: hp("0.5%"),
   },
 
   mealInfo: {
@@ -479,13 +480,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "left",
     marginLeft: wp("1.25%"),
+    paddingTop: hp("0.75%"),
   },
 
   // ==== Categories styles =====
   latestList: {
     flexGrow: 0,
     backgroundColor: "transparent",
-    marginBottom: hp("1%"),
+    marginBottom: hp("0.5%"),
   },
 
   // ==== Headers styles =====
@@ -494,7 +496,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: hp("0.75%"),
+    marginBottom: hp("1%"),
   },
   interestHeader: {
     flexDirection: "row",
@@ -502,7 +504,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     width: "100%",
-    marginBottom: hp("0.75%"),
+    marginBottom: hp("1%"),
   },
 
   mealsHeader: {
@@ -510,7 +512,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: hp("0.75%"),
+    marginBottom: hp("1%"),
   },
 
   // ==== Categories styles =====
@@ -539,8 +541,8 @@ const styles = StyleSheet.create({
   },
   categoriesList: {
     backgroundColor: "transparent",
-    height: hp("4.5%"),
-    marginBottom: hp("1%"),
+    height: hp("4.2%"),
+    marginBottom: hp("0.6%"),
   },
   categoryRecipesList: {
     backgroundColor: "transparent",

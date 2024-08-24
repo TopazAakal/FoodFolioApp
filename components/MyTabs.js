@@ -96,8 +96,8 @@ function MyTabs() {
           tabBarActiveTintColor: "#4CAF50", // Active icon color
           tabBarInactiveTintColor: "gray", // Inactive icon color
           tabBarStyle: {
-            height: hp("8.8%"), // Set the height to 60
-            paddingBottom: hp("1.8%"), // Adjust padding below text
+            height: hp("7.4%"), // Set the height to 60
+            paddingBottom: hp("1.6%"), // Adjust padding below text
             paddingTop: hp("0.5%"), // Adjust padding above icons
             paddingHorizontal: wp("2.2%"), // Add horizontal padding
           },
@@ -126,7 +126,7 @@ function MyTabs() {
             title: "",
             tabBarLabel: "ראשי",
             headerStyle: {
-              height: hp("5%"),
+              height: hp("5.8%"),
             },
           }}
         />
