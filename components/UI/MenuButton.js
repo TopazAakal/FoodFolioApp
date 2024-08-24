@@ -8,6 +8,10 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import colors from "../../constants/colors";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const MenuButton = ({
   navigation,
@@ -45,7 +49,7 @@ const MenuButton = ({
         </View>
       )}
       <TouchableOpacity onPress={toggleMenu} style={[styles.fab, fabStyle]}>
-        <Ionicons name="add" size={26} color="#FFFFFF" />
+        <Ionicons name="add" size={wp("7%")} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );
@@ -59,36 +63,36 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: wp("15%"),
+    height: wp("15%"),
+    borderRadius: wp("7.5%"),
     backgroundColor: colors.secondaryGreen,
     justifyContent: "center",
     alignItems: "center",
   },
   menu: {
     backgroundColor: "white",
-    borderRadius: 8,
+    borderRadius: wp("2%"),
     borderColor: "#ccc",
     borderWidth: 1,
     elevation: 6,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-    width: 180,
+    shadowRadius: wp("0.5%"),
+    paddingVertical: hp("0.5%"),
+    paddingHorizontal: wp("1.8%"),
+    width: wp("50%"),
     position: "absolute",
+    alignItems: "right",
   },
   menuItem: {
     fontWeight: "bold",
-    paddingVertical: 8,
-    paddingHorizontal: 5,
-    alignItems: "flex-start",
+    paddingVertical: hp("1.2%"),
+    paddingHorizontal: wp("1.5%"),
   },
   menuText: {
-    fontSize: 16,
-    paddingHorizontal: 5,
+    fontSize: wp("4%"),
+    paddingHorizontal: wp("2.5%"),
   },
 });

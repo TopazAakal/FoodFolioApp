@@ -6,6 +6,10 @@ import { MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import PrimaryButton from "../components/UI/PrimaryButton";
 import LoadingOverlay from "../components/UI/LoadingOverlay";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 function AddRecipeByUrlScreen({ navigation }) {
   const [recipeUrl, setRecipeUrl] = useState("");
@@ -14,6 +18,7 @@ function AddRecipeByUrlScreen({ navigation }) {
 
   const handleSaveRecipe = async () => {
     console.log("URL submitted:", recipeUrl);
+    const encodedUrl = encodeURIComponent(recipeUrl);
     try {
       if (!recipeUrl) {
         Alert.alert("שגיאה", "אנא הזן קישור למתכון", [{ text: "אישור" }]);
@@ -23,10 +28,11 @@ function AddRecipeByUrlScreen({ navigation }) {
       const response = await axios.post(
         "https://ilwcjy1wk4.execute-api.us-east-1.amazonaws.com/dev/",
         {
-          URL: String(recipeUrl),
+          URL: encodedUrl,
         }
       );
       try {
+        console.log("Response:", response.data.body);
         const data = JSON.parse(response.data.body);
         const resultString = data.result
           .replace(/\\n/g, "")
@@ -106,7 +112,7 @@ function AddRecipeByUrlScreen({ navigation }) {
   const showSupportedSites = () => {
     Alert.alert(
       "רשימת אתרים נתמכים",
-      "\n- 10 דקות\n- אליטה אופק\n- עדיקוש\n- ענת אלישע\n- דניאל עמית\n- השולחן\n- לייזה פאנלים\n- רחלי Krutit\n- שירי עמית  ",
+      "\n- אליטה אופק \n- דניאל עמית \n- עדיקוש \n- השולחן \n- קובי אדרי \n- לייזה פאנלים \n- ענת אלישע \n- רון יוחננוב \n- שירי עמית \n- פודי \n- רחלי Krutit",
       [{ text: "סגור", style: "cancel" }]
     );
   };
@@ -130,8 +136,9 @@ function AddRecipeByUrlScreen({ navigation }) {
         <MaterialIcons
           styles={styles.infoIcon}
           name="info-outline"
-          size={30}
-          padding={10}
+          size={wp("7.5%")}
+          paddingTop={wp("4%")}
+          marginLeft={wp("1.5%")}
           color="black"
           onPress={showSupportedSites}
           style={styles.infoIcon}
@@ -157,37 +164,37 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexGrow: 1,
-    padding: 10,
+    padding: wp("2.5%"),
   },
   elementContainer: {
     flexDirection: "row",
-    marginBottom: 20,
+    marginBottom: hp("2.5%"),
   },
   form: {
     flex: 1,
-    marginTop: 10,
-    marginLeft: 10,
-    paddingLeft: 10,
+    marginTop: hp("1.25%"),
+    marginLeft: wp("2.5%"),
+    paddingLeft: wp("2.5%"),
   },
   infoIcon: {
     flex: 0.1,
-    marginTop: 5,
+    marginTop: hp("0.625%"),
   },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 7,
-    fontSize: 16,
+    padding: hp("1.25%"), // Adjust padding to be responsive
+    borderRadius: wp("1.75%"), // Adjust border radius
+    fontSize: wp("4%"), // Adjust font size
     width: "100%",
-    marginBottom: 20,
-    paddingHorizontal: 15,
+    marginBottom: hp("2.5%"), // Adjust margin bottom
+    paddingHorizontal: wp("3.75%"), // Adjust horizontal padding
     textAlign: "right",
   },
   button: {
     position: "absolute",
-    bottom: 20,
-    left: 10,
-    right: 20,
+    bottom: hp("2.5%"), // Adjust position from bottom
+    left: wp("2.5%"), // Adjust position from left
+    right: wp("5%"),
   },
 });

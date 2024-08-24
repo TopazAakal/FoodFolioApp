@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import colors from "../constants/colors";
 
 const IngredientItem = ({ ingredient }) => {
   const [isChecked, setIsChecked] = useState(false);
@@ -11,7 +16,7 @@ const IngredientItem = ({ ingredient }) => {
     <TouchableOpacity onPress={toggleCheck} style={styles.ingredientItem}>
       {isChecked ? (
         <View style={styles.checkboxChecked}>
-          <Ionicons name="checkmark" size={16} color="white" />
+          <Ionicons name="checkmark" size={wp("4%")} color="white" />
         </View>
       ) : (
         <View style={styles.checkbox} />
@@ -29,29 +34,29 @@ const styles = StyleSheet.create({
   ingredientItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 2,
-    marginBottom: 8,
+    marginVertical: hp("0.5%"),
+    marginBottom: hp("1%"),
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
+    width: wp("5%"),
+    height: wp("5%"),
+    borderRadius: wp("2.5%"),
+    borderWidth: wp("0.5%"),
     borderColor: "black",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
+    marginRight: wp("2.5%"),
   },
   checkboxChecked: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#4CAF50",
+    width: wp("5%"),
+    height: wp("5%"),
+    borderRadius: wp("2.5%"),
+    backgroundColor: colors.secondaryGreen,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
+    marginRight: wp("2.5%"),
   },
   ingredientText: {
-    fontSize: 16,
+    fontSize: wp("4%"),
   },
 });

@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, Animated } from "react-native";
 import { Svg, Circle } from "react-native-svg";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const Timer = ({ initialTime = 3661, onComplete }) => {
   const [time, setTime] = useState(initialTime);
-  const radius = 60; // Radius of the circle
-  const strokeWidth = 13; // Stroke width of the circle
+  const radius = wp("15%"); // Radius of the circle
+  const strokeWidth = wp("3.2%"); // Stroke width of the circle
   const svgSize = (radius + strokeWidth) * 2;
   const circumference = 2 * Math.PI * radius;
   const animation = useRef(new Animated.Value(0)).current;
@@ -87,11 +91,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
-    padding: 20,
+    padding: wp("5%"),
   },
   timerText: {
     position: "absolute",
-    fontSize: 24,
+    fontSize: hp("3%"),
     fontWeight: "bold",
     color: "#333",
   },

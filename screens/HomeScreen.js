@@ -32,6 +32,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState([]);

@@ -17,6 +17,10 @@ import { Ionicons } from "@expo/vector-icons";
 import getImageSource from "../util/image";
 import SecondaryButton from "../components/UI/SecondaryButton";
 import colors from "../constants/colors";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -110,7 +114,7 @@ const CategoryRecipesScreen = ({ navigation, route }) => {
         onPress={addRecipeHandler}
         style={styles.addButton}
       >
-        <Ionicons name="add" size={30} style={styles.addButtonIcon} />
+        <Ionicons name="add" size={wp("8%")} style={styles.addButtonIcon} />
       </SecondaryButton>
     </View>
   );

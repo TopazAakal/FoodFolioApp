@@ -26,6 +26,10 @@ import {
   insertRecipeWithCategories,
   fetchRecipeById,
 } from "../util/database";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const defaultImage = "../images/recipe_placeholder.jpg";
 
@@ -447,10 +451,10 @@ function AddRecipeManuallyScreen() {
             onPress={addIngredientHandler}
             style={styles.addButton}
           >
-            <Ionicons name="add" size={30} style={styles.addButtonIcon} />
+            <Ionicons name="add" size={wp("8%")} style={styles.addButtonIcon} />
           </SecondaryButton>
         </View>
-        <View style={{ flexDirection: "row", marginBottom: 10 }}>
+        <View style={{ flexDirection: "row", marginBottom: hp("2%") }}>
           <Text style={styles.title}>הוראות הכנה</Text>
         </View>
         <LabeledInput
@@ -498,111 +502,111 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   form: {
-    margin: 20,
+    margin: wp("5%"),
   },
   title: {
-    fontSize: 18,
+    fontSize: wp("5%"),
     fontWeight: "bold",
     color: colors.dark,
     textAlign: "left",
-    marginBottom: 5,
+    marginBottom: hp("1%"),
     alignSelf: "flex-end",
     width: "100%",
   },
   ingredientSection: {
-    marginBottom: 20,
+    marginBottom: hp("2%"),
     justifyContent: "flex-end",
   },
   ingredientInputContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: hp("1%"),
   },
   ingredientInput: {
     flex: 1.5,
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: wp("2.5%"),
     borderColor: colors.light,
-    paddingVertical: 10,
-    fontSize: 16,
+    paddingVertical: hp("1.5%"),
+    fontSize: wp("4%"),
     textAlign: "center",
-    marginRight: 10,
+    marginRight: wp("2%"),
   },
   quantityInput: {
     flex: 0.8,
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: wp("2.5%"),
     borderColor: colors.light,
-    paddingVertical: 10,
-    fontSize: 16,
-    width: 50,
+    paddingVertical: hp("1.5%"),
+    fontSize: wp("4%"),
+    width: wp("12%"),
     textAlign: "center",
-    marginRight: 10,
+    marginRight: wp("2%"),
   },
   unitPickerContainer: {
     flex: 2,
-    borderRadius: 10,
+    borderRadius: wp("2.5%"),
     borderColor: colors.light,
     overflow: "hidden",
   },
   departmentPickerContainer: {
     flex: 2.8,
-    borderRadius: 10,
+    borderRadius: wp("2.5%"),
     borderColor: colors.light,
     overflow: "hidden",
   },
   unitPicker: {
-    height: 45,
+    height: hp("5%"),
     justifyContent: "center",
   },
   departmentPicker: {
-    height: 45,
+    height: hp("5%"),
     justifyContent: "center",
   },
   pickerItemStyle: {
-    fontSize: 16,
+    fontSize: wp("4%"),
     color: "#4f4d4d",
   },
   addButton: {
     flexDirection: "row-reverse",
     alignSelf: "center",
     width: "auto",
-    marginTop: 15,
+    marginTop: hp("2%"),
   },
   addButtonIcon: {
     color: colors.secondaryGreen,
-    fontSize: 22,
-    paddingRight: 5,
+    fontSize: wp("5.5%"),
+    paddingRight: wp("2%"),
   },
   ingredientListItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: colors.lightGray,
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    marginVertical: 5,
-    borderRadius: 5,
+    paddingVertical: hp("1.5%"),
+    paddingHorizontal: wp("3"),
+    marginVertical: hp("1%"),
+    borderRadius: wp("2%"),
   },
   ingredientText: {
-    fontSize: 16,
+    fontSize: wp("4%"),
     color: colors.customGray,
     textAlign: "right",
-    paddingRight: 10,
+    paddingRight: wp("3%"),
   },
   editButton: {
-    padding: 5,
-    marginRight: 5,
+    padding: wp("2%"),
+    marginRight: wp("2%"),
   },
   deleteButton: {
-    padding: 5,
+    padding: wp("2%"),
   },
   categoryButton: {
     backgroundColor: "white",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+    padding: wp("2.5%"),
+    borderRadius: wp("2.5%"),
+    marginBottom: hp("2.5%"),
     borderColor: colors.light,
     borderWidth: 1,
     elevation: 1,
@@ -610,12 +614,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    height: 50,
+    height: hp("7%"),
     justifyContent: "center",
     alignItems: "right",
   },
   categoryButtonText: {
-    fontSize: 16,
+    fontSize: wp("4%"),
     color: "#838181a8",
     textAlign: "right",
   },

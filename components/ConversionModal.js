@@ -9,6 +9,11 @@ import {
   Alert,
 } from "react-native";
 import { MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import colors from "../constants/colors";
 
 const ConversionModal = ({
   isVisible,
@@ -193,85 +198,86 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    width: "80%",
+    width: wp("80%"),
     backgroundColor: "white",
-    padding: 20,
-    borderRadius: 15,
+    padding: hp("2.5%"),
+    borderRadius: wp("4%"),
     alignItems: "center",
-    borderWidth: 5,
+    borderWidth: wp("1%"),
     borderColor: "black",
   },
   titleContainer: {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 30,
+    marginBottom: hp("4"),
   },
   modalTitle: {
-    fontSize: 25,
+    fontSize: wp("6%"),
     fontWeight: "bold",
-    marginTop: 10,
-    marginBottom: 10,
+    marginTop: hp("1.5%"),
+    marginBottom: hp("1.5%"),
     textAlign: "center",
   },
   radioGroup: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 20,
-    width: "90%",
+    justifyContent: "space-evenly",
+    marginBottom: hp("2.5%"),
+    width: wp("90%"),
+    paddingHorizontal: wp("5%"),
   },
   radioOption: {
     flexDirection: "row",
     alignItems: "center",
   },
   radioCircle: {
-    height: 20,
-    width: 20,
-    borderRadius: 10,
-    borderWidth: 2,
+    height: wp("5%"),
+    width: wp("5%"),
+    borderRadius: wp("2.5%"),
+    borderWidth: wp("0.5%"),
     borderColor: "#000",
-    marginRight: 7,
+    marginRight: wp("2%"),
   },
   selectedRadio: {
     backgroundColor: "#000",
   },
   radioText: {
-    fontSize: 16,
+    fontSize: wp("4%"),
     fontWeight: "bold",
   },
   inputContainer: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    marginTop: 20,
-    marginBottom: 40,
+    marginTop: hp("2.5%"),
+    marginBottom: hp("5%"),
   },
   input: {
-    height: 38,
+    height: hp("5%"),
     borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 5,
-    width: "20%",
+    borderRadius: wp("2%"),
+    width: wp("20%"),
     textAlign: "center",
   },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-around",
-    width: "70%",
-    marginBottom: 15,
+    width: wp("70%"),
+    marginBottom: hp("2%"),
   },
   modalButton: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    backgroundColor: colors.secondaryGreen,
+    paddingVertical: hp("1.5%"),
+    paddingHorizontal: wp("5%"),
+    borderRadius: wp("2%"),
   },
   modalButtonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: wp("4%"),
     fontWeight: "bold",
   },
   cancelButton: {
-    backgroundColor: "#cccccc",
+    backgroundColor: colors.light,
   },
 });
 

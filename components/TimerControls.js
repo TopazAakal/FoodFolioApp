@@ -3,6 +3,11 @@ import { View, TouchableOpacity, Text, StyleSheet, Alert } from "react-native";
 import Timer from "../components/UI/Timer";
 import { Picker } from "@react-native-picker/picker";
 import { Entypo } from "@expo/vector-icons";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import colors from "../constants/colors";
 
 const TimerControls = () => {
   const [timers, setTimers] = useState([]);
@@ -49,7 +54,7 @@ const TimerControls = () => {
     <View>
       <View style={styles.addTimerContainer}>
         <TouchableOpacity style={styles.addTimerBtn} onPress={addTimer}>
-          <Entypo name="time-slot" size={30} color="white" />
+          <Entypo name="time-slot" size={wp("8%")} color="white" />
           <Text style={styles.addTimerBtnText}>הוסף טיימר </Text>
         </TouchableOpacity>
       </View>
@@ -135,78 +140,76 @@ const styles = StyleSheet.create({
   timersContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginHorizontal: 4,
+    marginHorizontal: wp("1%"),
+    justifyContent: "center",
   },
   timerControl: {
-    width: "49%",
-    padding: 10,
-    marginVertical: 10,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 10,
+    width: wp("95%"),
+    padding: wp("2.5%"),
+    marginVertical: hp("1.25%"),
+    backgroundColor: colors.lightGray,
+    borderRadius: wp("2.5%"),
   },
   pickerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: colors.lightGray,
   },
   individualPickerContainer: {
     flex: 1,
     alignItems: "center",
   },
   picker: {
-    marginHorizontal: 0,
-    paddingHorizontal: 0,
-    width: 95,
+    width: wp("40%"),
   },
   pickerItem: {
-    fontSize: 12,
-    height: 120,
+    fontSize: wp("3%"),
+    height: hp("15%"),
   },
   buttonsContainer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: -10,
-    marginBottom: 20,
+
+    marginBottom: hp("1%"),
   },
   circleButton: {
-    backgroundColor: "#4CAF50",
-    borderRadius: 50,
-    width: 80,
-    height: 80,
+    backgroundColor: colors.secondaryGreen,
+    borderRadius: wp("20%"),
+    width: wp("16%"),
+    height: wp("16%"),
     justifyContent: "center",
     alignItems: "center",
-    marginHorizontal: 10,
+    marginHorizontal: wp("2.5%"),
   },
   cancelButton: {
-    backgroundColor: "#cccccc",
+    backgroundColor: colors.light,
   },
   buttonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: wp("3%"),
     fontWeight: "bold",
   },
   addTimerContainer: {
-    marginLeft: 10,
-    paddingBottom: 5,
+    marginLeft: wp("2.5%"),
+    paddingBottom: hp("1.25%"),
   },
   addTimerBtn: {
     backgroundColor: "black",
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 20,
+    paddingHorizontal: wp("2.5%"),
+    paddingVertical: hp("0.875%"),
+    borderRadius: wp("5%"),
     flexDirection: "row-reverse",
     alignItems: "center",
     justifyContent: "center",
-    width: "35%",
-    marginBottom: 10,
+    width: wp("35%"),
+    marginBottom: hp("1.25%"),
   },
   addTimerBtnText: {
     color: "white",
-    fontSize: 16,
-    paddingRight: 8,
+    fontSize: wp("3.5%"),
+    paddingRight: wp("2%"),
     fontWeight: "bold",
   },
 });

@@ -31,6 +31,10 @@ import { AntDesign } from "@expo/vector-icons";
 import getImageSource from "../util/image";
 import { daysOfWeek, mealTypes } from "../constants/recipeConstants";
 import colors from "../constants/colors";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 function MealPlanningScreen({ navigation }) {
   const [recipes, setRecipes] = useState([]);
@@ -280,13 +284,13 @@ function MealPlanningScreen({ navigation }) {
                   style={styles.deleteIcon}
                   onPress={() => handleDeleteMeal(mealType)}
                 >
-                  <Ionicons name="trash" size={20} color="#FF6347" />
+                  <Ionicons name="trash" size={wp("5%")} color="#FF6347" />
                 </TouchableOpacity>
               )}
             </View>
           ) : (
             <View style={styles.addMealButton}>
-              <Ionicons name="add" size={24} color="#4CAF50" />
+              <Ionicons name="add" size={wp("6%")} color="#4CAF50" />
               <Text style={styles.addMealText}>הוסף מתכון</Text>
             </View>
           )}
@@ -337,26 +341,33 @@ function MealPlanningScreen({ navigation }) {
     navigation.setOptions({
       headerRight: () => (
         <View style={{ position: "relative" }}>
-          <TouchableOpacity onPress={toggleMenu} style={{ paddingRight: 15 }}>
-            <Ionicons name="ellipsis-vertical-circle" size={28} color="black" />
+          <TouchableOpacity
+            onPress={toggleMenu}
+            style={{ paddingRight: wp("5%") }}
+          >
+            <Ionicons
+              name="ellipsis-vertical-circle"
+              size={wp("7%")}
+              color="black"
+            />
           </TouchableOpacity>
           {menuVisible && (
             <View
               style={{
                 position: "absolute",
-                top: 20,
-                right: 30,
+                top: hp("2.8%"),
+                right: wp("10%"),
                 backgroundColor: "white",
                 borderRadius: 8,
-                paddingHorizontal: 3,
-                paddingVertical: 5,
+                paddingHorizontal: wp("2%"),
+                paddingVertical: hp("1%"),
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.8,
                 shadowRadius: 2,
                 elevation: 5,
                 zIndex: 1000,
-                width: "70%",
+                width: wp("40%"),
               }}
             >
               <TouchableOpacity
@@ -382,11 +393,11 @@ function MealPlanningScreen({ navigation }) {
             onPress={handlePreviousDay}
             style={styles.arrowButton}
           >
-            <AntDesign name="right" size={16} color="#2A3631" />
+            <AntDesign name="right" size={wp("4%")} color="#2A3631" />
           </TouchableOpacity>
           <Text style={styles.dayText}>{daysWithDates[selectedDayIndex]}</Text>
           <TouchableOpacity onPress={handleNextDay} style={styles.arrowButton}>
-            <AntDesign name="left" size={16} color="#2A3631" />
+            <AntDesign name="left" size={wp("4%")} color="#2A3631" />
           </TouchableOpacity>
         </View>
         <View style={styles.listsContainer}>
@@ -431,16 +442,16 @@ const styles = StyleSheet.create({
   daySelector: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 20,
+    marginVertical: hp("2%"),
     alignSelf: "center",
     position: "relative",
     zIndex: 10,
   },
   arrowButton: {
-    paddingHorizontal: 40,
+    paddingHorizontal: wp("10%"),
   },
   dayText: {
-    fontSize: 18,
+    fontSize: wp("4.5%"),
     fontWeight: "bold",
     color: "#2A3631",
   },
@@ -449,73 +460,64 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    marginHorizontal: 20,
+    marginHorizontal: wp("5%"),
   },
   mealWrapper: {
-    width: "48%",
+    width: wp("43%"),
   },
   mealContainer: {
-    marginBottom: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: hp("2%"),
+    paddingHorizontal: wp("5%"),
+    paddingVertical: hp("1%"),
     borderWidth: 1,
     borderColor: "#ccc",
     alignContent: "center",
-    borderRadius: 10,
-    height: 160,
+    borderRadius: wp("2.5%"),
+    height: hp("20%"),
   },
   mealContainerHovered: {
     backgroundColor: "rgba(0, 0, 0, 0.2)",
   },
   mealImage: {
     aspectRatio: 1,
-    width: 140,
-    height: 100,
-    borderRadius: 10,
+    height: hp("13%"),
+    borderRadius: wp("2.5%"),
+    marginTop: hp("1%"),
     alignSelf: "center",
   },
   mealTitle: {
-    fontSize: 14,
+    fontSize: wp("3.5%"),
     fontWeight: "bold",
     textAlign: "center",
     color: "#666",
-    paddingVertical: 5,
+    paddingVertical: hp("1%"),
   },
   mealType: {
     color: "#4d4c4c",
-    fontSize: 16,
+    fontSize: wp("4%"),
     textAlign: "center",
-    paddingBottom: 3,
-    paddingLeft: 5,
+    paddingBottom: hp("1%"),
+    paddingLeft: wp("1%"),
     fontWeight: "bold",
   },
   addMealButton: {
     position: "absolute",
-    top: "38%",
-    left: "38%",
     alignItems: "center",
   },
   addMealText: {
-    marginTop: 5,
+    marginTop: hp("0.5%"),
     color: colors.secondaryGreen,
     alignContent: "center",
   },
-  recipeItem: {
-    padding: 15,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  recipeItemText: {
-    fontWeight: "bold",
-    color: "#000",
-  },
+
   clearButton: {
-    marginBottom: 10,
-    padding: 10,
+    marginBottom: hp("2%"),
+    padding: wp("3%"),
     backgroundColor: "#ff6347",
-    borderRadius: 10,
-    width: "40%",
+    borderRadius: wp("10%"),
+    width: wp("40%"),
     alignSelf: "center",
   },
   clearButtonText: {
@@ -524,38 +526,38 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   recipeCard: {
-    width: 170,
-    marginRight: 15,
-    borderRadius: 10,
+    width: wp("40%"),
+    marginRight: wp("5%"),
+    borderRadius: wp("2%"),
     overflow: "hidden",
   },
   recipeImage: {
     width: "100%",
-    height: 120,
-    borderRadius: 10,
+    height: hp("15%"),
+    borderRadius: wp("2%"),
   },
   recipeTitle: {
-    fontSize: 16,
+    fontSize: wp("4%"),
     fontWeight: "bold",
-    marginTop: 5,
+    marginTop: hp("1%"),
     textAlign: "left",
   },
   categoriesList: {
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: hp("2%"),
   },
   categoryItem: {
     backgroundColor: "white",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: wp("2%"),
+    paddingVertical: hp("1%"),
+    borderRadius: wp("2%"),
     borderWidth: 1,
     borderColor: "#ebeeec",
-    marginHorizontal: 5,
+    marginHorizontal: wp("1%"),
   },
   categoryText: {
     color: "#acacac",
-    fontSize: 14,
+    fontSize: wp("3.5%"),
   },
   selectedCategoryItem: {
     backgroundColor: colors.secondaryGreen,
@@ -566,17 +568,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   listsContainer: {
-    paddingHorizontal: 10,
-    paddingVertical: 20,
-    marginHorizontal: 10,
-    marginBottom: 20,
-    backgroundColor: "#F8F9F8",
+    paddingHorizontal: wp("2%"),
+    paddingVertical: hp("2%"),
+    marginHorizontal: wp("2%"),
+    marginBottom: hp("2%"),
+    // backgroundColor: "#F8F9F8",
     zIndex: 0,
   },
   recipeList: {},
   dragging: {
-    width: 170,
-    height: 150,
+    width: wp("40%"),
+    height: hp("20%"),
     opacity: 0.3,
   },
   draggingReleased: {
@@ -584,18 +586,18 @@ const styles = StyleSheet.create({
   },
   deleteIcon: {
     position: "absolute",
-    top: 10,
-    right: 10,
+    top: hp("2%"),
+    right: wp("2%"),
     backgroundColor: "rgba(255, 255, 255, 0.7)",
-    borderRadius: 12,
-    padding: 3,
+    borderRadius: wp("2%"),
+    padding: wp("2%"),
   },
 
   menuItem: {
-    paddingVertical: 3,
+    paddingVertical: hp("1%"),
   },
   menuText: {
-    fontSize: 16,
+    fontSize: wp("4%"),
     color: "black",
     textAlign: "center",
   },

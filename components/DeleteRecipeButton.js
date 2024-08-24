@@ -1,6 +1,10 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, Alert } from "react-native";
 import { deleteRecipeById } from "../util/database";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const DeleteRecipeButton = ({ navigation, recipeId, onPress }) => {
   const handleDelete = () => {
@@ -51,15 +55,15 @@ const DeleteRecipeButton = ({ navigation, recipeId, onPress }) => {
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 10,
-    width: "100%",
+    borderRadius: wp("5%"),
+    width: wp("32.5%"),
     alignItems: "center",
-    padding: 7,
+    padding: wp("1%"),
   },
   deleteButton: {},
   buttonText: {
     color: "black",
-    fontSize: 16,
+    fontSize: wp("4%"), 
   },
 });
 

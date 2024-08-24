@@ -13,6 +13,10 @@ import { useFocusEffect } from "@react-navigation/native";
 import { fetchAllCategories, deleteCategoryById } from "../util/database";
 import SecondaryButton from "../components/UI/SecondaryButton";
 import colors from "../constants/colors";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -73,7 +77,7 @@ const AllCategoriesScreen = ({ navigation }) => {
           style={styles.deleteIcon}
           onPress={() => handleDeleteCategory(item.id)}
         >
-          <Ionicons name="trash" size={24} color="#df3119" />
+          <Ionicons name="trash" size={wp("6%")} color="#df3119" />
         </TouchableOpacity>
       )}
     </View>
@@ -93,7 +97,7 @@ const AllCategoriesScreen = ({ navigation }) => {
         onPress={() => navigation.navigate("AddCategory")}
         style={styles.addButton}
       >
-        <Ionicons name="add" size={30} style={styles.addButtonIcon} />
+        <Ionicons name="add" size={wp("8%")} style={styles.addButtonIcon} />
       </SecondaryButton>
     </View>
   );
@@ -107,13 +111,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   listContentContainer: {
-    paddingBottom: 60,
+    paddingBottom: hp("8%"),
   },
   cardContainer: {
-    width: windowWidth / 2 - 10,
+    width: wp("45%"),
     borderRadius: 10,
     overflow: "hidden",
-    margin: 5,
+    margin: wp("2%"),
     elevation: 3,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
@@ -122,32 +126,32 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: "100%",
-    height: windowWidth / 2 - 10,
+    height: wp("45%"),
     justifyContent: "flex-end",
     alignItems: "flex-end",
-    padding: 10,
+    padding: wp("2%"),
   },
   cardText: {
     position: "absolute",
-    left: 10,
-    bottom: 10,
+    left: wp("2%"),
+    bottom: wp("1%"),
     color: colors.white,
-    fontSize: 20,
+    fontSize: wp("4.5%"),
     fontWeight: "bold",
   },
   deleteIcon: {
     position: "absolute",
-    top: 5,
-    right: 5,
+    top: wp("2%"),
+    right: wp("2%"),
   },
   addButton: {
     flexDirection: "row-reverse",
-    width: "40%",
+    width: wp("40%"),
   },
   addButtonIcon: {
     color: colors.secondaryGreen,
-    fontSize: 22,
-    paddingRight: 5,
+    fontSize: wp("6%"),
+    paddingRight: wp("2%"),
     fontWeight: "bold",
   },
 });

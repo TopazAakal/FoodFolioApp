@@ -1,13 +1,17 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const CustomCheckbox = ({ isChecked, onCheckChange, label }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onCheckChange}>
       <Ionicons
         name={isChecked ? "checkbox" : "square-outline"}
-        size={24}
+        size={wp("6%")}
         color="#333"
       />
       <Text style={styles.label}>{label}</Text>
@@ -19,12 +23,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: hp("1.5%"),
   },
   label: {
-    marginRight: 10,
-    marginLeft: 5,
-    fontSize: 16,
+    marginRight: wp("2.5%"),
+    marginLeft: wp("1.25%"),
+    fontSize: wp("4%"),
     color: "#333",
   },
 });

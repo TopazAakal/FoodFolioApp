@@ -1,6 +1,10 @@
 import React from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import colors from "../../constants/colors";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const LoadingOverlay = ({ message = "טוען..." }) => {
   return (
@@ -27,13 +31,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.8)",
   },
   indicator: {
-    transform: [{ scale: 1.5 }],
+    transform: [{ scale: wp("10%") / 25 }],
   },
   loadingText: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: wp("4.5%"),
     fontWeight: "bold",
-    marginTop: 30,
+    marginTop: hp("4%"),
   },
 });
 

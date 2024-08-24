@@ -1,6 +1,10 @@
 import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { I18nManager } from "react-native";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -21,21 +25,21 @@ const LabeledInput = ({ label, value, onChangeText, ...props }) => {
 
 const styles = StyleSheet.create({
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: hp("2.5%"),
   },
   label: {
-    marginBottom: 10,
+    marginBottom: hp("1.25%"),
     textAlign: "right",
     fontWeight: "bold",
     color: "black",
-    fontSize: 18,
+    fontSize: wp("4.5%"),
   },
   input: {
     backgroundColor: "#ffffff",
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    fontSize: 16,
+    paddingVertical: hp("2%"),
+    paddingHorizontal: wp("2.5%"),
+    borderRadius: wp("2.5%"),
+    fontSize: wp("4%"),
     color: "#4e4e4ea8",
     borderColor: "#ccc",
     borderWidth: 1,
@@ -43,12 +47,12 @@ const styles = StyleSheet.create({
     shadowColor: "#ccc",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowRadius: wp("2.5%"),
     textAlign: "right",
   },
   multilineInput: {
-    paddingTop: 15,
-    height: 140,
+    paddingTop: hp("2%"),
+    height: hp("18%"),
     textAlignVertical: "top",
   },
 });

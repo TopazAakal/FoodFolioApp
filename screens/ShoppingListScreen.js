@@ -28,6 +28,11 @@ import {
   deleteShoppingListItems,
 } from "../util/database";
 
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+
 const departmentOrder = departments.map((department) => department.name);
 
 function ShoppingListScreen({ navigation, route }) {
@@ -310,14 +315,17 @@ function ShoppingListScreen({ navigation, route }) {
       headerRight: () =>
         !showManualInput && (
           <View style={{ flexDirection: "row" }}>
-            <TouchableOpacity onPress={clearList} style={{ marginRight: 15 }}>
-              <FontAwesome5 name="trash" size={24} color="black" />
+            <TouchableOpacity
+              onPress={clearList}
+              style={{ marginRight: wp("4%") }}
+            >
+              <FontAwesome5 name="trash" size={wp("6%")} color="black" />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleShareList}
-              style={{ marginRight: 15 }}
+              style={{ marginRight: wp("4%") }}
             >
-              <AntDesign name="sharealt" size={24} color="black" />
+              <AntDesign name="sharealt" size={wp("6%")} color="black" />
             </TouchableOpacity>
           </View>
         ),
@@ -419,7 +427,7 @@ function ShoppingListScreen({ navigation, route }) {
         <TouchableOpacity onPress={() => toggleChecked(item.id)}>
           <View style={styles.checkbox}>
             {item.checked && (
-              <FontAwesome5 name="check" size={16} color="#4CAF50" />
+              <FontAwesome5 name="check" size={wp("3.5%")} color="#4CAF50" />
             )}
           </View>
         </TouchableOpacity>
@@ -470,7 +478,7 @@ function ShoppingListScreen({ navigation, route }) {
                 setShowShoppingList(true);
               }}
             >
-              <Feather name="x" size={28} color="black" />
+              <Feather name="x" size={wp("7%")} color="black" />
             </TouchableOpacity>
           </View>
           <TextInput
@@ -504,15 +512,15 @@ function ShoppingListScreen({ navigation, route }) {
                   defaultValue={unitOptions[0].label}
                   style={styles.dropdown}
                   textStyle={styles.dropdownText}
-                  dropdownStyle={[styles.dropdownStyle, { width: "45%" }]}
+                  dropdownStyle={[styles.dropdownStyle, { width: wp("45.4%") }]}
                   dropdownTextStyle={styles.dropdownOptionText}
                   dropdownTextHighlightStyle={styles.dropdownOptionText}
                   onSelect={(index, value) =>
                     setSelectedUnit(unitOptions[index].value)
                   }
                   adjustFrame={(style) => {
-                    style.left = dropdownLeft + 225;
-                    style.top = dropdownTop + 295;
+                    style.left = dropdownLeft + wp("52%");
+                    style.top = dropdownTop + hp("24.2%");
                     return style;
                   }}
                 />
@@ -533,15 +541,15 @@ function ShoppingListScreen({ navigation, route }) {
                 defaultValue={departments[0].name}
                 style={styles.dropdown}
                 textStyle={styles.dropdownText}
-                dropdownStyle={[styles.dropdownStyle, { width: "95%" }]}
+                dropdownStyle={[styles.dropdownStyle, { width: wp("95%") }]}
                 dropdownTextStyle={styles.dropdownOptionText}
                 dropdownTextHighlightStyle={styles.dropdownOptionText}
                 onSelect={(index, value) =>
                   setSelectedDepartment(departments[index].name)
                 }
                 adjustFrame={(style) => {
-                  style.left = departmentDropdownLeft + 10;
-                  style.top = departmentDropdownTop + 165;
+                  style.left = departmentDropdownLeft + wp("2.5%");
+                  style.top = departmentDropdownTop + hp("9%");
                   return style;
                 }}
               />
@@ -550,7 +558,7 @@ function ShoppingListScreen({ navigation, route }) {
           <PrimaryButton
             title="הוסף מוצר"
             onPress={addManualIngredient}
-            style={{ marginTop: 20 }}
+            style={{ marginTop: hp("2.5%") }}
           />
         </View>
       )}
@@ -579,9 +587,9 @@ function ShoppingListScreen({ navigation, route }) {
                 style={{
                   textAlign: "center",
                   fontWeight: "bold",
-                  fontSize: 16,
+                  fontSize: wp("4.5%"),
                   color: "#666",
-                  marginTop: 40,
+                  marginTop: hp("8%"),
                 }}
               >
                 אין מוצרים ברשימה.
@@ -593,9 +601,14 @@ function ShoppingListScreen({ navigation, route }) {
       {!showManualInput && (
         <MenuButton
           menuOptions={menuOptions}
-          style={{ right: 16, bottom: 25 }}
-          fabStyle={{ top: 15 }}
-          menuStyle={{ width: 190, bottom: 20, right: 35, zIndex: 1001 }}
+          style={{ right: wp("4%"), bottom: hp("4%") }}
+          fabStyle={{ top: hp("3%") }}
+          menuStyle={{
+            width: wp("50%"),
+            bottom: hp("2%"),
+            right: wp("12%"),
+            zIndex: 1001,
+          }}
         />
       )}
     </View>
@@ -616,55 +629,56 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    padding: 10,
+    padding: wp("2.5%"),
   },
   itemContainer: {
     flexDirection: "row-reverse",
     alignItems: "center",
-    paddingVertical: 15,
+    paddingVertical: hp("2%"),
   },
   itemText: {
-    fontSize: 16,
+    fontSize: wp("4%"),
     flex: 1,
     textAlign: "left",
-    marginLeft: 10,
+    marginLeft: wp("2.5%"),
   },
   checkbox: {
-    width: 20,
-    height: 20,
+    width: wp("5%"),
+    height: wp("5%"),
     borderWidth: 2,
-    borderRadius: 2,
+    borderRadius: wp("1%"),
     borderColor: "#acacac",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
+    marginRight: wp("2.5%"),
   },
   separator: {
-    height: 1,
+    height: hp("0.2%"),
     backgroundColor: "#e0e0e0",
   },
 
   departmentHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 3,
+    paddingVertical: hp("0.5%"),
     backgroundColor: "#f8f8f8",
-    marginTop: 10,
+    marginTop: hp("1%"),
   },
   departmentImage: {
-    width: 40,
-    height: 40,
-    marginRight: 10,
+    width: wp("10%"),
+    height: wp("10%"),
+    marginRight: wp("3%"),
+    marginLeft: wp("1%"),
   },
   departmentTitle: {
-    fontSize: 18,
+    fontSize: wp("4.5%"),
     fontWeight: "bold",
   },
   addIngredientSection: {
-    marginBottom: 20,
+    marginBottom: hp("2%"),
   },
   title: {
-    fontSize: 22,
+    fontSize: wp("5.5%"),
     color: "#2A3631",
     fontWeight: "bold",
     textAlign: "left",
@@ -673,9 +687,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingBottom: 10,
-    paddingTop: 20,
-    paddingBottom: 20,
+    paddingTop: hp("2%"),
+    paddingBottom: hp("2%"),
   },
   ingredientInputContainer: {
     flexDirection: "row",
@@ -686,91 +699,92 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     borderColor: "#ccc",
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    fontSize: 16,
+    paddingHorizontal: wp("3%"),
+    paddingVertical: hp("1%"),
+    fontSize: wp("4%"),
     textAlign: "right",
-    marginVertical: 10,
-    height: 45,
+    marginVertical: hp("1%"),
+    height: hp("5.8%"),
   },
   quantityUnitContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: hp("1%"),
   },
   quantityInput: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: wp("2.5%"),
     borderColor: "#ccc",
-    paddingVertical: 10,
-    fontSize: 16,
-    textAlign: "right",
-    paddingLeft: 5,
-    marginRight: 10,
-    height: 45,
+    paddingVertical: hp("1.5%"),
+    fontSize: wp("4%"),
+    textAlign: "center",
+    paddingLeft: wp("2%"),
+    marginRight: wp("2.5%"),
+    height: hp("5.8%"),
   },
   pickerContainer: {
     flex: 1,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 10,
+    borderRadius: wp("2.5%"),
     overflow: "hidden",
-    marginVertical: 10,
-    height: 45,
+    marginVertical: hp("1%"),
+    justifyContent: "center",
+    height: hp("5.8%"),
   },
   pickerContainerFull: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 10,
     overflow: "hidden",
-    marginBottom: 10,
-    height: 45,
+    justifyContent: "center",
+    marginBottom: hp("1%"),
+    height: hp("5.8%"),
   },
   picker: {
-    width: "100%",
-    height: 45,
+    height: hp("5.8%"),
   },
   pickerItem: {
-    fontSize: 14,
+    fontSize: wp("3.5%"),
   },
   dropdown: {
     borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 10,
-    width: "100%",
+    borderRadius: wp("2.5%"),
+    padding: wp("2.5%"),
+    width: wp("100%"),
   },
   dropdownText: {
-    fontSize: 16,
+    fontSize: wp("4%"),
     color: "#666",
   },
   dropdownStyle: {
-    borderRadius: 10,
+    borderRadius: wp("2.5%"),
     borderWidth: 1,
     position: "absolute",
   },
   dropdownOptionText: {
-    fontSize: 16,
+    fontSize: wp("4%"),
     color: "#666",
-    padding: 10,
+    padding: wp("2.5%"),
     textAlign: "left",
   },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 5,
-    fontSize: 16,
+    padding: wp("2.5%"),
+    borderRadius: wp("1.25%"),
+    fontSize: wp("4%"),
     width: "100%",
   },
   unitPicker: {
-    width: "100%",
+    width: wp("100%"),
   },
   departmentPicker: {
-    width: "100%",
-    paddingVertical: 6,
-    itemStyle: { height: 120, fontSize: 16 },
-    marginBottom: 10,
+    width: wp("100%"),
+    paddingVertical: hp("1%"),
+    itemStyle: { height: hp("6%"), fontSize: wp("4%") },
+    marginBottom: hp("1%"),
   },
 });

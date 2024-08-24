@@ -16,6 +16,10 @@ import { useState, useEffect } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Camera } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 function ImagePicker({ onTakeImage, initialImage, style }) {
   const [pickedImage, setPickedImage] = useState(initialImage);
@@ -81,8 +85,10 @@ function ImagePicker({ onTakeImage, initialImage, style }) {
 
     const image = await launchCameraAsync({
       allowsEditing: false,
+      maxWidth: 1024,
+      maxHeight: 1024,
       // aspect: [3, 4],
-      quality: 1,
+      quality: 0.9,
     });
 
     if (!image.canceled) {
@@ -136,7 +142,7 @@ function ImagePicker({ onTakeImage, initialImage, style }) {
         style={[styles.imagePreview, style]}
       >
         {!pickedImage ? (
-          <MaterialIcons name="add-a-photo" size={55} color="gray" />
+          <MaterialIcons name="add-a-photo" size={wp("14%")} color="gray" />
         ) : (
           <Image style={styles.image} source={{ uri: pickedImage }} />
         )}
@@ -151,27 +157,26 @@ export default ImagePicker;
 const styles = StyleSheet.create({
   imagePicker: {
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: hp("2%"),
   },
   imagePreview: {
     width: "100%",
-    height: 200,
-    marginBottom: 5,
+    height: hp("25%"),
+    marginBottom: hp("1%"),
     justifyContent: "center",
     alignItems: "center",
     borderColor: "#ccc",
     borderWidth: 2,
     borderStyle: "dashed",
-    borderRadius: 3,
     backgroundColor: "#f5f3f3",
-    borderRadius: 10,
+    borderRadius: wp("2.5%"),
     overflow: "hidden",
-    padding: 10,
+    padding: wp("2.5%"),
   },
   image: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 4,
+    width: wp("90%"),
+    height: hp("64%"),
+    borderRadius: wp("2.5%"),
     resizeMode: "cover",
   },
   imagePromptContainer: {
@@ -180,8 +185,8 @@ const styles = StyleSheet.create({
   },
   promptText: {
     color: "gray",
-    fontSize: 18,
+    fontSize: wp("4.5%"),
     fontWeight: "bold",
-    paddingTop: 8,
+    paddingTop: hp("1%"),
   },
 });

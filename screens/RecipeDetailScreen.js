@@ -24,6 +24,10 @@ import getImageSource from "../util/image";
 import { formatUnit, singularUnits, pluralUnits } from "../util/unitConversion";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import colors from "../constants/colors";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
@@ -287,7 +291,7 @@ function RecipeDetailScreen({ navigation, route }) {
           style={styles.convertUnitsBtn}
           onPress={() => setConvertModalVisible(true)}
         >
-          <Entypo name="swap" size={24} color="white" />
+          <Entypo name="swap" size={wp("6%")} color="white" />
           <Text style={styles.convertUnitsBtnText}>המרת יחידות מידה </Text>
         </TouchableOpacity>
         <Text style={styles.heading}>הוראות הכנה</Text>
@@ -338,16 +342,16 @@ const styles = StyleSheet.create({
   },
   recipeImage: {
     width: "100%",
-    height: 300,
+    height: hp("40%"),
   },
   detailsContainer: {
     backgroundColor: "white",
-    borderTopRightRadius: 30,
-    borderTopLeftRadius: 30,
-    marginTop: -20,
-    paddingTop: 30,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    borderTopRightRadius: wp("8%"),
+    borderTopLeftRadius: wp("8%"),
+    marginTop: -hp("5%"),
+    paddingTop: hp("4%"),
+    paddingHorizontal: wp("5%"),
+    paddingBottom: hp("2%"),
   },
   titleRow: {
     flexDirection: "row",
@@ -356,91 +360,85 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   recipeTitle: {
-    fontSize: 24,
+    fontSize: wp("6%"),
     fontWeight: "bold",
     textAlign: "left",
     flex: 1,
-    marginBottom: 10,
-  },
-  shareButton: {
-    padding: 10,
-    position: "absolute",
-    right: 0,
+    marginBottom: hp("2%"),
   },
   metaInfo: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    marginBottom: hp("1%"),
   },
   categoryName: {
-    fontSize: 16,
+    fontSize: wp("4%"),
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: wp("1.5%"),
+    height: wp("1.5%"),
+    borderRadius: wp("0.75%"),
     backgroundColor: "black",
-    marginHorizontal: 10,
+    marginHorizontal: wp("2%"),
   },
   totalTime: {
-    fontSize: 16,
+    fontSize: wp("4%"),
   },
   separator: {
     borderBottomColor: "#ccc",
     borderBottomWidth: 1,
-    marginVertical: 8,
+    marginVertical: hp("1%"),
   },
   heading: {
-    fontSize: 20,
+    fontSize: wp("5%"),
     fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: hp("2%"),
+    marginBottom: hp("1%"),
     textAlign: "right",
     alignSelf: "flex-start",
   },
   instructionsContainer: {
-    paddingBottom: 5,
+    paddingBottom: hp("1%"),
   },
   instructions: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: wp("4%"),
+    marginBottom: hp("1%"),
     textAlign: "left",
   },
   instructionStep: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: wp("4%"),
+    marginBottom: hp("1%"),
   },
   instructionText: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: wp("4%"),
+    marginBottom: hp("1%"),
     textAlign: "left",
   },
   instructionStepContainer: {
-    marginBottom: 3,
+    marginBottom: hp("0.5%"),
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-evenly",
-    marginBottom: 20,
-    paddingHorizontal: 20,
+    marginBottom: hp("2%"),
+    paddingHorizontal: wp("5%"),
   },
   convertUnitsBtn: {
     backgroundColor: colors.secondaryGreen,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 15,
+    paddingHorizontal: wp("2.5%"),
+    paddingVertical: hp("1%"),
+    borderRadius: wp("4%"),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    width: "45%",
-    marginBottom: 10,
-    marginTop: 10,
+    width: wp("45%"),
+    marginBottom: hp("1%"),
+    marginTop: hp("1%"),
   },
   convertUnitsBtnText: {
     color: "white",
-    fontSize: 14,
-    paddingLeft: 8,
+    fontSize: wp("3.5%"),
     fontWeight: "bold",
   },
   cancelButton: {
@@ -449,17 +447,17 @@ const styles = StyleSheet.create({
   iconsContainer: {
     flexDirection: "row",
     position: "absolute",
-    right: 0,
+    right: wp("1%"),
   },
   iconButton: {
-    paddingHorizontal: 10,
-    height: 40,
+    paddingHorizontal: wp("3%"),
+    height: hp("5%"),
     justifyContent: "center",
     alignItems: "center",
   },
   menu: {
     backgroundColor: "white",
-    borderRadius: 8,
+    borderRadius: wp("2%"),
     borderColor: "#ccc",
     borderWidth: 1,
     elevation: 6,
@@ -467,20 +465,20 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    paddingVertical: 5,
-    paddingHorizontal: 5,
-    width: 140,
+    paddingVertical: hp("1%"),
+    paddingHorizontal: wp("2%"),
+    width: wp("40%"),
     position: "absolute",
-    top: 330,
-    right: 32,
+    top: hp("43%"),
+    right: wp("10%"),
     zIndex: 1001,
   },
   menuItem: {
     alignItems: "center",
-    padding: 7,
+    padding: hp("1%"),
   },
   menuText: {
     color: "black",
-    fontSize: 16,
+    fontSize: wp("4%"),
   },
 });
