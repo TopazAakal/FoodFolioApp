@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   recipeTitle: {
     fontSize: wp("6%"),
     fontWeight: "bold",
-    textAlign: "center",
+    textAlign: "left",
     flex: 1,
     marginBottom: hp("2%"),
   },

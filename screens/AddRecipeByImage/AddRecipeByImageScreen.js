@@ -106,7 +106,7 @@ function AddRecipeByImageScreen({ navigation }) {
           instructions: detectedText.instructions,
           imageUri: null,
           totalTime:
-            detectedText["totalTime"] === "0 דקות"
+            detectedText["totalTime"] === "undefined"
               ? "לא צוין"
               : detectedText["totalTime"],
         };
