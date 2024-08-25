@@ -18,7 +18,6 @@ function AddRecipeByUrlScreen({ navigation }) {
 
   const handleSaveRecipe = async () => {
     console.log("URL submitted:", recipeUrl);
-    const encodedUrl = encodeURIComponent(recipeUrl);
     try {
       if (!recipeUrl) {
         Alert.alert("שגיאה", "אנא הזן קישור למתכון", [{ text: "אישור" }]);
@@ -28,7 +27,7 @@ function AddRecipeByUrlScreen({ navigation }) {
       const response = await axios.post(
         "https://ilwcjy1wk4.execute-api.us-east-1.amazonaws.com/dev/",
         {
-          URL: encodedUrl,
+          URL: String(recipeUrl),
         }
       );
       try {
