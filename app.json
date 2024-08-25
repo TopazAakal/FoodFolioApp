@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "FoodFolio",
-    "slug": "FoofolioProject",
+    "slug": "FoodfolioProject",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
