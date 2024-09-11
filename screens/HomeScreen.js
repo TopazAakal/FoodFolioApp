@@ -21,17 +21,11 @@ import { useFocusEffect } from "@react-navigation/native";
 import getImageSource from "../util/image";
 import MenuButton from "../components/UI/MenuButton";
 import colors from "../constants/colors";
-import {
-  daysOfWeek,
-  mealTypes,
-  originalDaysOfWeek,
-  mealTypeMap,
-} from "../constants/recipeConstants";
+import { daysOfWeek, mealTypes } from "../constants/recipeConstants";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-
 
 const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -221,10 +215,23 @@ const HomeScreen = ({ navigation }) => {
       <Text style={styles.recipeTitle}>{item.title}</Text>
     </TouchableOpacity>
   );
+  const handleSettingsPress = () => {
+    navigation.navigate("Settings");
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.greeting}>{getGreeting()}</Text>
+      <View style={styles.greetingContainer}>
+        <Text style={styles.greeting}>{getGreeting()}</Text>
+        <TouchableOpacity onPress={handleSettingsPress}>
+          <Ionicons
+            name="settings-outline"
+            size={24}
+            color="black"
+            style={styles.settingsIcon}
+          />
+        </TouchableOpacity>
+      </View>
       <View style={styles.searchRow}>
         <View style={styles.searchContainer}>
           <TextInput
@@ -353,6 +360,13 @@ const styles = StyleSheet.create({
   contentContainer: {
     alignItems: "flex-start",
   },
+  greetingContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: hp("1%"), // Adjusted margin
+  },
+
   greeting: {
     fontSize: wp("5.2%"), // Adjusted font size
     marginBottom: hp("1%"),

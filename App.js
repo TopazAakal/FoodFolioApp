@@ -17,6 +17,7 @@ import AddCategoryScreen from "./screens/AddCategory/AddCategoryScreen";
 import AddRecipeByImageScreen from "./screens/AddRecipeByImage/AddRecipeByImageScreen";
 import ShoppingListScreen from "./screens/ShoppingListScreen";
 import MealPlanningScreen from "./screens/MealPlanningScreen";
+import SettingsScreen from "./screens/SettingsScreen";
 import MyTabs from "./components/MyTabs";
 import {
   heightPercentageToDP,
@@ -140,6 +141,11 @@ export default function App() {
                 name="MealPlan"
                 component={MealPlanningScreen}
                 options={{ title: "לוח ארוחות" }}
+              />
+              <Stack.Screen
+                name="Settings"
+                component={SettingsScreen}
+                options={{ title: "הגדרות" }}
               />
             </Stack.Navigator>
           </NavigationContainer>
